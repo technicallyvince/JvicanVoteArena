@@ -1,0 +1,104 @@
+import { formatCurrency, formatDateTime } from '../utils'
+
+interface ReceiptEmailProps {
+  contestName: string
+  contestLogo?: string | null
+  contestantName: string
+  categoryName: string
+  receiptNumber: string
+  publicId: string
+  voterEmail: string
+  quantity: number
+  unitPrice: number
+  totalAmount: number
+  currency: string
+  paymentReference: string
+  issuedAt: string
+}
+
+export function generateReceiptHtml(props: ReceiptEmailProps): string {
+  const verifyUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/receipt/${props.publicId}`
+
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Official Voting Receipt - ${props.receiptNumber}</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f4f4f7; color: #333333; margin: 0; padding: 24px; }
+    .container { max-width: 580px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; }
+    .header { background: #0f172a; color: #ffffff; padding: 32px 24px; text-align: center; }
+    .header h1 { margin: 0 0 6px 0; font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+    .badge { display: inline-block; background: #22c55e; color: #ffffff; font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 8px; }
+    .content { padding: 32px 24px; }
+    .receipt-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-bottom: 24px; }
+    .item-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #e2e8f0; font-size: 14px; }
+    .item-row:last-child { border-bottom: none; }
+    .label { color: #64748b; font-weight: 500; }
+    .value { color: #0f172a; font-weight: 600; text-align: right; }
+    .total-row { display: flex; justify-content: space-between; padding-top: 14px; margin-top: 10px; border-top: 2px solid #0f172a; font-size: 18px; font-weight: 700; color: #0f172a; }
+    .btn { display: block; width: 100%; box-sizing: border-box; text-align: center; background: #2563eb; color: #ffffff; text-decoration: none; padding: 14px 20px; border-radius: 8px; font-weight: 600; font-size: 15px; margin-top: 24px; }
+    .footer { text-align: center; font-size: 12px; color: #94a3b8; padding: 24px; border-top: 1px solid #f1f5f9; background: #fafafa; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div style="font-size: 13px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: #f59e0b; margin-bottom: 4px;">JVican Vote Arena</div>
+      <h1>${props.contestName}</h1>
+      <div>Official Voting Receipt</div>
+      <div class="badge">Payment Confirmed & Verified</div>
+    </div>
+    <div class="content">
+      <p style="font-size: 15px; line-height: 1.5; margin-top: 0;">
+        Hello, thank you for supporting <strong>${props.contestantName}</strong> in <strong>${props.contestName}</strong> on <strong>JVican Vote Arena</strong>. Your votes have been verified and authoritatively recorded on the official ledger.
+      </p>
+
+      <div class="receipt-box">
+        <div class="item-row">
+          <span class="label">Receipt Number</span>
+          <span class="value">${props.receiptNumber}</span>
+        </div>
+        <div class="item-row">
+          <span class="label">Contestant</span>
+          <span class="value">${props.contestantName}</span>
+        </div>
+        <div class="item-row">
+          <span class="label">Category</span>
+          <span class="value">${props.categoryName}</span>
+        </div>
+        <div class="item-row">
+          <span class="label">Votes Purchased</span>
+          <span class="value">${props.quantity} vote${props.quantity > 1 ? 's' : ''}</span>
+        </div>
+        <div class="item-row">
+          <span class="label">Price per Vote</span>
+          <span class="value">${formatCurrency(props.unitPrice, props.currency)}</span>
+        </div>
+        <div class="item-row">
+          <span class="label">Date & Time</span>
+          <span class="value">${formatDateTime(props.issuedAt)}</span>
+        </div>
+        <div class="item-row">
+          <span class="label">Payment Ref</span>
+          <span class="value" style="font-family: monospace;">${props.paymentReference}</span>
+        </div>
+        <div class="total-row">
+          <span>Total Paid</span>
+          <span>${formatCurrency(props.totalAmount, props.currency)}</span>
+        </div>
+      </div>
+
+      <a href="${verifyUrl}" class="btn" style="color: #ffffff; background: #f59e0b;">Verify Receipt Legitimacy Online</a>
+    </div>
+    <div class="footer">
+      This is an automated transactional receipt generated by JVican Vote Arena for ${props.contestName}.<br>
+      Voter Email: ${props.voterEmail} • Public ID: ${props.publicId}
+    </div>
+  </div>
+</body>
+</html>
+  `
+}
