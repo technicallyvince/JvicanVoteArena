@@ -87,8 +87,8 @@ function CallbackContent() {
         </h2>
         <p className="text-sm text-red-600 mt-2 max-w-sm font-medium">{errorMsg}</p>
         <div className="mt-8 flex gap-3">
-          <Link href="/contests">
-            <Button variant="primary">Return to Contests</Button>
+          <Link href="/events">
+            <Button variant="primary">Return to Events</Button>
           </Link>
         </div>
       </div>
@@ -98,60 +98,60 @@ function CallbackContent() {
   const { vote, receipt } = data || {}
 
   return (
-    <div className="py-12 sm:py-16">
+    <div className="py-12 sm:py-16 pt-24 sm:pt-28 bg-[#06080e] min-h-screen text-white">
       <div className="mx-auto max-w-xl px-4 sm:px-6">
-        <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white p-6 sm:p-10 shadow-xl dark:border-slate-800 dark:bg-slate-900">
+        <div className="overflow-hidden rounded-3xl border border-white/[0.08] bg-[#0c101b]/95 p-6 sm:p-10 shadow-xl backdrop-blur-xl">
           <div className="flex flex-col items-center text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400 mb-4 shadow-md">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-400 mb-4 shadow-md border border-emerald-500/30">
               <CheckCircle2 className="h-9 w-9" />
             </div>
             <Badge variant="success" size="md">
               Payment & Votes Confirmed
             </Badge>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-3">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-white mt-3">
               Thank You For Voting!
             </h1>
-            <p className="text-sm text-slate-500 mt-1">
+            <p className="text-sm text-slate-400 mt-1">
               Your votes have been authoritatively recorded on the ledger.
             </p>
           </div>
 
           {/* Receipt Preview Box */}
-          <div className="mt-8 rounded-2xl bg-slate-50 p-6 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-3">
-            <div className="flex justify-between text-xs text-slate-500 pb-2 border-b border-slate-200 dark:border-slate-700">
+          <div className="mt-8 rounded-2xl bg-neutral-900/80 p-6 border border-white/[0.08] space-y-3">
+            <div className="flex justify-between text-xs text-slate-400 pb-2 border-b border-white/[0.06]">
               <span>Receipt Number</span>
-              <span className="font-mono font-bold text-slate-900 dark:text-white">
+              <span className="font-mono font-bold text-white">
                 {receipt?.receipt_number || "REC-2026-XXXX"}
               </span>
             </div>
-            <div className="flex justify-between text-xs text-slate-500">
+            <div className="flex justify-between text-xs text-slate-400">
               <span>Votes Cast</span>
-              <span className="font-bold text-slate-900 dark:text-white">
+              <span className="font-bold text-amber-400">
                 {vote?.quantity} Vote{vote?.quantity > 1 ? "s" : ""}
               </span>
             </div>
-            <div className="flex justify-between text-xs text-slate-500">
+            <div className="flex justify-between text-xs text-slate-400">
               <span>Total Paid</span>
-              <span className="font-bold text-slate-900 dark:text-white">
+              <span className="font-bold text-white">
                 {formatCurrency(vote?.total_amount, vote?.currency)}
               </span>
             </div>
-            <div className="flex justify-between text-xs text-slate-500">
+            <div className="flex justify-between text-xs text-slate-400">
               <span>Voter Email</span>
-              <span className="font-medium text-slate-900 dark:text-white">
+              <span className="font-medium text-white">
                 {vote?.voter_email}
               </span>
             </div>
-            <div className="flex justify-between text-xs text-slate-500 pt-2 border-t border-slate-200 dark:border-slate-700">
+            <div className="flex justify-between text-xs text-slate-400 pt-2 border-t border-white/[0.06]">
               <span>Payment Ref</span>
-              <span className="font-mono text-slate-700 dark:text-slate-300">
+              <span className="font-mono text-slate-300">
                 {vote?.payment_reference}
               </span>
             </div>
           </div>
 
-          <div className="mt-4 flex items-center justify-center gap-2 text-xs text-slate-500 text-center">
-            <Mail className="h-4 w-4 text-blue-600" />
+          <div className="mt-4 flex items-center justify-center gap-2 text-xs text-slate-400 text-center">
+            <Mail className="h-4 w-4 text-amber-400" />
             <span>A verified receipt has been dispatched to {vote?.voter_email}.</span>
           </div>
 
@@ -166,9 +166,9 @@ function CallbackContent() {
               </Link>
             )}
 
-            <Link href="/contests" className="block">
-              <Button variant="outline" size="md" className="w-full justify-center">
-                Return to Contests
+            <Link href="/events" className="block">
+              <Button variant="outline" size="md" className="w-full justify-center border-white/10 hover:border-amber-400/40 text-slate-300 hover:text-white">
+                Return to Events
                 <ArrowRight className="h-4 w-4 ml-1.5" />
               </Button>
             </Link>

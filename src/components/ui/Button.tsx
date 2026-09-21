@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils"
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "accent" | "outline" | "ghost" | "danger" | "success"
+  variant?: "primary" | "secondary" | "accent" | "outline" | "ghost" | "danger" | "success" | "glass"
   size?: "sm" | "md" | "lg" | "xl"
   isLoading?: boolean
   leftIcon?: React.ReactNode
@@ -28,37 +28,40 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const baseStyles =
-      "inline-flex items-center justify-center font-bold transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer select-none"
+      "group relative inline-flex items-center justify-center font-bold tracking-tight transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ff5500] focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer select-none active:scale-[0.98]"
 
     const variants = {
-      // Primary: Golden Amber Brand Action (Create Contest / Submit Vote)
+      // Primary: Warm Ember Orange Action with micro-glow
       primary:
-        "bg-amber-500 text-slate-950 hover:bg-amber-400 active:bg-amber-600 shadow-md shadow-amber-500/25 border border-amber-400/30",
-      // Secondary: Deep Obsidian Charcoal
+        "bg-[#ff5500] text-white hover:bg-[#ff661a] active:bg-[#e64d00] shadow-lg shadow-[#ff5500]/25 border border-[#ff5500]/30 hover:shadow-xl hover:shadow-[#ff5500]/35 hover:-translate-y-0.5",
+      // Secondary: Deep Pure Charcoal with subtle border
       secondary:
-        "bg-slate-900 text-white hover:bg-slate-800 active:bg-black shadow-sm dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-800 dark:border-slate-700",
-      // Accent: Vibrant Cyan/Blue Action
+        "bg-neutral-900 text-white hover:bg-neutral-800 active:bg-black shadow-md border border-white/[0.08] hover:border-white/20",
+      // Accent: Vibrant Orange Gradient
       accent:
-        "bg-sky-600 text-white hover:bg-sky-500 active:bg-sky-700 shadow-md shadow-sky-500/20 border border-sky-400/30",
-      // Outline: Structured surface border
+        "bg-gradient-to-r from-[#ff5500] to-[#ff8c42] text-white hover:from-[#ff661a] hover:to-[#ff9e5e] shadow-lg shadow-[#ff5500]/25 border border-white/10 hover:-translate-y-0.5",
+      // Outline: Structured Obsidian glass border
       outline:
-        "border border-slate-200 bg-white text-slate-800 hover:bg-slate-50 hover:border-slate-300 active:bg-slate-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800 dark:hover:border-slate-700",
-      // Ghost: Subtle flat
+        "border border-white/[0.12] bg-white/[0.03] text-white hover:bg-white/[0.08] hover:border-white/25 backdrop-blur-md active:bg-white/[0.05]",
+      // Glass: Semi-transparent modern glass
+      glass:
+        "border border-white/[0.14] bg-neutral-900/80 text-white hover:bg-neutral-800 backdrop-blur-xl shadow-lg hover:border-[#ff5500]/40",
+      // Ghost: Subtle flat obsidian
       ghost:
-        "text-slate-700 hover:bg-slate-100 active:bg-slate-200 dark:text-slate-300 dark:hover:bg-slate-800/80 dark:hover:text-white",
+        "text-neutral-300 hover:bg-white/[0.06] hover:text-white active:bg-white/[0.1]",
       // Danger / Destructive
       danger:
-        "bg-rose-600 text-white hover:bg-rose-700 active:bg-rose-800 shadow-sm shadow-rose-600/20 border border-rose-500/30",
+        "bg-rose-600 text-white hover:bg-rose-500 active:bg-rose-700 shadow-md shadow-rose-600/20 border border-rose-500/30",
       // Success / Verified
       success:
-        "bg-emerald-600 text-white hover:bg-emerald-700 active:bg-emerald-800 shadow-sm shadow-emerald-600/20 border border-emerald-500/30",
+        "bg-emerald-500 text-neutral-950 hover:bg-emerald-400 active:bg-emerald-600 shadow-md shadow-emerald-500/20 border border-emerald-400/30",
     }
 
     const sizes = {
-      sm: "text-xs px-3 py-1.5 h-8 gap-1.5 rounded-lg",
-      md: "text-xs sm:text-sm px-4 py-2.5 h-10 gap-2 rounded-xl",
-      lg: "text-sm sm:text-base px-6 py-3 h-12 gap-2.5 font-bold rounded-2xl",
-      xl: "text-base sm:text-lg px-8 py-3.5 sm:py-4 h-14 gap-3 font-black rounded-full shadow-lg",
+      sm: "text-xs px-4 py-1.5 h-9 gap-1.5 rounded-full font-semibold",
+      md: "text-xs sm:text-sm px-5 py-2.5 h-11 gap-2 rounded-full font-bold",
+      lg: "text-sm sm:text-base px-7 py-3.5 h-12.5 gap-2.5 font-bold rounded-full",
+      xl: "text-base sm:text-lg px-9 py-4 h-14 gap-3 font-extrabold rounded-full shadow-xl",
     }
 
     return (
@@ -97,10 +100,12 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             />
           </svg>
         ) : (
-          leftIcon && <span className="shrink-0">{leftIcon}</span>
+          leftIcon && <span className="shrink-0 transition-transform group-hover:-translate-x-0.5">{leftIcon}</span>
         )}
         <span>{children}</span>
-        {!isLoading && rightIcon && <span className="shrink-0">{rightIcon}</span>}
+        {!isLoading && rightIcon && (
+          <span className="shrink-0 transition-transform group-hover:translate-x-0.5">{rightIcon}</span>
+        )}
       </button>
     )
   }

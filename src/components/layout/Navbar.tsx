@@ -2,17 +2,21 @@
 
 import React, { useState, useEffect } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { Menu, X, ChevronRight, ArrowUpRight } from "lucide-react"
+import { usePathname, useRouter } from "next/navigation"
+import { Menu, X, ChevronRight, ArrowUpRight, LogOut, User } from "lucide-react"
 import { BrandLogo } from "../ui/BrandLogo"
 import { Button } from "../ui/Button"
+import { AuthModal } from "../auth/AuthModal"
+import { useAuth } from "@/lib/auth"
 import { cn } from "@/lib/utils"
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const pathname = usePathname()
-  const isHomePage = pathname === "/"
+  const router = useRouter()
+  const { isAuthenticated, user, logout } = useAuth()
 
   useEffect(() => {
     const handleScroll = () => {
@@ -29,9 +33,7 @@ export function Navbar() {
 
   const navLinks = [
     { name: "Home", href: "/" },
-    { name: "Contests", href: "/contests" },
-    { name: "Contestants", href: "/contestants" },
-    { name: "Winners", href: "/winners" },
+    { name: "Events", href: "/events" },
     { name: "How It Works", href: "/how-it-works" },
     { name: "About", href: "/about" },
   ]
@@ -42,145 +44,188 @@ export function Navbar() {
     return false
   }
 
+  const handleCreateEventClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    if (isAuthenticated) {
+      router.push("/create-event")
+    } else {
+      setIsAuthModalOpen(true)
+    }
+  }
+
   return (
-    <header
-      className={cn(
-        "sticky top-0 z-50 w-full transition-all duration-300",
-        scrolled
-          ? "border-b border-white/10 bg-[#090d16]/90 backdrop-blur-xl shadow-lg"
-          : isHomePage
-          ? "bg-transparent border-b border-white/5"
-          : "border-b border-slate-200/80 bg-white/90 backdrop-blur-md dark:border-slate-800 dark:bg-[#090d16]/90"
-      )}
-    >
-      <div className="mx-auto flex h-16 sm:h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        {/* JVican Vote Arena Brand Lockup */}
-        <Link href="/" className="flex items-center group shrink-0">
-          <BrandLogo
-            size="md"
-            showName
-            showSubtitle={false}
-            variant={isHomePage || scrolled ? "dark" : "auto"}
-            priority
-          />
-        </Link>
+    <>
+      {/* Floating Pill Navbar — RareUI-inspired */}
+      <header
+        className={cn(
+          "pointer-events-none fixed inset-x-0 top-4 z-50 flex justify-center px-4 sm:px-6 md:top-6 transition-all duration-300",
+          scrolled && "top-3 md:top-4"
+        )}
+      >
+        <nav className="pointer-events-auto relative z-10 flex w-full max-w-4xl items-center justify-between">
 
-        {/* Desktop Primary Navigation */}
-        <nav className="hidden md:flex items-center gap-6 lg:gap-8">
-          {navLinks.map((link) => {
-            const active = isActive(link.href)
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={cn(
-                  "text-xs lg:text-sm font-medium transition-colors duration-200",
-                  active
-                    ? isHomePage || scrolled
-                      ? "text-amber-400 font-semibold"
-                      : "text-amber-600 dark:text-amber-400 font-semibold"
-                    : isHomePage || scrolled
-                    ? "text-slate-300 hover:text-white"
-                    : "text-slate-600 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white"
-                )}
-              >
-                {link.name}
-              </Link>
-            )
-          })}
-        </nav>
-
-        {/* Desktop Actions */}
-        <div className="hidden md:flex items-center gap-3">
+          {/* Brand Pill */}
           <Link
-            href="/login"
-            className={cn(
-              "text-xs lg:text-sm font-medium px-3 py-2 transition-colors",
-              isHomePage || scrolled
-                ? "text-slate-300 hover:text-white"
-                : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
-            )}
+            href="/"
+            className="flex h-12 items-center gap-2.5 rounded-full border border-white/[0.06] bg-neutral-900 px-4 shadow-lg shadow-black/10 transition-colors hover:bg-neutral-800"
           >
-            Login
-          </Link>
-          <Link href="/create-contest">
-            <Button
-              variant="primary"
+            <BrandLogo
               size="sm"
-              className="gap-1.5 font-bold text-xs rounded-full px-4.5 py-2 shadow-sm shadow-amber-500/20"
-            >
-              <span>Create Contest</span>
-              <ArrowUpRight className="h-3.5 w-3.5" />
-            </Button>
+              showName
+              showSubtitle={false}
+              variant="dark"
+              priority
+            />
           </Link>
-        </div>
 
-        {/* Mobile Hamburger Toggle */}
-        <div className="flex items-center gap-2 md:hidden">
-          <button
-            type="button"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className={cn(
-              "flex h-9 w-9 items-center justify-center rounded-full border transition-colors cursor-pointer",
-              isHomePage || scrolled
-                ? "border-white/15 bg-white/5 text-white hover:bg-white/10"
-                : "border-slate-200 bg-white text-slate-800 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
-            )}
-            aria-label="Toggle menu"
-          >
-            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
-        </div>
-      </div>
-
-      {/* Mobile Fullscreen Drawer Navigation */}
-      {mobileMenuOpen && (
-        <div className="md:hidden border-b border-white/10 bg-[#090d16] px-5 pt-4 pb-8 shadow-2xl animate-in slide-in-from-top duration-200">
-          <div className="space-y-1 pb-5 border-b border-slate-800/80">
-            {navLinks.map((link) => {
+          {/* Desktop Navigation Links Pill */}
+          <div className="hidden h-12 items-center rounded-full border border-white/[0.06] bg-neutral-900 px-2 shadow-lg shadow-black/10 md:flex">
+            {navLinks.map((link, i) => {
               const active = isActive(link.href)
               return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={cn(
-                    "flex items-center justify-between px-4 py-3 text-base font-semibold rounded-xl transition-all",
-                    active
-                      ? "text-amber-400 font-bold bg-white/5"
-                      : "text-slate-200 hover:text-white hover:bg-white/5"
+                <React.Fragment key={link.href}>
+                  {i > 0 && (
+                    <span className="h-4 w-px bg-white/[0.12]" />
                   )}
-                >
-                  <span>{link.name}</span>
-                  <ChevronRight className="h-4 w-4 text-slate-500" />
-                </Link>
+                  <Link
+                    href={link.href}
+                    className={cn(
+                      "px-3.5 text-sm font-medium transition-colors duration-150 ease-out",
+                      active
+                        ? "text-[#ff5500] font-semibold"
+                        : "text-white/60 hover:text-white"
+                    )}
+                  >
+                    {link.name}
+                  </Link>
+                </React.Fragment>
               )
             })}
           </div>
 
-          <div className="mt-5 space-y-3">
-            <Link href="/create-contest" className="block">
-              <Button
-                variant="primary"
-                size="lg"
-                className="w-full justify-center rounded-full font-bold text-sm gap-2 shadow-lg shadow-amber-500/20"
+          {/* Desktop Action Pills */}
+          <div className="hidden items-center gap-2 md:flex">
+            {isAuthenticated ? (
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/dashboard"
+                  className="flex h-12 items-center gap-1.5 rounded-full border border-white/[0.06] bg-neutral-900 px-4 text-xs font-semibold text-[#ff5500] shadow-lg shadow-black/10 hover:bg-neutral-800"
+                >
+                  <User className="h-3.5 w-3.5" />
+                  <span>Dashboard</span>
+                </Link>
+                <button
+                  onClick={() => logout()}
+                  className="flex h-12 w-12 items-center justify-center rounded-full border border-white/[0.06] bg-neutral-900 text-slate-400 hover:text-white shadow-lg shadow-black/10 hover:bg-neutral-800 cursor-pointer"
+                  title="Sign out"
+                >
+                  <LogOut className="h-4 w-4" />
+                </button>
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="flex h-12 items-center rounded-full border border-white/[0.06] bg-neutral-900 px-5 text-sm font-medium text-white/70 shadow-lg shadow-black/10 transition-colors duration-150 ease-out hover:bg-neutral-800 hover:text-white"
               >
-                <span>Create a Contest</span>
-                <ArrowUpRight className="h-4 w-4" />
-              </Button>
-            </Link>
+                Login
+              </Link>
+            )}
 
-            <Link href="/login" className="block text-center">
-              <Button
-                variant="outline"
-                size="md"
-                className="w-full border-slate-700 bg-white/5 text-slate-300 hover:text-white hover:bg-white/10 justify-center text-xs font-semibold rounded-full"
+            <button
+              onClick={handleCreateEventClick}
+              className="cursor-pointer"
+            >
+              <div className="flex h-12 items-center gap-1.5 rounded-full bg-[#ff5500] px-5 text-sm font-bold text-white shadow-lg shadow-[#ff5500]/25 transition-colors duration-150 ease-out hover:bg-[#ff661a]">
+                <span>Create Event</span>
+                <ArrowUpRight className="h-4 w-4" />
+              </div>
+            </button>
+          </div>
+
+          {/* Mobile Hamburger Pill */}
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="flex h-12 w-12 items-center justify-center rounded-full border border-white/[0.06] bg-neutral-900 shadow-lg shadow-black/10 transition-colors hover:bg-neutral-800 md:hidden cursor-pointer"
+            aria-label="Toggle menu"
+          >
+            {mobileMenuOpen ? (
+              <X className="h-5 w-5 text-white" />
+            ) : (
+              <Menu className="h-5 w-5 text-white" />
+            )}
+          </button>
+        </nav>
+      </header>
+
+      {/* Mobile Fullscreen Drawer */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-40 bg-neutral-900/98 backdrop-blur-xl md:hidden animate-in fade-in duration-200">
+          <div className="flex flex-col pt-24 px-6 pb-8 h-full">
+            <div className="space-y-1 flex-1">
+              {navLinks.map((link) => {
+                const active = isActive(link.href)
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={cn(
+                      "flex items-center justify-between px-4 py-4 text-lg font-semibold rounded-2xl transition-all",
+                      active
+                        ? "text-amber-400 font-bold bg-white/[0.05]"
+                        : "text-white/70 hover:text-white hover:bg-white/[0.04]"
+                    )}
+                  >
+                    <span>{link.name}</span>
+                    <ChevronRight className="h-4 w-4 text-white/30" />
+                  </Link>
+                )
+              })}
+            </div>
+
+            <div className="space-y-3 pt-6 border-t border-white/[0.08]">
+              <button
+                onClick={handleCreateEventClick}
+                className="w-full cursor-pointer"
               >
-                Organizer Login
-              </Button>
-            </Link>
+                <div className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-amber-500 font-bold text-neutral-900 text-sm shadow-lg shadow-amber-500/20">
+                  <span>Create Event</span>
+                  <ArrowUpRight className="h-4 w-4" />
+                </div>
+              </button>
+
+              {isAuthenticated ? (
+                <div className="flex gap-2">
+                  <Link href="/dashboard" className="flex-1">
+                    <div className="flex h-14 w-full items-center justify-center rounded-full border border-white/[0.1] bg-white/[0.05] text-sm font-semibold text-amber-400">
+                      Dashboard
+                    </div>
+                  </Link>
+                  <button
+                    onClick={() => logout()}
+                    className="flex h-14 px-6 items-center justify-center rounded-full border border-white/[0.1] bg-white/[0.05] text-sm font-semibold text-red-400"
+                  >
+                    Logout
+                  </button>
+                </div>
+              ) : (
+                <Link href="/login" className="block">
+                  <div className="flex h-14 w-full items-center justify-center rounded-full border border-white/[0.1] bg-white/[0.05] text-sm font-semibold text-white/80">
+                    Organizer Login
+                  </div>
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       )}
-    </header>
+
+      {/* Auth Modal triggered when unauthenticated user clicks Create Event */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        redirectTo="/create-event"
+      />
+    </>
   )
 }

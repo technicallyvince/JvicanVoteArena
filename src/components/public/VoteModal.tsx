@@ -12,8 +12,8 @@ import { cn } from "@/lib/utils"
 interface VoteModalProps {
   isOpen: boolean
   onClose: () => void
-  contestant: Nominee | null
-  contest: Event | null
+  nominee: Nominee | null
+  event: Event | null
   category: Category | null
   packages?: VotePackage[]
 }
@@ -21,8 +21,8 @@ interface VoteModalProps {
 export function VoteModal({
   isOpen,
   onClose,
-  contestant,
-  contest,
+  nominee,
+  event,
   category,
   packages = [],
 }: VoteModalProps) {
@@ -34,10 +34,10 @@ export function VoteModal({
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [errorMsg, setErrorMsg] = useState<string>("")
 
-  if (!contestant || !contest) return null
+  if (!nominee || !event) return null
 
-  const unitPrice = Number(contest.vote_price) || 100
-  const currency = contest.currency || "NGN"
+  const unitPrice = Number(event.vote_price) || 100
+  const currency = event.currency || "NGN"
   const isFreeVoting = unitPrice === 0
 
   const finalQuantity = isCustom
@@ -93,9 +93,9 @@ export function VoteModal({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          eventId: contest.id,
-          nomineeId: contestant.id,
-          categoryId: contestant.category_id,
+          eventId: event.id,
+          nomineeId: nominee.id,
+          categoryId: nominee.category_id,
           quantity: finalQuantity,
           voterEmail: email.trim(),
         }),
@@ -124,38 +124,38 @@ export function VoteModal({
       isOpen={isOpen}
       onClose={onClose}
       title="Cast Verified Votes"
-      description={`Support ${contestant.name} in ${contest.name}`}
+      description={`Support ${nominee.name} in ${event.name}`}
       maxWidth="md"
     >
       <form onSubmit={handleProceedToPayment} className="space-y-5">
-        {/* Contestant Mini Card */}
-        <div className="flex items-center gap-3.5 rounded-2xl bg-slate-50 p-3.5 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700">
+        {/* Nominee Mini Card */}
+        <div className="flex items-center gap-3.5 rounded-2xl bg-neutral-900/90 p-3.5 border border-white/[0.08]">
           <img
-            src={contestant.image_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80"}
-            alt={contestant.name}
-            className="h-14 w-14 rounded-xl object-cover shadow-xs"
+            src={nominee.image_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80"}
+            alt={nominee.name}
+            className="h-14 w-14 rounded-xl object-cover shadow-sm"
           />
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <h4 className="text-sm font-extrabold text-slate-900 dark:text-white truncate">
-                {contestant.name}
+              <h4 className="text-sm font-extrabold text-white truncate">
+                {nominee.name}
               </h4>
-              <span className="rounded-md bg-black/70 px-1.5 py-0.5 text-[10px] font-mono font-bold text-white">
-                #{contestant.public_id}
+              <span className="rounded-md bg-black/70 px-1.5 py-0.5 text-[10px] font-mono font-bold text-[#ff8c42] border border-white/10">
+                #{nominee.public_id}
               </span>
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
+            <p className="text-xs text-neutral-400 truncate mt-0.5">
               {category?.name || "Competition Category"}
             </p>
             <div className="flex items-center gap-2 mt-1">
               {isFreeVoting ? (
-                <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-400">
                   <Gift className="h-3 w-3" />
                   Free Community Voting
                 </span>
               ) : (
-                <span className="text-xs font-bold text-blue-600 dark:text-blue-400">
-                  {formatCurrency(unitPrice, currency)} <span className="text-[10px] font-normal text-slate-400">/ vote</span>
+                <span className="text-xs font-bold text-[#ff8c42]">
+                  {formatCurrency(unitPrice, currency)} <span className="text-[10px] font-normal text-neutral-400">/ vote</span>
                 </span>
               )}
             </div>
@@ -164,16 +164,16 @@ export function VoteModal({
 
         {/* Free vs Paid Vote Indicator Banner */}
         <div className={cn(
-          "flex items-center justify-between rounded-xl px-3.5 py-2 text-xs font-semibold",
+          "flex items-center justify-between rounded-2xl px-3.5 py-2.5 text-xs font-semibold border",
           isFreeVoting
-            ? "bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800"
-            : "bg-blue-50/70 text-blue-900 border border-blue-200/80 dark:bg-blue-950/40 dark:text-blue-200 dark:border-blue-900"
+            ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+            : "bg-[#ff5500]/10 text-[#ff8c42] border-[#ff5500]/20"
         )}>
-          <div className="flex items-center gap-1.5">
-            {isFreeVoting ? <Gift className="h-4 w-4 text-emerald-600" /> : <Lock className="h-4 w-4 text-blue-600" />}
+          <div className="flex items-center gap-1.5 font-bold">
+            {isFreeVoting ? <Gift className="h-4 w-4 text-emerald-400" /> : <Lock className="h-4 w-4 text-[#ff5500]" />}
             <span>{isFreeVoting ? "FREE VOTE MODE" : "OFFICIAL PAID VOTE"}</span>
           </div>
-          <span className="text-[11px] font-mono font-bold">
+          <span className="text-[11px] font-mono font-bold text-white">
             {isFreeVoting ? "0.00 NGN" : `1 Vote = ${formatCurrency(unitPrice, currency)}`}
           </span>
         </div>
@@ -181,10 +181,10 @@ export function VoteModal({
         {/* Step 1: Select Vote Package */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="text-xs font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+            <label className="text-xs font-extrabold uppercase tracking-wider text-neutral-300">
               1. Choose Vote Package
             </label>
-            <span className="text-[11px] text-slate-400">Select bundle or type custom</span>
+            <span className="text-[11px] text-neutral-400">Select bundle or type custom</span>
           </div>
 
           <div className="grid grid-cols-3 gap-2">
@@ -198,17 +198,17 @@ export function VoteModal({
                   className={cn(
                     "relative flex flex-col items-center justify-center p-3 rounded-2xl border text-center transition-all duration-200 cursor-pointer",
                     isSelected
-                      ? "border-blue-600 bg-blue-50/80 text-blue-950 font-bold shadow-xs ring-2 ring-blue-500/20 dark:bg-blue-950/40 dark:text-blue-100 dark:border-blue-500"
-                      : "border-slate-200 bg-white hover:border-slate-300 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                      ? "border-[#ff5500] bg-[#ff5500]/15 text-white font-bold shadow-lg shadow-[#ff5500]/20 ring-1 ring-[#ff5500]/40"
+                      : "border-white/[0.08] bg-neutral-900/80 hover:border-white/20 text-neutral-300 hover:text-white"
                   )}
                 >
                   {pkg.tag && (
-                    <span className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-blue-600 px-2 py-0.2 text-[9px] font-black uppercase tracking-wider text-white shadow-xs">
+                    <span className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-[#ff5500] px-2 py-0.2 text-[9px] font-black uppercase tracking-wider text-white shadow-xs">
                       {pkg.tag}
                     </span>
                   )}
                   <span className="text-sm font-extrabold">{pkg.label}</span>
-                  <span className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium">
+                  <span className="text-[11px] text-neutral-400 mt-0.5 font-medium">
                     {isFreeVoting ? "Free" : formatCurrency(pkg.quantity * unitPrice, currency)}
                   </span>
                 </button>
@@ -225,10 +225,10 @@ export function VoteModal({
               value={customQuantity}
               onChange={handleCustomChange}
               className={cn(
-                "w-full rounded-xl border px-3.5 py-2.5 text-sm transition-all focus:outline-none focus:ring-2 dark:bg-slate-900",
+                "w-full rounded-2xl border px-4 py-2.5 text-sm transition-all focus:outline-none bg-neutral-900/90 text-white placeholder:text-neutral-500",
                 isCustom && customQuantity
-                  ? "border-blue-600 ring-2 ring-blue-500/20 bg-blue-50/20 dark:bg-blue-950/20 font-bold"
-                  : "border-slate-200 hover:border-slate-300 dark:border-slate-700"
+                  ? "border-[#ff5500] ring-2 ring-[#ff5500]/20 bg-[#ff5500]/10 font-bold"
+                  : "border-white/[0.08] hover:border-white/20 focus:border-[#ff5500]"
               )}
             />
           </div>
@@ -236,7 +236,7 @@ export function VoteModal({
 
         {/* Step 2: Voter Email */}
         <div>
-          <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
+          <label className="block text-xs font-extrabold uppercase tracking-wider text-neutral-300 mb-1">
             2. Voter Email (For Instant Receipt)
           </label>
           <Input
@@ -254,27 +254,27 @@ export function VoteModal({
         </div>
 
         {/* Order Summary Box */}
-        <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-900/60">
-          <div className="flex justify-between text-xs text-slate-600 dark:text-slate-400 mb-1.5">
+        <div className="rounded-2xl border border-white/[0.08] bg-neutral-900/80 p-4">
+          <div className="flex justify-between text-xs text-neutral-400 mb-1.5">
             <span>Votes to Cast:</span>
-            <span className="font-extrabold text-slate-900 dark:text-white">
+            <span className="font-extrabold text-white">
               {finalQuantity.toLocaleString()} vote{finalQuantity > 1 ? "s" : ""}
             </span>
           </div>
-          <div className="flex justify-between text-xs text-slate-600 dark:text-slate-400 mb-2 pb-2 border-b border-slate-200/80 dark:border-slate-800">
+          <div className="flex justify-between text-xs text-neutral-400 mb-2 pb-2 border-b border-white/[0.06]">
             <span>Payment Processor:</span>
-            <span className="font-semibold text-slate-900 dark:text-white">TransactPay Direct Gateway</span>
+            <span className="font-semibold text-neutral-200">TransactPay Direct Gateway</span>
           </div>
           <div className="flex justify-between items-baseline pt-1">
-            <span className="text-sm font-bold text-slate-900 dark:text-white">Total Amount Due</span>
-            <span className="text-2xl font-black text-blue-600 dark:text-blue-400">
+            <span className="text-sm font-bold text-white">Total Amount Due</span>
+            <span className="text-2xl font-black text-[#ff5500]">
               {isFreeVoting ? "₦0.00 (Free)" : formatCurrency(totalAmount, currency)}
             </span>
           </div>
         </div>
 
         {errorMsg && (
-          <div className="flex items-center gap-2 rounded-xl bg-red-50 p-3 text-xs font-semibold text-red-700 border border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-900">
+          <div className="flex items-center gap-2 rounded-xl bg-rose-500/10 p-3 text-xs font-semibold text-rose-400 border border-rose-500/20">
             <AlertCircle className="h-4 w-4 shrink-0" />
             <span>{errorMsg}</span>
           </div>
@@ -287,14 +287,14 @@ export function VoteModal({
             variant="primary"
             size="lg"
             isLoading={isLoading}
-            className="w-full justify-center text-base font-extrabold shadow-lg shadow-blue-500/25 rounded-2xl py-3.5"
+            className="w-full justify-center text-base font-extrabold shadow-lg shadow-[#ff5500]/25 rounded-full py-3.5"
           >
             <Vote className="h-5 w-5 mr-2" />
             {isFreeVoting ? "Cast Free Vote Now" : `Continue to Payment (${formatCurrency(totalAmount, currency)})`}
           </Button>
 
-          <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 text-center">
-            <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
+          <div className="flex items-center justify-center gap-1.5 text-[11px] text-neutral-400 text-center">
+            <ShieldCheck className="h-3.5 w-3.5 text-[#ff5500]" />
             <span>Bank-grade 256-bit encryption • Zero voter registration required</span>
           </div>
         </div>

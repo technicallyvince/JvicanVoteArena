@@ -55,18 +55,18 @@ export async function POST(req: NextRequest) {
         created_at: new Date().toISOString(),
       })
 
-      const contest = db.getEventById(vote.event_id)
-      const contestant = db.getNomineeById(vote.nominee_id)
+      const event = db.getEventById(vote.event_id)
+      const nominee = db.getNomineeById(vote.nominee_id)
       const category = db.getCategoryById(vote.category_id)
 
       // Send receipt email
       sendReceiptEmail({
         to: vote.voter_email,
-        subject: `Official Voting Receipt [${receiptNumber}] - ${contest?.name || 'JVican Vote Arena'}`,
+        subject: `Official Voting Receipt [${receiptNumber}] - ${event?.name || 'JVican Vote Arena'}`,
         props: {
-          contestName: contest?.name || 'Contest',
-          contestLogo: contest?.logo_url,
-          contestantName: contestant?.name || 'Contestant',
+          eventName: event?.name || 'Event',
+          eventLogo: event?.logo_url,
+          nomineeName: nominee?.name || 'Nominee',
           categoryName: category?.name || 'Category',
           receiptNumber,
           publicId: receiptPublicId,

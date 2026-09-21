@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { AuthProvider } from "@/lib/auth";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -18,11 +19,11 @@ export const metadata: Metadata = {
     template: "%s | JVican Vote Arena",
   },
   description:
-    "JVican Vote Arena is the premier platform for discovering live competitions, supporting your favorite contestants, and casting verified votes with instant receipts.",
+    "JVican Vote Arena is the premier platform for discovering live competitions, supporting your favorite nominees, and casting verified votes with instant receipts.",
   keywords: [
     "JVican Vote Arena",
     "JVican voting",
-    "online contest voting",
+    "online event voting",
     "paid voting platform",
     "Miss Igbeti 2026",
     "awards voting Nigeria",
@@ -40,7 +41,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "JVican Vote Arena — Where Every Vote Counts",
     description:
-      "Join live contests, support exceptional talents, and participate in transparent, verified online voting.",
+      "Join live events, support exceptional talents, and participate in transparent, verified online voting.",
     url: "https://votearena.jvican.com",
     siteName: "JVican Vote Arena",
     images: [
@@ -58,7 +59,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "JVican Vote Arena — Discover & Vote",
     description:
-      "Cast verified votes for your favorite contestants in live competitions across Nigeria and beyond.",
+      "Cast verified votes for your favorite nominees in live competitions across Nigeria and beyond.",
     images: ["/brand/jvican-vote-arena-logo.png"],
   },
 };
@@ -70,10 +71,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`h-full scroll-smooth ${plusJakartaSans.variable}`}>
-      <body className="flex min-h-screen flex-col bg-[#fafafa] text-[#0f172a] font-sans antialiased selection:bg-blue-600 selection:text-white dark:bg-[#090d16] dark:text-[#f1f5f9]">
-        <Navbar />
-        <main className="flex-1">{children}</main>
-        <Footer />
+      <body className="flex min-h-screen flex-col bg-[#080808] text-[#f4f4f5] font-sans antialiased selection:bg-[#ff5500] selection:text-white">
+        <AuthProvider>
+          <Navbar />
+          <main className="flex-1">{children}</main>
+          <Footer />
+        </AuthProvider>
       </body>
     </html>
   );

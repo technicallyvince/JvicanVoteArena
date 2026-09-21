@@ -4,7 +4,7 @@ import React, { useState, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/Button"
 import { formatCurrency } from "@/lib/utils"
-import { ShieldCheck, CreditCard, Lock, Clock } from "lucide-react"
+import { ShieldCheck, CreditCard, Lock, Clock, CheckCircle2, ArrowLeft } from "lucide-react"
 
 function SimulateCheckoutContent() {
   const searchParams = useSearchParams()
@@ -26,65 +26,71 @@ function SimulateCheckoutContent() {
   }
 
   const handleSimulateCancel = () => {
-    router.push("/contests")
+    router.push("/events")
   }
 
   return (
-    <div className="flex min-h-[75vh] items-center justify-center p-4">
-      <div className="w-full max-w-md overflow-hidden rounded-3xl border border-slate-200 bg-white p-8 shadow-2xl dark:border-slate-800 dark:bg-slate-900">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-5 dark:border-slate-800">
-          <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white font-bold text-xs">
+    <div className="flex min-h-[85vh] items-center justify-center p-4 bg-[#06080e] relative overflow-hidden">
+      {/* Background ambient light */}
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="w-full max-w-md overflow-hidden rounded-3xl border border-white/10 bg-[#0c101b]/95 backdrop-blur-xl p-8 shadow-2xl relative z-10">
+        {/* Gateway Header */}
+        <div className="flex items-center justify-between border-b border-white/10 pb-5">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-amber-500 to-amber-400 text-slate-950 font-black text-xs shadow-md">
               TP
             </div>
             <div>
-              <span className="text-base font-bold text-slate-900 dark:text-white">
-                Transact<span className="text-blue-600">Pay</span>
+              <span className="text-base font-bold text-white tracking-tight">
+                Transact<span className="text-amber-400">Pay</span> Direct
               </span>
               <span className="block text-[10px] uppercase tracking-wider font-semibold text-slate-400">
-                Sandbox Payment Gateway
+                Sandbox Gateway
               </span>
             </div>
           </div>
-          <div className="flex items-center gap-1 text-[11px] text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded-md">
+          <div className="flex items-center gap-1.5 text-[11px] text-emerald-400 font-semibold bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-1 rounded-full">
             <Lock className="h-3 w-3" />
             256-Bit SSL
           </div>
         </div>
 
+        {/* Payment Summary */}
         <div className="my-6 space-y-4">
           <div className="text-center py-2">
-            <span className="text-xs text-slate-400">Amount to Pay</span>
-            <div className="text-3xl font-black text-slate-900 dark:text-white mt-0.5">
+            <span className="text-xs text-slate-400">Total Authorized Amount</span>
+            <div className="text-3xl font-black text-amber-400 mt-0.5">
               {formatCurrency(amount, "NGN")}
             </div>
           </div>
 
-          <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-800 text-xs space-y-2 border border-slate-200 dark:border-slate-700">
-            <div className="flex justify-between text-slate-500">
-              <span>Customer:</span>
-              <span className="font-semibold text-slate-900 dark:text-white">{email}</span>
+          <div className="rounded-2xl bg-[#121827]/80 p-4 text-xs space-y-2.5 border border-white/10">
+            <div className="flex justify-between text-slate-400">
+              <span>Customer Email:</span>
+              <span className="font-semibold text-white">{email}</span>
             </div>
-            <div className="flex justify-between text-slate-500">
+            <div className="flex justify-between text-slate-400">
               <span>Order Reference:</span>
-              <span className="font-mono text-slate-900 dark:text-white">{reference}</span>
+              <span className="font-mono text-amber-400">{reference}</span>
             </div>
-            <div className="flex justify-between text-slate-500">
-              <span>Integration Mode:</span>
-              <span className="font-semibold text-blue-600">Standard Hosted Checkout</span>
+            <div className="flex justify-between text-slate-400">
+              <span>Gateway Engine:</span>
+              <span className="font-semibold text-emerald-400">TransactPay Direct Hosted</span>
             </div>
           </div>
         </div>
 
+        {/* Action CTAs */}
         <div className="space-y-3">
           <Button
             variant="primary"
             size="lg"
             isLoading={isProcessing}
             onClick={handleSimulateSuccess}
-            className="w-full justify-center font-bold text-base shadow-md shadow-blue-500/20"
+            className="w-full justify-center font-black text-sm shadow-lg shadow-amber-500/20 py-3.5"
           >
-            <CreditCard className="h-5 w-5 mr-2" />
+            <CreditCard className="h-4 w-4 mr-2" />
             Simulate Successful Payment
           </Button>
 
@@ -92,13 +98,13 @@ function SimulateCheckoutContent() {
             variant="outline"
             size="md"
             onClick={handleSimulateCancel}
-            className="w-full justify-center text-xs"
+            className="w-full justify-center text-xs border-white/10 hover:border-amber-400/30 text-slate-400 hover:text-white"
           >
             Cancel and Return
           </Button>
         </div>
 
-        <div className="mt-6 text-center text-[11px] text-slate-400">
+        <div className="mt-6 text-center text-[11px] text-slate-500">
           TransactPay Payment Engine • Official Checkout Simulation
         </div>
       </div>
@@ -110,8 +116,8 @@ export default function SimulateCheckoutPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-[60vh] items-center justify-center">
-          <Clock className="h-8 w-8 animate-spin text-blue-600" />
+        <div className="flex min-h-[60vh] items-center justify-center bg-[#06080e]">
+          <Clock className="h-8 w-8 animate-spin text-amber-400" />
         </div>
       }
     >

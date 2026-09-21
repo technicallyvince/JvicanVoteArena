@@ -25,48 +25,48 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Authoritative database lookup
-    const contest = db.getEventById(eventId)
-    if (!contest) {
-      return NextResponse.json({ success: false, error: 'Contest not found.' }, { status: 404 })
+    const event = db.getEventById(eventId)
+    if (!event) {
+      return NextResponse.json({ success: false, error: 'Event not found.' }, { status: 404 })
     }
 
-    if (contest.status !== 'published') {
+    if (event.status !== 'published') {
       return NextResponse.json(
-        { success: false, error: 'This contest is not currently accepting votes.' },
+        { success: false, error: 'This event is not currently accepting votes.' },
         { status: 400 }
       )
     }
 
     const now = new Date()
-    const startDate = new Date(contest.start_date)
-    const endDate = new Date(contest.end_date)
+    const startDate = new Date(event.start_date)
+    const endDate = new Date(event.end_date)
 
     if (now < startDate) {
       return NextResponse.json(
-        { success: false, error: 'Voting for this contest has not started yet.' },
+        { success: false, error: 'Voting for this event has not started yet.' },
         { status: 400 }
       )
     }
 
     if (now > endDate) {
       return NextResponse.json(
-        { success: false, error: 'Voting for this contest has officially closed.' },
+        { success: false, error: 'Voting for this event has officially closed.' },
         { status: 400 }
       )
     }
 
-    const contestant = db.getNomineeById(nomineeId)
-    if (!contestant || contestant.status !== 'active') {
+    const nominee = db.getNomineeById(nomineeId)
+    if (!nominee || nominee.status !== 'active') {
       return NextResponse.json(
-        { success: false, error: 'The selected contestant is invalid or not active.' },
+        { success: false, error: 'The selected nominee is invalid or not active.' },
         { status: 400 }
       )
     }
 
     // 3. Server-Authoritative calculation (never trust frontend math)
-    const unitPrice = Number(contest.vote_price)
+    const unitPrice = Number(event.vote_price)
     const totalAmount = voteQty * unitPrice
-    const currency = contest.currency || 'NGN'
+    const currency = event.currency || 'NGN'
 
     // Unique payment reference
     const paymentRef = `JVA-${Date.now()}-${nanoid(6).toUpperCase()}`
@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
     // 4. Create pending Payment & Vote records in database
     const payment = db.createPayment({
       id: nanoid(),
-      event_id: contest.id,
+      event_id: event.id,
       voter_email: voterEmail.trim().toLowerCase(),
       amount: totalAmount,
       currency,
@@ -87,9 +87,9 @@ export async function POST(req: NextRequest) {
 
     const vote = db.createVote({
       id: nanoid(),
-      event_id: contest.id,
-      category_id: categoryId || contestant.category_id,
-      nominee_id: contestant.id,
+      event_id: event.id,
+      category_id: categoryId || nominee.category_id,
+      nominee_id: nominee.id,
       voter_email: voterEmail.trim().toLowerCase(),
       quantity: voteQty,
       unit_price: unitPrice,
@@ -108,7 +108,7 @@ export async function POST(req: NextRequest) {
     const orderResponse = await transactPay.createOrder({
       customer: {
         firstname: 'Voter',
-        lastname: contestant.name.split(' ')[0] || 'Supporter',
+        lastname: nominee.name.split(' ')[0] || 'Supporter',
         email: voterEmail.trim().toLowerCase(),
         country: 'NG',
       },
@@ -116,7 +116,7 @@ export async function POST(req: NextRequest) {
         amount: totalAmount,
         currency,
         reference: paymentRef,
-        description: `${voteQty} Vote(s) for ${contestant.name} - ${contest.name}`,
+        description: `${voteQty} Vote(s) for ${nominee.name} - ${event.name}`,
       },
       payment: {
         RedirectUrl: redirectUrl,
