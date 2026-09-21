@@ -115,10 +115,10 @@ export default function HomePage() {
           {/* Cards Grid Inspired by the Presentation Design Spec */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
 
-            {/* Card 1: Crisp Clean White High-Contrast Card */}
-            <div className="flex flex-col justify-between rounded-[28px] bg-[#ffffff] p-7 text-neutral-900 transition-transform duration-300 hover:-translate-y-1 shadow-2xl">
+            {/* Card 1: Warm Soft Tinted Insight Card */}
+            <div className="flex flex-col justify-between rounded-[28px] bg-[#fff5ee] border border-[#ff5500]/15 p-7 text-neutral-900 transition-transform duration-300 hover:-translate-y-1 shadow-2xl">
               <div>
-                <div className="inline-block rounded-full border border-neutral-300 px-3 py-1 text-[11px] font-semibold text-neutral-700">
+                <div className="inline-block rounded-full border border-[#ff5500]/25 bg-[#ff5500]/10 px-3 py-1 text-[11px] font-semibold text-[#c84400]">
                   Insights
                 </div>
                 <h3 className="mt-8 text-2xl font-bold tracking-tight text-neutral-900 leading-snug">
@@ -126,7 +126,7 @@ export default function HomePage() {
                   <span className="text-[#ff5500]">decisions</span>
                 </h3>
               </div>
-              <p className="mt-8 text-xs font-medium text-neutral-600 leading-relaxed">
+              <p className="mt-8 text-xs font-medium text-neutral-700 leading-relaxed">
                 Transform live voting numbers into real-time auditable receipts with zero manual reconciliation.
               </p>
             </div>
