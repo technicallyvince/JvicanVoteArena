@@ -6,7 +6,7 @@ import { Modal } from "../ui/Modal"
 import { Button } from "../ui/Button"
 import { Input } from "../ui/Input"
 import { formatCurrency } from "@/lib/utils"
-import { ShieldCheck, Mail, Check, AlertCircle, Lock, Vote, Gift } from "lucide-react"
+import { ShieldCheck, Mail, Check, AlertCircle, Lock, Vote, Gift, ArrowLeft, ArrowRight, User } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface VoteModalProps {
@@ -26,6 +26,7 @@ export function VoteModal({
   category,
   packages = [],
 }: VoteModalProps) {
+  const [step, setStep] = useState<"select" | "review">("select")
   const [selectedQuantity, setSelectedQuantity] = useState<number>(10)
   const [customQuantity, setCustomQuantity] = useState<string>("")
   const [isCustom, setIsCustom] = useState<boolean>(false)
@@ -47,12 +48,12 @@ export function VoteModal({
   const totalAmount = isFreeVoting ? 0 : finalQuantity * unitPrice
 
   const defaultPackages = packages.length > 0 ? packages : [
-    { id: "1", label: "1 Vote", quantity: 1, tag: "" },
-    { id: "5", label: "5 Votes", quantity: 5, tag: "" },
-    { id: "10", label: "10 Votes", quantity: 10, tag: "Popular" },
-    { id: "20", label: "20 Votes", quantity: 20, tag: "" },
-    { id: "50", label: "50 Votes", quantity: 50, tag: "Best Value" },
-    { id: "100", label: "100 Votes", quantity: 100, tag: "VIP" },
+    { id: "1", label: "1", quantity: 1, tag: "" },
+    { id: "5", label: "5", quantity: 5, tag: "" },
+    { id: "10", label: "10", quantity: 10, tag: "Popular" },
+    { id: "20", label: "20", quantity: 20, tag: "" },
+    { id: "50", label: "50", quantity: 50, tag: "Value" },
+    { id: "100", label: "100", quantity: 100, tag: "VIP" },
   ]
 
   const handlePackageSelect = (qty: number) => {
@@ -71,13 +72,13 @@ export function VoteModal({
     return re.test(mail)
   }
 
-  const handleProceedToPayment = async (e: React.FormEvent) => {
+  const handleContinueToReview = (e: React.FormEvent) => {
     e.preventDefault()
     setEmailError("")
     setErrorMsg("")
 
     if (!email.trim() || !validateEmail(email)) {
-      setEmailError("Please enter a valid email address to receive your verified receipt.")
+      setEmailError("Please enter a valid email address to receive your receipt.")
       return
     }
 
@@ -85,6 +86,12 @@ export function VoteModal({
       setErrorMsg("Please select at least 1 vote.")
       return
     }
+
+    setStep("review")
+  }
+
+  const handleProceedToPayment = async () => {
+    setErrorMsg("")
 
     try {
       setIsLoading(true)
@@ -107,7 +114,6 @@ export function VoteModal({
         throw new Error(data.error || "Failed to initialize voting order.")
       }
 
-      // Redirect to TransactPay standard checkout page or sandbox simulation
       if (data.checkoutUrl) {
         window.location.href = data.checkoutUrl
       } else {
@@ -119,186 +125,249 @@ export function VoteModal({
     }
   }
 
+  const handleClose = () => {
+    setStep("select")
+    setErrorMsg("")
+    setEmailError("")
+    onClose()
+  }
+
   return (
     <Modal
       isOpen={isOpen}
-      onClose={onClose}
-      title="Cast Verified Votes"
-      description={`Support ${nominee.name} in ${event.name}`}
+      onClose={handleClose}
+      title={step === "select" ? `Vote for ${nominee.name}` : "Review your vote"}
+      description={
+        step === "select"
+          ? `${category?.name || "Official Category"} • #${nominee.public_id}`
+          : "Please verify your vote details before proceeding to secure payment."
+      }
       maxWidth="md"
     >
-      <form onSubmit={handleProceedToPayment} className="space-y-5">
-        {/* Nominee Mini Card */}
-        <div className="flex items-center gap-3.5 rounded-2xl bg-neutral-900/90 p-3.5 border border-white/[0.08]">
-          <img
-            src={nominee.image_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80"}
-            alt={nominee.name}
-            className="h-14 w-14 rounded-xl object-cover shadow-sm"
-          />
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <h4 className="text-sm font-extrabold text-white truncate">
-                {nominee.name}
-              </h4>
-              <span className="rounded-md bg-black/70 px-1.5 py-0.5 text-[10px] font-mono font-bold text-[#ff8c42] border border-white/10">
-                #{nominee.public_id}
-              </span>
-            </div>
-            <p className="text-xs text-neutral-400 truncate mt-0.5">
-              {category?.name || "Competition Category"}
-            </p>
-            <div className="flex items-center gap-2 mt-1">
-              {isFreeVoting ? (
-                <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-400">
-                  <Gift className="h-3 w-3" />
-                  Free Community Voting
+      {step === "select" ? (
+        <form onSubmit={handleContinueToReview} className="space-y-5">
+          {/* Nominee Info Card */}
+          <div className="flex items-center gap-3.5 rounded-2xl bg-neutral-900/90 p-3.5 border border-white/[0.08]">
+            <img
+              src={nominee.image_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80"}
+              alt={nominee.name}
+              className="h-14 w-14 rounded-xl object-cover shadow-sm ring-1 ring-white/10"
+            />
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <h4 className="text-sm font-extrabold text-white truncate">
+                  {nominee.name}
+                </h4>
+                <span className="rounded-md bg-black/70 px-1.5 py-0.5 text-[10px] font-mono font-bold text-amber-400 border border-white/10">
+                  #{nominee.public_id}
                 </span>
-              ) : (
-                <span className="text-xs font-bold text-[#ff8c42]">
-                  {formatCurrency(unitPrice, currency)} <span className="text-[10px] font-normal text-neutral-400">/ vote</span>
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Free vs Paid Vote Indicator Banner */}
-        <div className={cn(
-          "flex items-center justify-between rounded-2xl px-3.5 py-2.5 text-xs font-semibold border",
-          isFreeVoting
-            ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-            : "bg-[#ff5500]/10 text-[#ff8c42] border-[#ff5500]/20"
-        )}>
-          <div className="flex items-center gap-1.5 font-bold">
-            {isFreeVoting ? <Gift className="h-4 w-4 text-emerald-400" /> : <Lock className="h-4 w-4 text-[#ff5500]" />}
-            <span>{isFreeVoting ? "FREE VOTE MODE" : "OFFICIAL PAID VOTE"}</span>
-          </div>
-          <span className="text-[11px] font-mono font-bold text-white">
-            {isFreeVoting ? "0.00 NGN" : `1 Vote = ${formatCurrency(unitPrice, currency)}`}
-          </span>
-        </div>
-
-        {/* Step 1: Select Vote Package */}
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <label className="text-xs font-extrabold uppercase tracking-wider text-neutral-300">
-              1. Choose Vote Package
-            </label>
-            <span className="text-[11px] text-neutral-400">Select bundle or type custom</span>
-          </div>
-
-          <div className="grid grid-cols-3 gap-2">
-            {defaultPackages.map((pkg: any) => {
-              const isSelected = !isCustom && selectedQuantity === pkg.quantity
-              return (
-                <button
-                  key={pkg.id}
-                  type="button"
-                  onClick={() => handlePackageSelect(pkg.quantity)}
-                  className={cn(
-                    "relative flex flex-col items-center justify-center p-3 rounded-2xl border text-center transition-all duration-200 cursor-pointer",
-                    isSelected
-                      ? "border-[#ff5500] bg-[#ff5500]/15 text-white font-bold shadow-lg shadow-[#ff5500]/20 ring-1 ring-[#ff5500]/40"
-                      : "border-white/[0.08] bg-neutral-900/80 hover:border-white/20 text-neutral-300 hover:text-white"
-                  )}
-                >
-                  {pkg.tag && (
-                    <span className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-[#ff5500] px-2 py-0.2 text-[9px] font-black uppercase tracking-wider text-white shadow-xs">
-                      {pkg.tag}
-                    </span>
-                  )}
-                  <span className="text-sm font-extrabold">{pkg.label}</span>
-                  <span className="text-[11px] text-neutral-400 mt-0.5 font-medium">
-                    {isFreeVoting ? "Free" : formatCurrency(pkg.quantity * unitPrice, currency)}
+              </div>
+              <p className="text-xs text-neutral-400 truncate mt-0.5">
+                {category?.name || "Official Category"}
+              </p>
+              <div className="flex items-center gap-2 mt-1">
+                {isFreeVoting ? (
+                  <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-400">
+                    <Gift className="h-3 w-3" />
+                    Free Community Voting
                   </span>
-                </button>
-              )
-            })}
+                ) : (
+                  <span className="text-xs font-bold text-amber-400">
+                    {formatCurrency(unitPrice, currency)} <span className="text-[10px] font-normal text-neutral-400">/ vote</span>
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
 
-          {/* Custom Quantity Input */}
-          <div className="mt-3">
-            <input
-              type="number"
-              min="1"
-              placeholder="Or enter custom number of votes..."
-              value={customQuantity}
-              onChange={handleCustomChange}
-              className={cn(
-                "w-full rounded-2xl border px-4 py-2.5 text-sm transition-all focus:outline-none bg-neutral-900/90 text-white placeholder:text-neutral-500",
-                isCustom && customQuantity
-                  ? "border-[#ff5500] ring-2 ring-[#ff5500]/20 bg-[#ff5500]/10 font-bold"
-                  : "border-white/[0.08] hover:border-white/20 focus:border-[#ff5500]"
-              )}
+          {/* Choose Votes Packages */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-xs font-extrabold uppercase tracking-wider text-neutral-300">
+                Choose votes:
+              </label>
+              <span className="text-[11px] text-neutral-400">Quick packages</span>
+            </div>
+
+            <div className="grid grid-cols-6 gap-2">
+              {defaultPackages.map((pkg: any) => {
+                const isSelected = !isCustom && selectedQuantity === pkg.quantity
+                return (
+                  <button
+                    key={pkg.id}
+                    type="button"
+                    onClick={() => handlePackageSelect(pkg.quantity)}
+                    className={cn(
+                      "relative flex flex-col items-center justify-center p-2.5 rounded-xl border text-center transition-all duration-200 cursor-pointer",
+                      isSelected
+                        ? "border-amber-400 bg-amber-400/15 text-white font-bold ring-1 ring-amber-400/40 shadow-sm"
+                        : "border-white/[0.08] bg-neutral-900/80 hover:border-white/20 text-neutral-300 hover:text-white"
+                    )}
+                  >
+                    <span className="text-xs font-black">{pkg.label}</span>
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* Custom Quantity Input */}
+            <div className="mt-3">
+              <label className="block text-[11px] text-neutral-400 mb-1">
+                Or enter custom quantity:
+              </label>
+              <input
+                type="number"
+                min="1"
+                placeholder="e.g. 25"
+                value={customQuantity}
+                onChange={handleCustomChange}
+                className={cn(
+                  "w-full rounded-xl border px-4 py-2 text-sm transition-all focus:outline-none bg-neutral-900/90 text-white placeholder:text-neutral-500",
+                  isCustom && customQuantity
+                    ? "border-amber-400 ring-1 ring-amber-400/30 bg-amber-400/10 font-bold"
+                    : "border-white/[0.08] hover:border-white/20 focus:border-amber-400"
+                )}
+              />
+            </div>
+          </div>
+
+          {/* Email Input */}
+          <div>
+            <label className="block text-xs font-extrabold uppercase tracking-wider text-neutral-300 mb-1">
+              Email (for verified receipt):
+            </label>
+            <Input
+              type="email"
+              placeholder="voter@example.com"
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value)
+                if (emailError) setEmailError("")
+              }}
+              error={emailError}
+              required
             />
           </div>
-        </div>
 
-        {/* Step 2: Voter Email */}
-        <div>
-          <label className="block text-xs font-extrabold uppercase tracking-wider text-neutral-300 mb-1">
-            2. Voter Email (For Instant Receipt)
-          </label>
-          <Input
-            type="email"
-            placeholder="supporter@example.com"
-            value={email}
-            onChange={(e) => {
-              setEmail(e.target.value)
-              if (emailError) setEmailError("")
-            }}
-            error={emailError}
-            helperText="Your cryptographically signed receipt and vote verification link will be delivered here."
-            required
-          />
-        </div>
-
-        {/* Order Summary Box */}
-        <div className="rounded-2xl border border-white/[0.08] bg-neutral-900/80 p-4">
-          <div className="flex justify-between text-xs text-neutral-400 mb-1.5">
-            <span>Votes to Cast:</span>
-            <span className="font-extrabold text-white">
-              {finalQuantity.toLocaleString()} vote{finalQuantity > 1 ? "s" : ""}
+          {/* Dynamic Total */}
+          <div className="rounded-2xl border border-white/[0.08] bg-neutral-900/80 p-4 flex items-baseline justify-between">
+            <div>
+              <span className="text-xs text-neutral-400 block">Total</span>
+              <span className="text-[11px] text-neutral-500">{finalQuantity} vote{finalQuantity > 1 ? "s" : ""} selected</span>
+            </div>
+            <span className="text-2xl font-black text-amber-400">
+              {isFreeVoting ? "Free" : formatCurrency(totalAmount, currency)}
             </span>
           </div>
-          <div className="flex justify-between text-xs text-neutral-400 mb-2 pb-2 border-b border-white/[0.06]">
-            <span>Payment Processor:</span>
-            <span className="font-semibold text-neutral-200">TransactPay Direct Gateway</span>
-          </div>
-          <div className="flex justify-between items-baseline pt-1">
-            <span className="text-sm font-bold text-white">Total Amount Due</span>
-            <span className="text-2xl font-black text-[#ff5500]">
-              {isFreeVoting ? "₦0.00 (Free)" : formatCurrency(totalAmount, currency)}
-            </span>
-          </div>
-        </div>
 
-        {errorMsg && (
-          <div className="flex items-center gap-2 rounded-xl bg-rose-500/10 p-3 text-xs font-semibold text-rose-400 border border-rose-500/20">
-            <AlertCircle className="h-4 w-4 shrink-0" />
-            <span>{errorMsg}</span>
-          </div>
-        )}
+          {errorMsg && (
+            <div className="flex items-center gap-2 rounded-xl bg-rose-500/10 p-3 text-xs font-semibold text-rose-400 border border-rose-500/20">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              <span>{errorMsg}</span>
+            </div>
+          )}
 
-        {/* Action Button */}
-        <div className="space-y-2.5 pt-1">
-          <Button
-            type="submit"
-            variant="primary"
-            size="lg"
-            isLoading={isLoading}
-            className="w-full justify-center text-base font-extrabold shadow-lg shadow-[#ff5500]/25 rounded-full py-3.5"
-          >
-            <Vote className="h-5 w-5 mr-2" />
-            {isFreeVoting ? "Cast Free Vote Now" : `Continue to Payment (${formatCurrency(totalAmount, currency)})`}
-          </Button>
+          {/* Continue CTA */}
+          <div className="space-y-2 pt-1">
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              className="w-full justify-center text-sm font-extrabold shadow-lg shadow-amber-500/20 rounded-full py-3.5"
+            >
+              <span>Continue</span>
+              <ArrowRight className="h-4 w-4 ml-1.5" />
+            </Button>
+            <div className="flex items-center justify-center gap-1.5 text-[11px] text-neutral-400 text-center">
+              <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
+              <span>TransactPay Authoritative Pricing • Instant Verified Proof</span>
+            </div>
+          </div>
+        </form>
+      ) : (
+        /* STEP 2: VOTE REVIEW STEP */
+        <div className="space-y-5 animate-in fade-in duration-200">
+          <div className="rounded-2xl border border-white/[0.08] bg-neutral-900/90 p-5 divide-y divide-white/[0.06] text-xs">
+            <div className="flex items-center justify-between pb-3">
+              <span className="text-neutral-400">Nominee</span>
+              <span className="font-extrabold text-white text-sm">{nominee.name}</span>
+            </div>
+
+            <div className="flex items-center justify-between py-2.5">
+              <span className="text-neutral-400">Event</span>
+              <span className="font-semibold text-neutral-200">{event.name}</span>
+            </div>
+
+            <div className="flex items-center justify-between py-2.5">
+              <span className="text-neutral-400">Category</span>
+              <span className="font-semibold text-neutral-200">{category?.name || "Official Category"}</span>
+            </div>
+
+            <div className="flex items-center justify-between py-2.5">
+              <span className="text-neutral-400">Votes</span>
+              <span className="font-bold text-amber-400">{finalQuantity}</span>
+            </div>
+
+            <div className="flex items-center justify-between py-2.5">
+              <span className="text-neutral-400">Price</span>
+              <span className="font-medium text-neutral-300">
+                {isFreeVoting ? "Free" : `${formatCurrency(unitPrice, currency)} / vote`}
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between py-3">
+              <span className="text-neutral-400">Receipt email</span>
+              <span className="font-mono text-neutral-200">{email}</span>
+            </div>
+
+            <div className="flex items-center justify-between pt-3 text-sm">
+              <span className="font-bold text-white">Total</span>
+              <span className="text-2xl font-black text-amber-400">
+                {isFreeVoting ? "₦0 (Free)" : formatCurrency(totalAmount, currency)}
+              </span>
+            </div>
+          </div>
+
+          {errorMsg && (
+            <div className="flex items-center gap-2 rounded-xl bg-rose-500/10 p-3 text-xs font-semibold text-rose-400 border border-rose-500/20">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              <span>{errorMsg}</span>
+            </div>
+          )}
+
+          {/* Action Buttons: Back & Proceed to Secure Payment */}
+          <div className="flex items-center gap-3 pt-1">
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              onClick={() => setStep("select")}
+              disabled={isLoading}
+              className="flex-1 justify-center rounded-full text-xs font-bold"
+            >
+              <ArrowLeft className="h-4 w-4 mr-1.5" />
+              Back
+            </Button>
+
+            <Button
+              type="button"
+              variant="primary"
+              size="lg"
+              onClick={handleProceedToPayment}
+              isLoading={isLoading}
+              className="flex-2 justify-center rounded-full text-xs sm:text-sm font-extrabold shadow-lg shadow-amber-500/20"
+            >
+              <Lock className="h-4 w-4 mr-1.5" />
+              Proceed to Secure Payment
+            </Button>
+          </div>
 
           <div className="flex items-center justify-center gap-1.5 text-[11px] text-neutral-400 text-center">
-            <ShieldCheck className="h-3.5 w-3.5 text-[#ff5500]" />
-            <span>Bank-grade 256-bit encryption • Zero voter registration required</span>
+            <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
+            <span>Bank-grade 256-bit encryption • Zero duplicate webhooks</span>
           </div>
         </div>
-      </form>
+      )}
     </Modal>
   )
 }

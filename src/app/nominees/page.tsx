@@ -4,20 +4,9 @@ import React, { useState } from "react"
 import { db } from "@/lib/db"
 import { NomineeCard } from "@/components/public/NomineeCard"
 import { VoteModal } from "@/components/public/VoteModal"
-import { Search, Users } from "lucide-react"
+import { Search, Users, Sparkles } from "lucide-react"
 import { Nominee } from "@/types/database"
 import { cn } from "@/lib/utils"
-
-function AsteriskStar({ className = "h-4 w-4", color = "#ff5500" }: { className?: string; color?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-      <path d="M12 2V22" stroke={color} strokeWidth="2.5" strokeLinecap="round" />
-      <path d="M4.93 4.93L19.07 19.07" stroke={color} strokeWidth="2.5" strokeLinecap="round" />
-      <path d="M2 12H22" stroke={color} strokeWidth="2.5" strokeLinecap="round" />
-      <path d="M4.93 19.07L19.07 4.93" stroke={color} strokeWidth="2.5" strokeLinecap="round" />
-    </svg>
-  )
-}
 
 export default function NomineesDiscoveryPage() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -50,19 +39,19 @@ export default function NomineesDiscoveryPage() {
   const currentPackages = currentEvent ? db.getVotePackages(currentEvent.id) : []
 
   return (
-    <div className="py-12 sm:py-16 bg-[#080808] min-h-screen text-white pt-24 sm:pt-28">
+    <div className="py-12 sm:py-16 bg-[#06080e] min-h-screen text-white pt-24 sm:pt-28 selection:bg-[#f59e0b] selection:text-black">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Page Header */}
         <div className="max-w-3xl">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#ff5500]/30 bg-[#ff5500]/10 px-3.5 py-1 text-xs font-bold uppercase tracking-widest text-[#ff5500] mb-3 backdrop-blur-md">
-            <AsteriskStar className="h-3.5 w-3.5" color="#ff5500" />
-            <span>Contenders &amp; Nominees</span>
+          <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3.5 py-1 text-xs font-bold uppercase tracking-widest text-amber-400 mb-3 backdrop-blur-md">
+            <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+            <span>Nominees Directory</span>
           </div>
-          <h1 className="text-3xl sm:text-5xl font-bold text-white tracking-tight">
+          <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight">
             Discover Nominees
           </h1>
-          <p className="mt-3 text-sm sm:text-base text-neutral-400 leading-relaxed">
-            Search candidates across all active pageants, school awards, and leadership competitions. Every candidate has a direct voting link and dedicated profile.
+          <p className="mt-3 text-sm sm:text-base text-slate-300 leading-relaxed">
+            Search nominees across all active pageants, school awards, and leadership events. Every nominee has a direct voting link and dedicated profile.
           </p>
         </div>
 
@@ -74,8 +63,8 @@ export default function NomineesDiscoveryPage() {
               className={cn(
                 "px-4 py-2 text-xs font-bold rounded-full transition-all cursor-pointer whitespace-nowrap",
                 selectedEventFilter === "all"
-                  ? "bg-[#ff5500] text-white font-bold shadow-md shadow-[#ff5500]/25"
-                  : "bg-neutral-900/90 border border-white/[0.08] text-neutral-400 hover:text-white hover:bg-neutral-800"
+                  ? "bg-amber-500 text-neutral-950 font-black shadow-md shadow-amber-500/20"
+                  : "bg-neutral-900/90 border border-white/[0.08] text-slate-400 hover:text-white hover:bg-neutral-800"
               )}
             >
               All Events ({allNominees.length})
@@ -87,8 +76,8 @@ export default function NomineesDiscoveryPage() {
                 className={cn(
                   "px-4 py-2 text-xs font-bold rounded-full transition-all cursor-pointer whitespace-nowrap",
                   selectedEventFilter === ev.id
-                    ? "bg-[#ff5500] text-white font-bold shadow-md shadow-[#ff5500]/25"
-                    : "bg-neutral-900/90 border border-white/[0.08] text-neutral-400 hover:text-white hover:bg-neutral-800"
+                    ? "bg-amber-500 text-neutral-950 font-black shadow-md shadow-amber-500/20"
+                    : "bg-neutral-900/90 border border-white/[0.08] text-slate-400 hover:text-white hover:bg-neutral-800"
                 )}
               >
                 {ev.name}
@@ -98,13 +87,13 @@ export default function NomineesDiscoveryPage() {
 
           <div className="w-full sm:w-80">
             <div className="relative">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <input
                 type="text"
                 placeholder="Search nominee name or ID..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full rounded-full border border-white/[0.08] bg-neutral-900/90 pl-10 pr-4 py-2.5 text-xs sm:text-sm text-white placeholder:text-neutral-500 focus:border-[#ff5500] focus:outline-none focus:ring-2 focus:ring-[#ff5500]/20 shadow-md"
+                className="w-full rounded-full border border-white/[0.08] bg-neutral-900/90 pl-10 pr-4 py-2.5 text-xs sm:text-sm text-white placeholder:text-neutral-500 focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400 shadow-md"
               />
             </div>
           </div>
@@ -113,13 +102,13 @@ export default function NomineesDiscoveryPage() {
         {/* Nominees Grid */}
         <div className="mt-8">
           {filteredNominees.length === 0 ? (
-            <div className="rounded-[28px] border border-dashed border-white/10 p-16 text-center bg-neutral-900/50 backdrop-blur-md">
+            <div className="rounded-3xl border border-dashed border-white/10 p-16 text-center bg-neutral-900/50 backdrop-blur-md">
               <Users className="mx-auto h-12 w-12 text-neutral-600 mb-3" />
               <h3 className="text-base font-bold text-white">
                 No nominees found
               </h3>
-              <p className="text-xs text-neutral-400 mt-1 max-w-sm mx-auto">
-                No candidates match your search query. Try searching with a different keyword or candidate ID.
+              <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+                No nominees match your search query. Try searching with a different keyword or nominee ID.
               </p>
             </div>
           ) : (

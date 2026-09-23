@@ -1,11 +1,11 @@
 import { notFound, redirect } from "next/navigation"
 import { db } from "@/lib/db"
 
-interface LegacyNomineeRedirectProps {
+interface ShortNomineeRedirectProps {
   params: Promise<{ id: string }>
 }
 
-export default async function LegacyNomineeRedirectPage({ params }: LegacyNomineeRedirectProps) {
+export default async function ShortNomineeRedirectPage({ params }: ShortNomineeRedirectProps) {
   const { id } = await params
 
   let nominee = db.getNomineeByPublicId(id)
