@@ -1,62 +1,64 @@
 import React from "react"
 import Link from "next/link"
-import { ShieldCheck, Mail, ArrowUpRight, CheckCircle2, Lock, Sparkles } from "lucide-react"
+import { ShieldCheck, Mail, ArrowRight, CheckCircle2, Lock, Crown } from "lucide-react"
 import { BrandLogo } from "../ui/BrandLogo"
 
 export function Footer() {
   return (
-    <footer className="border-t border-white/[0.08] bg-[#06080e] text-slate-400 selection:bg-[#f59e0b] selection:text-black">
+    <footer className="border-t border-white/[0.05] bg-[#050608] text-slate-500 selection:bg-[#C9A84C] selection:text-[#050608]">
+      {/* Top gold line */}
+      <div className="h-px bg-gradient-to-r from-transparent via-[#C9A84C]/20 to-transparent" />
+
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-10 md:grid-cols-4 lg:grid-cols-5">
           {/* Brand Col */}
-          <div className="md:col-span-2 space-y-4">
+          <div className="md:col-span-2 space-y-5">
             <Link href="/" className="inline-flex items-center">
               <BrandLogo size="md" showName showSubtitle variant="dark" />
             </Link>
-            <p className="text-sm leading-relaxed text-slate-400 max-w-sm">
+            <p className="text-sm leading-relaxed text-slate-500 max-w-sm">
               JVican Vote Arena is the premier event voting platform for pageants, cultural recognitions, academic awards, and talent showcases. Frictionless voter checkout with cryptographic instant receipts.
             </p>
-            <div className="flex flex-wrap items-center gap-3 pt-2 text-xs font-semibold text-slate-300">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/5 border border-white/10 px-3 py-1 text-slate-300">
+            <div className="flex flex-wrap items-center gap-3 pt-1 text-xs font-semibold">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/[0.04] border border-white/[0.08] px-3 py-1.5 text-slate-400">
                 <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
                 TransactPay Encrypted
               </span>
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 px-3 py-1 text-amber-400">
-                <Mail className="h-3.5 w-3.5 text-amber-400" />
-                Instant Email Verification
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#C9A84C]/06 border border-[#C9A84C]/15 px-3 py-1.5 text-[#C9A84C]">
+                <Mail className="h-3.5 w-3.5 text-[#C9A84C]" />
+                Instant Email Receipts
               </span>
             </div>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-widest text-white mb-4 flex items-center gap-1.5">
-              <Sparkles className="h-3 w-3 text-amber-400" />
+            <h4 className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#C9A84C] mb-5">
               Explore
             </h4>
             <ul className="space-y-3 text-sm">
               <li>
-                <Link href="/events" className="hover:text-amber-400 transition-colors">
+                <Link href="/events" className="hover:text-[#C9A84C] transition-colors duration-150">
                   All Events
                 </Link>
               </li>
               <li>
-                <Link href="/nominees" className="hover:text-amber-400 transition-colors">
+                <Link href="/nominees" className="hover:text-[#C9A84C] transition-colors duration-150">
                   Browse Nominees
                 </Link>
               </li>
               <li>
-                <Link href="/winners" className="hover:text-amber-400 transition-colors">
+                <Link href="/winners" className="hover:text-[#C9A84C] transition-colors duration-150">
                   Hall of Champions
                 </Link>
               </li>
               <li>
-                <Link href="/events/miss-igbeti-2026" className="hover:text-amber-400 transition-colors">
+                <Link href="/events/miss-igbeti-2026" className="hover:text-[#C9A84C] transition-colors duration-150">
                   Miss Igbeti 2026
                 </Link>
               </li>
               <li>
-                <Link href="/receipt/rc_igbeti_001" className="hover:text-amber-400 transition-colors">
+                <Link href="/receipt/rc_igbeti_001" className="hover:text-[#C9A84C] transition-colors duration-150">
                   Receipt Verification
                 </Link>
               </li>
@@ -65,28 +67,27 @@ export function Footer() {
 
           {/* Platform */}
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-widest text-white mb-4 flex items-center gap-1.5">
-              <Sparkles className="h-3 w-3 text-amber-400" />
+            <h4 className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#C9A84C] mb-5">
               Platform
             </h4>
             <ul className="space-y-3 text-sm">
               <li>
-                <Link href="/how-it-works" className="hover:text-amber-400 transition-colors">
+                <Link href="/how-it-works" className="hover:text-[#C9A84C] transition-colors duration-150">
                   How It Works
                 </Link>
               </li>
               <li>
-                <Link href="/about" className="hover:text-amber-400 transition-colors">
+                <Link href="/about" className="hover:text-[#C9A84C] transition-colors duration-150">
                   About JVican Arena
                 </Link>
               </li>
               <li>
-                <Link href="/dashboard/events/new" className="hover:text-amber-400 transition-colors">
+                <Link href="/dashboard/events/new" className="hover:text-[#C9A84C] transition-colors duration-150">
                   Create an Event
                 </Link>
               </li>
               <li>
-                <Link href="/login" className="hover:text-amber-400 transition-colors">
+                <Link href="/login" className="hover:text-[#C9A84C] transition-colors duration-150">
                   Organizer Portal
                 </Link>
               </li>
@@ -95,11 +96,10 @@ export function Footer() {
 
           {/* Security & Integrity */}
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-widest text-white mb-4 flex items-center gap-1.5">
-              <Sparkles className="h-3 w-3 text-amber-400" />
+            <h4 className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#C9A84C] mb-5">
               Integrity
             </h4>
-            <ul className="space-y-3 text-xs text-slate-400 leading-relaxed">
+            <ul className="space-y-3 text-xs text-slate-500 leading-relaxed">
               <li className="flex items-start gap-2">
                 <Lock className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
                 <span>100% Server-Authoritative pricing model.</span>
@@ -111,22 +111,23 @@ export function Footer() {
               <li className="pt-2">
                 <Link
                   href="/about"
-                  className="inline-flex items-center gap-1 text-xs font-bold text-amber-400 hover:text-amber-300 hover:underline"
+                  className="inline-flex items-center gap-1 text-xs font-bold text-[#C9A84C] hover:text-[#D4B86A] transition-colors"
                 >
                   Transparency Model
-                  <ArrowUpRight className="h-3.5 w-3.5" />
+                  <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
               </li>
             </ul>
           </div>
         </div>
 
-        <div className="mt-14 border-t border-white/[0.08] pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+        {/* Bottom bar */}
+        <div className="mt-14 border-t border-white/[0.05] pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-600">
           <p>© {new Date().getFullYear()} JVican Vote Arena. All rights reserved.</p>
           <div className="flex items-center gap-6 font-medium">
             <span>Powered by TransactPay &amp; Supabase</span>
             <span>•</span>
-            <Link href="/about" className="hover:text-amber-400 transition-colors">Privacy &amp; Terms</Link>
+            <Link href="/about" className="hover:text-[#C9A84C] transition-colors">Privacy &amp; Terms</Link>
           </div>
         </div>
       </div>

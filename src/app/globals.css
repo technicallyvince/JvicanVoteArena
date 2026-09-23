@@ -2,35 +2,44 @@
 
 @layer base {
   :root {
-    /* Pure Minimalist Black & Warm Ember Orange Theme */
-    --background: #080808;
-    --foreground: #f4f4f5;
-    --surface: #121212;
-    --surface-muted: #18181b;
-    --border: rgba(255, 255, 255, 0.07);
-    --border-strong: rgba(255, 255, 255, 0.12);
-    --muted: #a1a1aa;
-    --muted-foreground: #71717a;
+    /* ─── Deep Obsidian Blacks ─── */
+    --background: #050608;
+    --foreground: #f0efe8;
+    --surface: #0a0c14;
+    --surface-muted: #0e1018;
+    --border: rgba(255, 255, 255, 0.06);
+    --border-strong: rgba(255, 255, 255, 0.10);
+    --muted: #8a8a94;
+    --muted-foreground: #5c5c68;
 
-    /* Brand Accent Colors (Matching Inspiration: Asterisk Aster/Ember Orange) */
-    --brand-primary: #ff5500;      /* Vibrant Ember Orange */
-    --brand-primary-hover: #ff6b1a;
-    --brand-secondary: #ff8c42;    /* Warm Amber */
-    --brand-accent: #ff3300;       /* Deep Fiery Red-Orange */
-    --brand-dark: #080808;
+    /* ─── Liquid Gold Accent System ─── */
+    --gold:          #C9A84C;   /* antique gold — primary accent */
+    --gold-light:    #D4B86A;   /* champagne gold — highlights & active states */
+    --gold-dark:     #A07828;   /* deep gold — pressed / darker contexts */
+    --gold-deeper:   #7A5C1E;   /* richest dark gold */
+    --gold-muted:    #B8922E;   /* mid gold — secondary accents */
+    --gold-glow:     rgba(201, 168, 76, 0.18);   /* soft radial glow */
+    --gold-glow-sm:  rgba(201, 168, 76, 0.10);
 
-    /* Semantic States */
+    /* ─── Brand Mapped ─── */
+    --brand-primary:       var(--gold);
+    --brand-primary-hover: var(--gold-light);
+    --brand-secondary:     var(--gold-muted);
+    --brand-accent:        var(--gold-dark);
+    --brand-dark:          #050608;
+
+    /* ─── Semantic States ─── */
     --success: #10b981;
-    --warning: #f59e0b;
-    --error: #ef4444;
-    --info: #38bdf8;
+    --warning: #C9A84C;
+    --error:   #ef4444;
+    --info:    #38bdf8;
 
-    /* Spacing & Radii Standards */
-    --radius-sm: 0.5rem;
-    --radius-md: 0.75rem;
-    --radius-lg: 1.25rem;
-    --radius-xl: 1.75rem;
-    --radius-2xl: 2.25rem;
+    /* ─── Spacing & Radii ─── */
+    --radius-sm:   0.5rem;
+    --radius-md:   0.75rem;
+    --radius-lg:   1.25rem;
+    --radius-xl:   1.75rem;
+    --radius-2xl:  2.25rem;
     --radius-full: 9999px;
   }
 
@@ -39,9 +48,10 @@
   }
 
   body {
-    background-color: #080808;
+    background-color: var(--background);
     color: var(--foreground);
-    font-family: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    font-family: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont,
+      "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     letter-spacing: -0.02em;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -53,7 +63,68 @@
   }
 }
 
-/* Fluid Typography Scale */
+/* ═══════════════════════════════════════════════
+   PREMIUM ANIMATIONS
+═══════════════════════════════════════════════ */
+
+/* Gold shimmer sweep — use on CTA buttons */
+@keyframes shimmer-gold {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+
+/* Gentle float for hero badge */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-4px); }
+}
+
+/* Soft gold pulse ring */
+@keyframes pulse-gold {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(201, 168, 76, 0.35); }
+  50%       { box-shadow: 0 0 0 8px rgba(201, 168, 76, 0); }
+}
+
+/* Subtle glow breathe for premium surfaces */
+@keyframes glow-breathe {
+  0%, 100% { opacity: 0.6; }
+  50%       { opacity: 1; }
+}
+
+/* ═══════════════════════════════════════════════
+   ANIMATION UTILITY CLASSES
+═══════════════════════════════════════════════ */
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.animate-pulse-gold {
+  animation: pulse-gold 2.5s ease-in-out infinite;
+}
+
+.animate-glow-breathe {
+  animation: glow-breathe 3s ease-in-out infinite;
+}
+
+/* Gold shimmer button overlay */
+.btn-shimmer {
+  background-image: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.18) 50%,
+    transparent 60%
+  );
+  background-size: 200% 100%;
+}
+.btn-shimmer:hover {
+  animation: shimmer-gold 1.2s linear infinite;
+}
+
+/* ═══════════════════════════════════════════════
+   FLUID TYPOGRAPHY
+═══════════════════════════════════════════════ */
+
 .text-fluid-display {
   font-size: clamp(2.5rem, 6vw, 4.75rem);
   line-height: 1.05;
@@ -68,41 +139,71 @@
   font-weight: 800;
 }
 
-/* Card Foundations */
+/* ═══════════════════════════════════════════════
+   GOLD GRADIENT TEXT UTILITY
+═══════════════════════════════════════════════ */
+
+.text-gold-gradient {
+  background: linear-gradient(135deg, #D4B86A 0%, #C9A84C 40%, #A07828 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ═══════════════════════════════════════════════
+   CARD FOUNDATIONS
+═══════════════════════════════════════════════ */
+
 .card-base {
   background-color: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-2xl);
-  transition: background-color 0.2s ease-out, border-color 0.2s ease-out, transform 0.2s ease-out;
+  transition: background-color 0.2s ease-out, border-color 0.2s ease-out,
+    transform 0.2s ease-out;
 }
 
 .card-hover {
-  transition: background-color 0.2s ease-out, border-color 0.2s ease-out, transform 0.25s ease-out, box-shadow 0.25s ease-out;
+  transition: background-color 0.25s ease-out, border-color 0.25s ease-out,
+    transform 0.28s ease-out, box-shadow 0.28s ease-out;
 }
 
 .card-hover:hover {
-  border-color: rgba(255, 85, 0, 0.35);
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.8), 0 0 25px -5px rgba(255, 85, 0, 0.15);
-  transform: translateY(-2px);
+  border-color: rgba(201, 168, 76, 0.30);
+  box-shadow:
+    0 12px 40px -12px rgba(0, 0, 0, 0.9),
+    0 0 30px -6px rgba(201, 168, 76, 0.12);
+  transform: translateY(-3px);
 }
 
-/* Custom Scrollbars */
+/* ═══════════════════════════════════════════════
+   GOLD ACCENT GLOW SURFACE
+═══════════════════════════════════════════════ */
+
+.surface-gold-border {
+  border: 1px solid rgba(201, 168, 76, 0.20);
+  box-shadow: inset 0 1px 0 rgba(212, 184, 106, 0.06);
+}
+
+/* ═══════════════════════════════════════════════
+   CUSTOM SCROLLBARS
+═══════════════════════════════════════════════ */
+
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #080808;
+  background: #050608;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #27272a;
+  background: #1e1f28;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #3f3f46;
+  background: #C9A84C;
 }
 
 .no-scrollbar {

@@ -65,7 +65,7 @@ export function Navbar() {
           {/* Brand Pill */}
           <Link
             href="/"
-            className="flex h-12 items-center gap-2.5 rounded-full border border-white/[0.08] bg-[#0c101b]/95 px-4 shadow-xl backdrop-blur-xl transition-colors hover:bg-neutral-800"
+            className="flex h-12 items-center gap-2.5 rounded-full border border-white/[0.06] bg-[#07090f]/95 px-4 shadow-2xl shadow-black/60 backdrop-blur-xl transition-all duration-200 hover:border-[#C9A84C]/20 hover:bg-[#0a0c14]"
           >
             <BrandLogo
               size="sm"
@@ -77,24 +77,27 @@ export function Navbar() {
           </Link>
 
           {/* Desktop Navigation Links Pill */}
-          <div className="hidden h-12 items-center rounded-full border border-white/[0.08] bg-[#0c101b]/95 px-2 shadow-xl backdrop-blur-xl md:flex">
+          <div className="hidden h-12 items-center rounded-full border border-white/[0.06] bg-[#07090f]/95 px-2 shadow-2xl shadow-black/60 backdrop-blur-xl md:flex">
             {navLinks.map((link, i) => {
               const active = isActive(link.href)
               return (
                 <React.Fragment key={link.href}>
                   {i > 0 && (
-                    <span className="h-4 w-px bg-white/[0.12]" />
+                    <span className="h-3.5 w-px bg-white/[0.08]" />
                   )}
                   <Link
                     href={link.href}
                     className={cn(
-                      "px-3.5 text-sm font-medium transition-colors duration-150 ease-out",
+                      "relative px-3.5 text-sm font-medium transition-all duration-150 ease-out rounded-full py-1.5",
                       active
-                        ? "text-amber-400 font-bold"
-                        : "text-white/70 hover:text-white"
+                        ? "text-[#C9A84C] font-bold"
+                        : "text-white/60 hover:text-white/90"
                     )}
                   >
                     {link.name}
+                    {active && (
+                      <span className="absolute inset-x-2 bottom-0.5 h-px rounded-full bg-[#C9A84C]/60" />
+                    )}
                   </Link>
                 </React.Fragment>
               )
@@ -107,20 +110,20 @@ export function Navbar() {
               <div className="flex items-center gap-2">
                 <Link
                   href="/dashboard"
-                  className="flex h-12 items-center gap-1.5 rounded-full border border-white/[0.08] bg-[#0c101b]/95 px-4 text-xs font-bold text-amber-400 shadow-xl backdrop-blur-xl hover:bg-neutral-800"
+                  className="flex h-12 items-center gap-1.5 rounded-full border border-white/[0.06] bg-[#07090f]/95 px-4 text-xs font-bold text-[#C9A84C] shadow-2xl shadow-black/60 backdrop-blur-xl hover:border-[#C9A84C]/20 hover:bg-[#0a0c14] transition-all"
                 >
                   <User className="h-3.5 w-3.5" />
                   <span>Dashboard</span>
                 </Link>
                 <Link
                   href="/dashboard/events"
-                  className="flex h-12 items-center rounded-full border border-white/[0.08] bg-[#0c101b]/95 px-3.5 text-xs font-bold text-slate-300 shadow-xl backdrop-blur-xl hover:bg-neutral-800 hover:text-white"
+                  className="flex h-12 items-center rounded-full border border-white/[0.06] bg-[#07090f]/95 px-3.5 text-xs font-bold text-slate-300 shadow-2xl shadow-black/60 backdrop-blur-xl hover:border-[#C9A84C]/20 hover:bg-[#0a0c14] hover:text-white transition-all"
                 >
                   <span>Events</span>
                 </Link>
                 <button
                   onClick={() => logout()}
-                  className="flex h-12 w-12 items-center justify-center rounded-full border border-white/[0.08] bg-[#0c101b]/95 text-slate-400 hover:text-rose-400 shadow-xl backdrop-blur-xl hover:bg-neutral-800 cursor-pointer"
+                  className="flex h-12 w-12 items-center justify-center rounded-full border border-white/[0.06] bg-[#07090f]/95 text-slate-400 hover:text-rose-400 shadow-2xl shadow-black/60 backdrop-blur-xl hover:bg-[#0a0c14] cursor-pointer transition-all"
                   title="Sign out"
                 >
                   <LogOut className="h-4 w-4" />
@@ -129,17 +132,18 @@ export function Navbar() {
             ) : (
               <Link
                 href="/login"
-                className="flex h-12 items-center rounded-full border border-white/[0.08] bg-[#0c101b]/95 px-5 text-sm font-medium text-white/70 shadow-xl backdrop-blur-xl transition-colors duration-150 ease-out hover:bg-neutral-800 hover:text-white"
+                className="flex h-12 items-center rounded-full border border-white/[0.06] bg-[#07090f]/95 px-5 text-sm font-medium text-white/60 shadow-2xl shadow-black/60 backdrop-blur-xl transition-all hover:border-white/[0.12] hover:bg-[#0a0c14] hover:text-white"
               >
                 Login
               </Link>
             )}
 
+            {/* Gold CTA */}
             <button
               onClick={handleCreateEventClick}
               className="cursor-pointer"
             >
-              <div className="flex h-12 items-center gap-1.5 rounded-full bg-amber-500 px-5 text-sm font-black text-neutral-950 shadow-lg shadow-amber-500/20 transition-colors duration-150 ease-out hover:bg-amber-400">
+              <div className="relative flex h-12 items-center gap-1.5 overflow-hidden rounded-full bg-[#C9A84C] px-5 text-sm font-extrabold text-[#0a0c14] shadow-lg shadow-[#C9A84C]/25 transition-all duration-200 hover:bg-[#D4B86A] hover:shadow-xl hover:shadow-[#C9A84C]/35 hover:-translate-y-0.5 btn-shimmer">
                 <span>Create an Event</span>
                 <ArrowUpRight className="h-4 w-4 stroke-[2.5]" />
               </div>
@@ -150,7 +154,7 @@ export function Navbar() {
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="flex h-12 w-12 items-center justify-center rounded-full border border-white/[0.08] bg-[#0c101b]/95 shadow-xl backdrop-blur-xl transition-colors hover:bg-neutral-800 md:hidden cursor-pointer"
+            className="flex h-12 w-12 items-center justify-center rounded-full border border-white/[0.06] bg-[#07090f]/95 shadow-2xl shadow-black/60 backdrop-blur-xl transition-all hover:border-[#C9A84C]/20 hover:bg-[#0a0c14] md:hidden cursor-pointer"
             aria-label="Toggle menu"
           >
             {mobileMenuOpen ? (
@@ -164,7 +168,7 @@ export function Navbar() {
 
       {/* Mobile Fullscreen Drawer */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 z-40 bg-[#06080e]/98 backdrop-blur-2xl md:hidden animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-40 bg-[#050608]/98 backdrop-blur-2xl md:hidden animate-in fade-in duration-200">
           <div className="flex flex-col pt-24 px-6 pb-8 h-full">
             <div className="space-y-1 flex-1">
               {navLinks.map((link) => {
@@ -176,23 +180,23 @@ export function Navbar() {
                     className={cn(
                       "flex items-center justify-between px-4 py-4 text-lg font-semibold rounded-2xl transition-all",
                       active
-                        ? "text-amber-400 font-bold bg-white/[0.05]"
-                        : "text-white/70 hover:text-white hover:bg-white/[0.04]"
+                        ? "text-[#C9A84C] font-bold bg-[#C9A84C]/[0.06] border border-[#C9A84C]/10"
+                        : "text-white/60 hover:text-white hover:bg-white/[0.04]"
                     )}
                   >
                     <span>{link.name}</span>
-                    <ChevronRight className="h-4 w-4 text-white/30" />
+                    <ChevronRight className={cn("h-4 w-4", active ? "text-[#C9A84C]/50" : "text-white/20")} />
                   </Link>
                 )
               })}
             </div>
 
-            <div className="space-y-3 pt-6 border-t border-white/[0.08]">
+            <div className="space-y-3 pt-6 border-t border-white/[0.06]">
               <button
                 onClick={handleCreateEventClick}
                 className="w-full cursor-pointer"
               >
-                <div className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-amber-500 font-black text-neutral-950 text-sm shadow-lg shadow-amber-500/20">
+                <div className="relative flex h-14 w-full items-center justify-center gap-2 overflow-hidden rounded-full bg-[#C9A84C] font-extrabold text-[#0a0c14] text-sm shadow-lg shadow-[#C9A84C]/25 btn-shimmer">
                   <span>Create an Event</span>
                   <ArrowUpRight className="h-4 w-4" />
                 </div>
@@ -201,25 +205,25 @@ export function Navbar() {
               {isAuthenticated ? (
                 <div className="flex gap-2">
                   <Link href="/dashboard" className="flex-1">
-                    <div className="flex h-14 w-full items-center justify-center rounded-full border border-white/[0.1] bg-white/[0.05] text-sm font-semibold text-amber-400">
+                    <div className="flex h-14 w-full items-center justify-center rounded-full border border-[#C9A84C]/15 bg-[#C9A84C]/[0.06] text-sm font-semibold text-[#C9A84C]">
                       Dashboard
                     </div>
                   </Link>
                   <Link href="/dashboard/events" className="flex-1">
-                    <div className="flex h-14 w-full items-center justify-center rounded-full border border-white/[0.1] bg-white/[0.05] text-sm font-semibold text-slate-200">
+                    <div className="flex h-14 w-full items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.04] text-sm font-semibold text-slate-200">
                       Events
                     </div>
                   </Link>
                   <button
                     onClick={() => logout()}
-                    className="flex h-14 px-5 items-center justify-center rounded-full border border-white/[0.1] bg-white/[0.05] text-sm font-semibold text-rose-400"
+                    className="flex h-14 px-5 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.04] text-sm font-semibold text-rose-400"
                   >
                     Logout
                   </button>
                 </div>
               ) : (
                 <Link href="/login" className="block">
-                  <div className="flex h-14 w-full items-center justify-center rounded-full border border-white/[0.1] bg-white/[0.05] text-sm font-semibold text-white/80">
+                  <div className="flex h-14 w-full items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.04] text-sm font-semibold text-white/70">
                     Organizer Login
                   </div>
                 </Link>

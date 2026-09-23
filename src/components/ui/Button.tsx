@@ -28,33 +28,33 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const baseStyles =
-      "group relative inline-flex items-center justify-center font-bold tracking-tight transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ff5500] focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer select-none active:scale-[0.98]"
+      "group relative inline-flex items-center justify-center font-bold tracking-tight transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A84C] focus-visible:ring-offset-2 focus-visible:ring-offset-[#050608] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer select-none active:scale-[0.98] overflow-hidden"
 
     const variants = {
-      // Primary: Warm Ember Orange Action with micro-glow
+      // Primary: Liquid Gold — shimmer on hover
       primary:
-        "bg-[#ff5500] text-white hover:bg-[#ff661a] active:bg-[#e64d00] shadow-lg shadow-[#ff5500]/25 border border-[#ff5500]/30 hover:shadow-xl hover:shadow-[#ff5500]/35 hover:-translate-y-0.5",
-      // Secondary: Deep Pure Charcoal with subtle border
+        "bg-[#C9A84C] text-[#0a0c14] hover:bg-[#D4B86A] active:bg-[#A07828] shadow-lg shadow-[#C9A84C]/20 border border-[#D4B86A]/20 hover:shadow-xl hover:shadow-[#C9A84C]/30 hover:-translate-y-0.5 btn-shimmer font-extrabold",
+      // Secondary: Deep charcoal
       secondary:
-        "bg-neutral-900 text-white hover:bg-neutral-800 active:bg-black shadow-md border border-white/[0.08] hover:border-white/20",
-      // Accent: Vibrant Orange Gradient
+        "bg-[#0e1018] text-white hover:bg-[#161824] active:bg-[#0a0c14] shadow-md border border-white/[0.08] hover:border-white/[0.16]",
+      // Accent: Gold gradient
       accent:
-        "bg-gradient-to-r from-[#ff5500] to-[#ff8c42] text-white hover:from-[#ff661a] hover:to-[#ff9e5e] shadow-lg shadow-[#ff5500]/25 border border-white/10 hover:-translate-y-0.5",
-      // Outline: Structured Obsidian glass border
+        "bg-gradient-to-r from-[#C9A84C] to-[#D4B86A] text-[#0a0c14] hover:from-[#D4B86A] hover:to-[#C9A84C] shadow-lg shadow-[#C9A84C]/20 border border-white/10 hover:-translate-y-0.5 btn-shimmer font-extrabold",
+      // Outline: Obsidian glass border
       outline:
-        "border border-white/[0.12] bg-white/[0.03] text-white hover:bg-white/[0.08] hover:border-white/25 backdrop-blur-md active:bg-white/[0.05]",
-      // Glass: Semi-transparent modern glass
+        "border border-white/[0.10] bg-white/[0.02] text-white hover:bg-white/[0.06] hover:border-[#C9A84C]/30 backdrop-blur-md active:bg-white/[0.04]",
+      // Glass: Semi-transparent with gold hover
       glass:
-        "border border-white/[0.14] bg-neutral-900/80 text-white hover:bg-neutral-800 backdrop-blur-xl shadow-lg hover:border-[#ff5500]/40",
-      // Ghost: Subtle flat obsidian
+        "border border-white/[0.10] bg-[#0a0c14]/80 text-white hover:bg-[#161824] backdrop-blur-xl shadow-lg hover:border-[#C9A84C]/30",
+      // Ghost: Flat
       ghost:
-        "text-neutral-300 hover:bg-white/[0.06] hover:text-white active:bg-white/[0.1]",
-      // Danger / Destructive
+        "text-neutral-300 hover:bg-white/[0.05] hover:text-white active:bg-white/[0.08]",
+      // Danger
       danger:
         "bg-rose-600 text-white hover:bg-rose-500 active:bg-rose-700 shadow-md shadow-rose-600/20 border border-rose-500/30",
-      // Success / Verified
+      // Success
       success:
-        "bg-emerald-500 text-neutral-950 hover:bg-emerald-400 active:bg-emerald-600 shadow-md shadow-emerald-500/20 border border-emerald-400/30",
+        "bg-emerald-500 text-[#050608] hover:bg-emerald-400 active:bg-emerald-600 shadow-md shadow-emerald-500/20 border border-emerald-400/30",
     }
 
     const sizes = {

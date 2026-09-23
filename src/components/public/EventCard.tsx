@@ -4,7 +4,7 @@ import React from "react"
 import Link from "next/link"
 import { Event } from "@/types/database"
 import { formatCurrency, formatDate } from "@/lib/utils"
-import { Calendar, Trophy, ArrowRight, Clock, CheckCircle2, Flame, Users } from "lucide-react"
+import { Calendar, Trophy, ArrowRight, Clock, CheckCircle2, Flame, Crown } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface EventCardProps {
@@ -38,7 +38,7 @@ export function EventCard({
   return (
     <div
       className={cn(
-        "group relative flex flex-col overflow-hidden rounded-3xl border border-white/[0.08] bg-[#0c101b]/95 transition-all duration-300 hover:border-amber-400/40 hover:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.8),0_0_25px_-5px_rgba(245,158,11,0.15)] text-white shadow-xl shadow-black/60",
+        "group relative flex flex-col overflow-hidden rounded-3xl border border-white/[0.07] bg-[#0a0c14] transition-all duration-300 hover:border-[#C9A84C]/30 hover:shadow-[0_12px_40px_-12px_rgba(0,0,0,0.95),0_0_30px_-6px_rgba(201,168,76,0.12)] hover:-translate-y-1 text-white shadow-2xl shadow-black/70",
         isFeatured && "md:col-span-2 md:row-span-2",
         className
       )}
@@ -56,9 +56,12 @@ export function EventCard({
             "https://images.unsplash.com/photo-1511578314322-379afb476865?w=1600&auto=format&fit=crop&q=80"
           }
           alt={event.name}
-          className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out brightness-[0.88] group-hover:brightness-100"
+          className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out brightness-[0.80] group-hover:brightness-95"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0c101b] via-[#0c101b]/30 to-black/30" />
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0c14] via-[#0a0c14]/20 to-black/20" />
+        {/* Top gold shimmer line on hover */}
+        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-[#C9A84C]/0 to-transparent group-hover:via-[#C9A84C]/40 transition-all duration-500" />
 
         {/* Top Status & Price Badges */}
         <div className="absolute top-3.5 left-3.5 right-3.5 flex items-center justify-between gap-2">
@@ -76,20 +79,20 @@ export function EventCard({
               </span>
             )}
             {isClosed && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-neutral-800/90 px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-neutral-300 shadow-md backdrop-blur-md border border-white/10">
-                <CheckCircle2 className="h-3 w-3 text-amber-400" />
+              <span className="inline-flex items-center gap-1 rounded-full bg-neutral-900/90 px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-neutral-300 shadow-md backdrop-blur-md border border-white/10">
+                <CheckCircle2 className="h-3 w-3 text-[#C9A84C]" />
                 Concluded
               </span>
             )}
             {event.is_featured && !isFeatured && (
-              <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-amber-500/20 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-400 backdrop-blur-md border border-amber-500/30">
-                <Flame className="h-3 w-3 text-amber-400" />
+              <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-[#C9A84C]/15 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#C9A84C] backdrop-blur-md border border-[#C9A84C]/25">
+                <Crown className="h-3 w-3 text-[#C9A84C]" />
                 Featured
               </span>
             )}
           </div>
 
-          <div className="rounded-full bg-black/70 backdrop-blur-md px-3 py-1 text-xs font-bold text-amber-400 border border-amber-500/20 shadow-sm">
+          <div className="rounded-full bg-black/75 backdrop-blur-md px-3 py-1 text-xs font-bold text-[#C9A84C] border border-[#C9A84C]/20 shadow-sm">
             {formatCurrency(event.vote_price, event.currency)}
             <span className="text-[10px] text-slate-400 font-normal"> / vote</span>
           </div>
@@ -97,14 +100,14 @@ export function EventCard({
 
         {/* Floating title overlay on image */}
         <div className="absolute bottom-3 left-4 right-4 text-white">
-          <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-amber-400 mb-1">
-            <span>{categoriesCount} {categoriesCount === 1 ? 'Category' : 'Categories'}</span>
-            <span className="text-white/30">•</span>
+          <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-[#C9A84C] mb-1">
+            <span>{categoriesCount} {categoriesCount === 1 ? "Category" : "Categories"}</span>
+            <span className="text-white/20">•</span>
             <span>{nomineesCount} Nominees</span>
           </div>
           <h3
             className={cn(
-              "font-extrabold tracking-tight text-white line-clamp-1 group-hover:text-amber-400 transition-colors",
+              "font-extrabold tracking-tight text-white line-clamp-1 group-hover:text-[#D4B86A] transition-colors duration-300",
               isFeatured ? "text-2xl sm:text-3xl" : "text-xl"
             )}
           >
@@ -121,15 +124,15 @@ export function EventCard({
           </p>
 
           {/* Metadata Grid */}
-          <div className="mt-4 grid grid-cols-2 gap-3 border-t border-white/[0.06] pt-3.5 text-xs">
-            <div className="flex items-center gap-1.5 text-slate-400">
-              <Calendar className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+          <div className="mt-4 grid grid-cols-2 gap-3 border-t border-white/[0.05] pt-3.5 text-xs">
+            <div className="flex items-center gap-1.5 text-slate-500">
+              <Calendar className="h-3.5 w-3.5 text-[#C9A84C]/70 shrink-0" />
               <span className="truncate text-[11px]">
-                {isClosed ? "Concluded " + formatDate(event.end_date) : `${daysLeft} days remaining`}
+                {isClosed ? "Ended " + formatDate(event.end_date) : `${daysLeft} days remaining`}
               </span>
             </div>
-            <div className="flex items-center justify-end gap-1.5 font-semibold text-slate-300">
-              <Trophy className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+            <div className="flex items-center justify-end gap-1.5 font-semibold text-slate-400">
+              <Trophy className="h-3.5 w-3.5 text-[#C9A84C]/70 shrink-0" />
               <span className="text-[11px]">{event.show_live_results ? "Live Standings" : "Certified"}</span>
             </div>
           </div>
@@ -140,7 +143,7 @@ export function EventCard({
           <Link href={`/events/${event.slug}`}>
             <button
               type="button"
-              className="w-full flex items-center justify-center gap-2 rounded-full border border-white/[0.08] bg-neutral-900/90 py-3 text-xs font-bold text-white transition-all duration-200 hover:border-amber-400/40 hover:bg-amber-500 hover:text-neutral-950 cursor-pointer shadow-md active:scale-98"
+              className="w-full flex items-center justify-center gap-2 rounded-full border border-white/[0.07] bg-[#0e1018] py-3 text-xs font-bold text-white/80 transition-all duration-200 hover:border-[#C9A84C]/35 hover:bg-[#C9A84C] hover:text-[#0a0c14] cursor-pointer shadow-md active:scale-98"
             >
               <span>{isClosed ? "View Results & Certified Tallies" : "Explore Nominees & Vote"}</span>
               <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
