@@ -162,9 +162,11 @@ export default function HomePage() {
             </div>
 
             {/* Card 3: Gold Accent — Automation */}
-            <div className="group flex flex-col justify-between rounded-3xl bg-gradient-to-br from-[#C9A84C] via-[#B8922E] to-[#7A5C1E] p-7 text-[#0a0c14] transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-[#C9A84C]/25 shadow-2xl shadow-[#C9A84C]/10 btn-shimmer overflow-hidden">
+            <div className="group relative flex flex-col justify-between rounded-3xl bg-gradient-to-br from-[#C9A84C] via-[#B8922E] to-[#7A5C1E] p-7 text-[#0a0c14] transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-[#C9A84C]/25 shadow-2xl shadow-[#C9A84C]/10 overflow-hidden">
+              {/* Internal shimmer overlay (does not fight the gradient background) */}
+              <div className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out" />
               <div>
-                <div className="inline-block rounded-full border border-black/20 bg-black/12 px-3 py-1 text-[11px] font-black text-[#0a0c14]">
+                <div className="inline-block rounded-full border border-black/20 bg-black/15 px-3 py-1 text-[11px] font-black text-[#0a0c14]">
                   Automation
                 </div>
                 <h3 className="mt-8 text-2xl font-black tracking-tight text-[#0a0c14] leading-snug">
