@@ -3,24 +3,46 @@
 import React, { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { ArrowRight, ShieldCheck, Sparkles } from "lucide-react"
+import { ArrowRight, ShieldCheck, ShieldAlert, Eye, EyeOff, KeyRound, UserCheck } from "lucide-react"
 import { Input } from "@/components/ui/Input"
 import { BrandLogo } from "@/components/ui/BrandLogo"
+import { useAuth } from "@/lib/auth"
 
 export default function LoginPage() {
   const router = useRouter()
-  const [email, setEmail] = useState("organizer@igbetitourism.org")
-  const [password, setPassword] = useState("••••••••")
+  const { login, isAuthenticated, isSuperAdmin } = useAuth()
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
-  const handleLogin = (e: React.FormEvent) => {
+  // Redirect if already authenticated
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      router.push(isSuperAdmin ? "/admin" : "/dashboard")
+    }
+  }, [isAuthenticated, isSuperAdmin, router])
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
+    if (!email.trim() || !password.trim()) {
+      setErrorMessage("Please enter your email and password.")
+      return
+    }
 
-    // Simulate organizer authentication session and redirect to dashboard
-    setTimeout(() => {
-      router.push("/dashboard")
-    }, 600)
+    setIsLoading(true)
+    setErrorMessage(null)
+
+    const result = await login(email, password)
+
+    if (result.success) {
+      const isAdmin = email.toLowerCase() === "admin@jvican.com"
+      router.push(isAdmin ? "/admin" : "/dashboard")
+    } else {
+      setErrorMessage(result.message)
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -29,18 +51,25 @@ export default function LoginPage() {
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] sm:w-[500px] h-[200px] sm:h-[300px] bg-[#C9A84C]/5 rounded-full blur-[140px] pointer-events-none" />
 
       <div className="w-full max-w-md overflow-hidden rounded-3xl border border-white/[0.07] bg-[#0a0c14] p-6 sm:p-10 shadow-2xl shadow-black/90 relative z-10 backdrop-blur-xl">
-        <div className="text-center mb-8 flex flex-col items-center">
+        <div className="text-center mb-6 flex flex-col items-center">
           <BrandLogo size="lg" className="mb-4" />
           <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
             JVican Vote Arena
           </h1>
           <p className="text-xs font-bold text-[#C9A84C] mt-1">
-            Organizer Portal — Welcome back
+            Sign in to Portal
           </p>
           <p className="text-[11px] text-slate-400 mt-0.5">
-            Sign in to manage your events, nominees, and TransactPay payouts.
+            Access your Organizer Dashboard or Super Admin Console.
           </p>
         </div>
+
+        {errorMessage && (
+          <div className="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs flex items-center gap-2">
+            <ShieldAlert className="w-4 h-4 text-rose-400 shrink-0" />
+            <span>{errorMessage}</span>
+          </div>
+        )}
 
         <form onSubmit={handleLogin} className="space-y-4">
           <Input
@@ -48,42 +77,61 @@ export default function LoginPage() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
             required
           />
 
-          <Input
-            label="Password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          {/* Password with show/hide toggle */}
+          <div className="w-full space-y-1.5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-neutral-300">
+              Password
+            </label>
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter your password"
+                required
+                className="w-full rounded-2xl border border-white/[0.08] bg-[#121212] px-4 py-3 pr-12 text-sm text-white transition-all duration-150 placeholder:text-neutral-500 focus:border-[#C9A84C] focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/20"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-[#C9A84C] transition-colors cursor-pointer p-1"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
+              </button>
+            </div>
+          </div>
 
           <div className="flex items-center justify-between text-xs pt-1">
             <label className="flex items-center gap-2 text-slate-400 cursor-pointer">
               <input type="checkbox" defaultChecked className="rounded border-neutral-700 bg-neutral-900 text-[#C9A84C] focus:ring-[#C9A84C]" />
               <span>Remember this device</span>
             </label>
-            <a href="#" className="font-bold text-[#C9A84C] hover:text-[#D4B86A]">
-              Forgot password?
-            </a>
           </div>
 
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full flex items-center justify-center gap-2 rounded-full bg-[#C9A84C] py-3.5 px-6 font-black text-xs sm:text-sm text-[#0a0c14] shadow-lg shadow-[#C9A84C]/20 hover:bg-[#D4B86A] transition-all cursor-pointer mt-2"
+            className="w-full flex items-center justify-center gap-2 rounded-full bg-[#C9A84C] py-3.5 px-6 font-black text-xs sm:text-sm text-[#0a0c14] shadow-lg shadow-[#C9A84C]/20 hover:bg-[#D4B86A] transition-all cursor-pointer mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <span>{isLoading ? "Signing in..." : "Sign In to Dashboard"}</span>
+            <span>{isLoading ? "Signing in..." : "Sign In"}</span>
             <ArrowRight className="h-4 w-4" />
           </button>
         </form>
 
         <div className="mt-8 border-t border-white/10 pt-6 text-center text-xs text-slate-400">
           <p>
-            Looking to host an event?{" "}
-            <Link href="/dashboard/events/new" className="font-bold text-[#C9A84C] hover:text-[#D4B86A]">
-              Create an Event
+            Don&apos;t have an account?{" "}
+            <Link href="/signup" className="font-bold text-[#C9A84C] hover:text-[#D4B86A]">
+              Create an Account
             </Link>
           </p>
           <div className="mt-4 rounded-2xl bg-[#0e1018] p-3 text-[11px] text-slate-400 flex items-center justify-center gap-1.5 border border-white/5">

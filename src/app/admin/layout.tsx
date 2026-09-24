@@ -32,7 +32,7 @@ export default function AdminLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
-  const { user, isSuperAdmin, switchRole, logout } = useAuth()
+  const { user, isSuperAdmin, logout } = useAuth()
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
 
   const navItems = [
@@ -217,32 +217,12 @@ export default function AdminLayout({
             <div className="h-2 w-2 rounded-full bg-emerald-400 ring-4 ring-emerald-400/20" />
           </div>
 
-          {/* Switch Role Button */}
-          <div className="grid grid-cols-2 gap-1.5 bg-black/40 p-1 rounded-xl border border-white/[0.06]">
-            <button
-              type="button"
-              onClick={() => switchRole("admin")}
-              className={cn(
-                "py-1.5 px-2 rounded-lg text-[10px] font-black transition-all cursor-pointer text-center",
-                isSuperAdmin
-                  ? "bg-amber-500 text-black shadow-sm"
-                  : "text-slate-400 hover:text-white"
-              )}
-            >
-              Super Admin
-            </button>
-            <button
-              type="button"
-              onClick={() => switchRole("organizer")}
-              className={cn(
-                "py-1.5 px-2 rounded-lg text-[10px] font-black transition-all cursor-pointer text-center",
-                !isSuperAdmin
-                  ? "bg-[#C9A84C] text-black shadow-sm"
-                  : "text-slate-400 hover:text-white"
-              )}
-            >
-              Organizer
-            </button>
+          {/* Current Role Badge */}
+          <div className="bg-black/40 p-2.5 rounded-xl border border-white/[0.06] flex items-center justify-between">
+            <span className="text-[10px] font-bold text-slate-400">Current Session</span>
+            <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-400 border border-amber-500/30">
+              {isSuperAdmin ? "Super Admin" : "Organizer"}
+            </span>
           </div>
 
           <button

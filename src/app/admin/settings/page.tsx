@@ -14,6 +14,7 @@ import {
   AlertTriangle,
   Lock,
   Layers,
+  KeyRound,
 } from 'lucide-react';
 import { db } from '@/lib/db';
 import { useAuth } from '@/lib/auth';
@@ -21,7 +22,7 @@ import { PlatformSettings } from '@/types/database';
 import { Button } from '@/components/ui/Button';
 
 export default function AdminSettingsPage() {
-  const { user } = useAuth();
+  const { user, changeAdminPassword } = useAuth();
   const [settings, setSettings] = useState<PlatformSettings | null>(null);
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState<{
@@ -36,6 +37,39 @@ export default function AdminSettingsPage() {
   const [maintenanceMode, setMaintenanceMode] = useState<boolean>(false);
   const [manualApproval, setManualApproval] = useState<boolean>(true);
   const [gateway, setGateway] = useState<string>('Paystack / Korapay Escrow');
+
+  // Password change states
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordChanging, setPasswordChanging] = useState(false);
+
+  const handlePasswordChange = async () => {
+    if (newPassword !== confirmPassword) {
+      setNotification({
+        type: 'error',
+        message: 'New password and confirmation do not match.',
+      });
+      return;
+    }
+    setPasswordChanging(true);
+    const res = await changeAdminPassword(currentPassword, newPassword);
+    if (res.success) {
+      setNotification({
+        type: 'success',
+        message: res.message,
+      });
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } else {
+      setNotification({
+        type: 'error',
+        message: res.message,
+      });
+    }
+    setPasswordChanging(false);
+  };
 
   useEffect(() => {
     loadSettings();
@@ -270,6 +304,76 @@ export default function AdminSettingsPage() {
                 )}
               </button>
             </div>
+          </div>
+        </div>
+
+        {/* Super Admin Security & Password Change Card */}
+        <div className="p-6 rounded-2xl bg-neutral-900/60 border border-[#C9A84C]/20 shadow-lg space-y-5">
+          <div className="flex items-center justify-between border-b border-white/5 pb-4">
+            <div className="flex items-center gap-2">
+              <KeyRound className="w-4 h-4 text-[#C9A84C]" />
+              <div>
+                <h3 className="text-sm font-bold text-white">Super Admin Password & Security</h3>
+                <p className="text-[11px] text-neutral-400">Update the master credential required to access the Super Admin governance portal.</p>
+              </div>
+            </div>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#C9A84C]/10 text-[#C9A84C] border border-[#C9A84C]/20">
+              admin@jvican.com
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-1.5">
+                Current Password
+              </label>
+              <input
+                type="password"
+                placeholder="Current password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#C9A84C]"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-1.5">
+                New Password
+              </label>
+              <input
+                type="password"
+                placeholder="Min 6 characters"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#C9A84C]"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-1.5">
+                Confirm New Password
+              </label>
+              <input
+                type="password"
+                placeholder="Confirm new password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#C9A84C]"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between pt-2">
+            <p className="text-[11px] text-neutral-500">
+              Default password if never changed is <code className="text-amber-400 font-mono">admin@password123</code>
+            </p>
+            <button
+              type="button"
+              onClick={handlePasswordChange}
+              disabled={passwordChanging || !currentPassword || !newPassword}
+              className="px-4 py-2 rounded-xl bg-[#C9A84C] hover:bg-[#D4B86A] text-[#0a0c14] font-black text-xs transition-all flex items-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-md shadow-[#C9A84C]/10"
+            >
+              <KeyRound className="w-3.5 h-3.5" />
+              <span>{passwordChanging ? 'Updating Password...' : 'Update Admin Password'}</span>
+            </button>
           </div>
         </div>
 

@@ -1,6 +1,18 @@
-import { createClient } from '@supabase/supabase-js'
+import { createBrowserClient } from '@supabase/ssr'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://mock.supabase.co'
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'mock-key'
+export function createClient() {
+  return createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+  )
+}
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Singleton for client components
+let browserClient: ReturnType<typeof createClient> | null = null
+
+export function getSupabaseBrowserClient() {
+  if (!browserClient) {
+    browserClient = createClient()
+  }
+  return browserClient
+}
