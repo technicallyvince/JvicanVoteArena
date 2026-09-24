@@ -23,6 +23,7 @@ import {
 } from "lucide-react"
 import { useAuth } from "@/lib/auth"
 import { BrandLogo } from "@/components/ui/BrandLogo"
+import { MenuDropdown } from "@/components/ui/MenuDropdown"
 import { cn } from "@/lib/utils"
 
 export default function AdminLayout({
@@ -62,19 +63,67 @@ export default function AdminLayout({
         </div>
         <button
           onClick={() => setMobileNavOpen(!mobileNavOpen)}
-          className="p-2 rounded-lg bg-white/[0.05] text-slate-300 hover:text-white"
+          className="p-2 rounded-lg bg-white/[0.05] text-slate-300 hover:text-white cursor-pointer"
         >
           {mobileNavOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
       </div>
 
-      {/* Super Admin Sidebar (Desktop + Mobile Drawer) */}
-      <aside
-        className={cn(
-          "fixed inset-y-0 left-0 z-40 w-64 md:w-72 bg-[#08090e] border-r border-white/[0.08] flex flex-col justify-between transition-transform duration-300 md:static md:translate-x-0",
-          mobileNavOpen ? "translate-x-0" : "-translate-x-full"
-        )}
-      >
+      {/* Mobile Menu Dropdown (transitions.dev) */}
+      <div className="md:hidden relative">
+        <MenuDropdown
+          isOpen={mobileNavOpen}
+          onClose={() => setMobileNavOpen(false)}
+          origin="top-center"
+          className="w-full bg-[#08090e]/98 border-b border-white/[0.08] p-4 space-y-2 backdrop-blur-2xl"
+        >
+          {navItems.map((item) => {
+            const active = isActive(item.href)
+            const Icon = item.icon
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setMobileNavOpen(false)}
+                className={cn(
+                  "flex items-center justify-between px-4 py-2.5 rounded-2xl text-xs font-bold transition-all",
+                  active
+                    ? "bg-[#C9A84C] text-[#050608] font-black"
+                    : "text-slate-400 hover:text-white hover:bg-white/[0.04]"
+                )}
+              >
+                <div className="flex items-center gap-3">
+                  <Icon className="h-4 w-4" />
+                  <span>{item.name}</span>
+                </div>
+                {item.badge && !active && (
+                  <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-amber-500/15 text-amber-400 border border-amber-500/30">
+                    {item.badge}
+                  </span>
+                )}
+              </Link>
+            )
+          })}
+          <div className="pt-2 border-t border-white/[0.08] flex items-center justify-between">
+            <Link
+              href="/dashboard"
+              className="text-xs text-amber-400 font-bold px-3 py-1.5"
+              onClick={() => setMobileNavOpen(false)}
+            >
+              Organizer View &rarr;
+            </Link>
+            <button
+              onClick={() => logout()}
+              className="text-xs text-rose-400 font-bold px-3 py-1.5 cursor-pointer"
+            >
+              Sign Out
+            </button>
+          </div>
+        </MenuDropdown>
+      </div>
+
+      {/* Super Admin Sidebar (Desktop) */}
+      <aside className="hidden md:flex fixed inset-y-0 left-0 z-40 w-64 md:w-72 bg-[#08090e] border-r border-white/[0.08] flex-col justify-between md:static md:translate-x-0">
         {/* Sidebar Header */}
         <div className="p-5 border-b border-white/[0.08]">
           <Link href="/admin" className="flex items-center gap-2.5">

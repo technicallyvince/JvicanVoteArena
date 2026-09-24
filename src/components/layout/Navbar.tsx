@@ -3,16 +3,18 @@
 import React, { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { Menu, X, ChevronRight, ArrowUpRight, LogOut, User, Sparkles, ShieldAlert } from "lucide-react"
+import { Menu, X, ChevronRight, ArrowUpRight, LogOut, User, Sparkles, ShieldAlert, ChevronDown, Wallet, Calendar, PlusCircle } from "lucide-react"
 import { BrandLogo } from "../ui/BrandLogo"
 import { Button } from "../ui/Button"
 import { AuthModal } from "../auth/AuthModal"
+import { MenuDropdown } from "../ui/MenuDropdown"
 import { useAuth } from "@/lib/auth"
 import { cn } from "@/lib/utils"
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
@@ -28,6 +30,7 @@ export function Navbar() {
 
   useEffect(() => {
     setMobileMenuOpen(false)
+    setUserDropdownOpen(false)
   }, [pathname])
 
   const navLinks = [
@@ -107,36 +110,75 @@ export function Navbar() {
           {/* Desktop Action Pills */}
           <div className="hidden items-center gap-2 md:flex">
             {isAuthenticated ? (
-              <div className="flex items-center gap-2">
-                {isSuperAdmin && (
-                  <Link
-                    href="/admin"
-                    className="flex h-12 items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3.5 text-xs font-black text-amber-400 shadow-2xl shadow-black/60 backdrop-blur-xl hover:border-amber-500/50 hover:bg-amber-500/20 transition-all"
-                  >
-                    <ShieldAlert className="h-3.5 w-3.5" />
-                    <span>Admin</span>
-                  </Link>
-                )}
-                <Link
-                  href="/dashboard"
-                  className="flex h-12 items-center gap-1.5 rounded-full border border-white/[0.06] bg-[#080808]/95 px-4 text-xs font-bold text-[#C9A84C] shadow-2xl shadow-black/60 backdrop-blur-xl hover:border-[#C9A84C]/20 hover:bg-[#121212] transition-all"
-                >
-                  <User className="h-3.5 w-3.5" />
-                  <span>Dashboard</span>
-                </Link>
-                <Link
-                  href="/dashboard/events"
-                  className="flex h-12 items-center rounded-full border border-white/[0.06] bg-[#080808]/95 px-3.5 text-xs font-bold text-neutral-300 shadow-2xl shadow-black/60 backdrop-blur-xl hover:border-[#C9A84C]/20 hover:bg-[#121212] hover:text-white transition-all"
-                >
-                  <span>Events</span>
-                </Link>
+              <div className="relative">
                 <button
-                  onClick={() => logout()}
-                  className="flex h-12 w-12 items-center justify-center rounded-full border border-white/[0.06] bg-[#080808]/95 text-neutral-400 hover:text-rose-400 shadow-2xl shadow-black/60 backdrop-blur-xl hover:bg-[#121212] cursor-pointer transition-all"
-                  title="Sign out"
+                  type="button"
+                  onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                  className="flex h-12 items-center gap-2 rounded-full border border-white/[0.08] bg-[#080808]/95 px-4 text-xs font-bold text-white shadow-2xl shadow-black/60 backdrop-blur-xl hover:border-[#C9A84C]/40 hover:bg-[#121212] transition-all cursor-pointer"
                 >
-                  <LogOut className="h-4 w-4" />
+                  <div className="h-6 w-6 rounded-full bg-[#C9A84C]/20 border border-[#C9A84C]/30 flex items-center justify-center text-[#C9A84C] text-[10px] font-black">
+                    {user?.name?.charAt(0) || "U"}
+                  </div>
+                  <span className="max-w-[100px] truncate text-slate-200">{user?.name || "Account"}</span>
+                  <ChevronDown className={cn("h-3.5 w-3.5 text-slate-400 transition-transform duration-200", userDropdownOpen && "rotate-180")} />
                 </button>
+
+                {/* transitions.dev Menu Dropdown */}
+                <MenuDropdown
+                  isOpen={userDropdownOpen}
+                  onClose={() => setUserDropdownOpen(false)}
+                  origin="top-right"
+                  className="absolute right-0 top-14 w-60 rounded-3xl border border-white/[0.10] bg-[#0a0c14]/98 p-2 shadow-2xl shadow-black/90 backdrop-blur-2xl z-50 space-y-1"
+                >
+                  <div className="px-3 py-2.5 border-b border-white/[0.06] mb-1">
+                    <p className="text-xs font-bold text-white truncate">{user?.name}</p>
+                    <p className="text-[10px] font-mono text-neutral-400 truncate">{user?.email}</p>
+                  </div>
+
+                  {isSuperAdmin && (
+                    <Link
+                      href="/admin"
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-2xl text-xs font-bold text-amber-400 hover:bg-amber-500/10 transition-colors"
+                    >
+                      <ShieldAlert className="h-4 w-4" />
+                      <span>Super Admin Command</span>
+                    </Link>
+                  )}
+
+                  <Link
+                    href="/dashboard"
+                    className="flex items-center gap-2.5 px-3 py-2 rounded-2xl text-xs font-bold text-slate-200 hover:text-white hover:bg-white/[0.06] transition-colors"
+                  >
+                    <User className="h-4 w-4 text-[#C9A84C]" />
+                    <span>Organizer Dashboard</span>
+                  </Link>
+
+                  <Link
+                    href="/dashboard/wallet"
+                    className="flex items-center gap-2.5 px-3 py-2 rounded-2xl text-xs font-bold text-slate-200 hover:text-white hover:bg-white/[0.06] transition-colors"
+                  >
+                    <Wallet className="h-4 w-4 text-emerald-400" />
+                    <span>Wallet &amp; Payouts</span>
+                  </Link>
+
+                  <Link
+                    href="/dashboard/events"
+                    className="flex items-center gap-2.5 px-3 py-2 rounded-2xl text-xs font-bold text-slate-200 hover:text-white hover:bg-white/[0.06] transition-colors"
+                  >
+                    <Calendar className="h-4 w-4 text-sky-400" />
+                    <span>My Events</span>
+                  </Link>
+
+                  <div className="pt-1 border-t border-white/[0.06] mt-1">
+                    <button
+                      onClick={() => logout()}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-2xl text-xs font-bold text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
+                </MenuDropdown>
               </div>
             ) : (
               <Link
