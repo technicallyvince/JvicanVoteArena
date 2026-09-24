@@ -11,12 +11,6 @@ JVican Vote Arena is a complete, scalable, and responsive multi-contest voting a
 3. **Idempotent Payment Webhooks**: Prevents duplicate confirmation, double-counting votes, or multiple receipt dispatches on gateway retries or network interruptions.
 4. **Certified Receipt Verification**: Public cryptographic verification at `/receipt/[publicId]` without leaking sensitive database IDs.
 5. **Full Organizer Studio**: Manage contests, categories, contestants, live standings toggle, real-time audit ledger, and CSV export.
-6. **Dynamic Seed Contests**:
-   - Miss Igbeti 2026
-   - Mr Igbeti 2026
-   - MC Icon Igbeti 2026
-   - Best Teacher Igbeti 2026
-   - Best Photographer Igbeti 2026
 
 ---
 
@@ -65,7 +59,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ## 🗺️ Route Sitemap
 
 ### Public
-- `/` — Homepage (Hero, Featured Igbeti Contests, How it Works, Winners Preview, Organizer CTA)
+- `/` — Homepage (Hero, Featured Live Contests, How it Works, Winners Preview, Organizer CTA)
 - `/contests` — Discovery catalog with All | Live | Upcoming | Closed tabs
 - `/contest/[slug]` — Contest page with Overview, Contestants, Categories, Leaderboard, Results
 - `/contestants` — Global contestant discovery & search

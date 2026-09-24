@@ -48,13 +48,13 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/events/miss-igbeti-2026" className="hover:text-[#C9A84C] transition-colors duration-150">
-                  Miss Igbeti 2026
+                <Link href="/winners" className="hover:text-[#C9A84C] transition-colors duration-150">
+                  Hall of Fame
                 </Link>
               </li>
               <li>
-                <Link href="/receipt/rc_igbeti_001" className="hover:text-[#C9A84C] transition-colors duration-150">
-                  Receipt Verification
+                <Link href="/apply" className="hover:text-[#C9A84C] transition-colors duration-150">
+                  Nominee Application
                 </Link>
               </li>
             </ul>

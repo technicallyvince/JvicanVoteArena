@@ -110,7 +110,7 @@ export default function SignupPage() {
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Igbeti Tourism Board"
+              placeholder="e.g. Apex Media Group / John Doe"
               required
             />
 

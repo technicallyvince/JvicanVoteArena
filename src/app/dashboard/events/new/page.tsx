@@ -418,7 +418,7 @@ export default function EventCreationWizardPage() {
               <div className="space-y-5 animate-in fade-in duration-200">
                 <Input
                   label="Event Name"
-                  placeholder="e.g. Miss Igbeti 2026 or Annual Leadership Awards"
+                  placeholder="e.g. National Music Awards 2026 or Campus Innovators Summit"
                   value={eventDetails.name}
                   onChange={(e) => {
                     const name = e.target.value
@@ -433,7 +433,7 @@ export default function EventCreationWizardPage() {
 
                 <Input
                   label="Custom URL Slug (optional)"
-                  placeholder="miss-igbeti-2026"
+                  placeholder="national-music-awards-2026"
                   value={eventDetails.slug}
                   onChange={(e) => setEventDetails({ ...eventDetails, slug: slugify(e.target.value) })}
                   helperText="Your event will be live at /events/[slug]"

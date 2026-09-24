@@ -25,7 +25,6 @@ export const metadata: Metadata = {
     "JVican voting",
     "online event voting",
     "paid voting platform",
-    "Miss Igbeti 2026",
     "awards voting Nigeria",
     "TransactPay verified voting",
     "live leaderboards",
