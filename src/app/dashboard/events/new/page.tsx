@@ -272,45 +272,75 @@ export default function EventCreationWizardPage() {
   // Success State
   if (publishedEvent) {
     return (
-      <div className="py-12 sm:py-24 bg-[#050608] min-h-screen text-white pt-24 sm:pt-28 selection:bg-[#C9A84C] selection:text-[#0a0c14]">
-        <div className="mx-auto max-w-xl px-4 sm:px-6 text-center">
-          <div className="rounded-3xl border border-amber-500/30 bg-[#0a0c14] p-6 sm:p-12 shadow-2xl backdrop-blur-xl">
-            <div className="mx-auto mb-4 flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">
-              <CheckCircle2 className="h-7 w-7 sm:h-8 sm:w-8" />
+      <div className="py-16 sm:py-24 bg-[#050608] min-h-screen text-white pt-24 sm:pt-28 selection:bg-[#C9A84C] selection:text-[#0a0c14] flex items-center justify-center px-4">
+        <div className="w-full max-w-lg">
+          <div className="relative rounded-3xl border border-amber-500/25 bg-gradient-to-b from-[#0e1017] to-[#07080c] p-6 sm:p-10 shadow-2xl shadow-black/80 backdrop-blur-2xl text-center overflow-hidden">
+            {/* Ambient gold glow */}
+            <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+
+            {/* Success Icon */}
+            <div className="relative mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400/20 to-amber-500/5 border border-amber-500/30 text-amber-400 shadow-lg shadow-amber-500/10">
+              <CheckCircle2 className="h-8 w-8 stroke-[2.5]" />
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-black text-white">
-              ✓ Event Submitted for Review
+            {/* Header Badge */}
+            <span className="inline-block px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-amber-500/15 text-amber-400 border border-amber-500/30 mb-3">
+              Submission Received
+            </span>
+
+            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+              Event Submitted for Review
             </h1>
-            <p className="text-xs sm:text-sm text-slate-300 mt-2">
-              Your event <span className="font-bold text-[#C9A84C]">"{publishedEvent.name}"</span> has been submitted for platform vetting. Once approved by the Super Admin, it will be published to the public marketplace.
+
+            <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed mt-3 max-w-md mx-auto">
+              Your contest <span className="font-bold text-amber-400">"{publishedEvent.name}"</span> has been submitted for platform vetting. Once approved by Super Admin, it will automatically go live on the public voting arena.
             </p>
 
-            <div className="mt-8 flex flex-col gap-3">
-              <Link href={`/dashboard/events/${publishedEvent.id}`}>
-                <Button variant="primary" size="lg" className="w-full justify-center rounded-full font-bold shadow-lg shadow-[#C9A84C]/20">
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  Manage in Dashboard
-                </Button>
-              </Link>
+            {/* Quick Status Box */}
+            <div className="mt-6 p-3.5 rounded-2xl bg-black/40 border border-white/[0.06] flex items-center justify-between text-xs text-left">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 block">
+                  Current Status
+                </span>
+                <span className="font-bold text-amber-400 flex items-center gap-1.5 mt-0.5">
+                  <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
+                  Pending Administrative Approval
+                </span>
+              </div>
+              <span className="text-[10px] font-mono text-neutral-500">
+                ID: {publishedEvent.id.substring(0, 8)}
+              </span>
+            </div>
 
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={handleCopyShareLink}
-                className="w-full justify-center rounded-full font-bold"
-              >
-                {copied ? <CheckCircle2 className="h-4 w-4 mr-2 text-emerald-400" /> : <Copy className="h-4 w-4 mr-2 text-[#C9A84C]" />}
-                {copied ? "Share Link Copied!" : "Copy Share Link"}
-              </Button>
-
-              <Link href="/dashboard">
+            {/* Action Buttons */}
+            <div className="mt-6 flex flex-col gap-3">
+              <Link href={`/dashboard/events/${publishedEvent.id}`} className="w-full">
                 <button
                   type="button"
-                  className="w-full py-2.5 text-xs font-semibold text-slate-400 hover:text-white transition-colors cursor-pointer"
+                  className="w-full h-12 flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#C9A84C] to-[#D4B86A] hover:from-[#D4B86A] hover:to-[#C9A84C] text-[#050608] font-black text-xs uppercase tracking-wider shadow-lg shadow-[#C9A84C]/20 transition-all cursor-pointer"
                 >
-                  Go to Dashboard →
+                  <ExternalLink className="h-4 w-4 stroke-[2.5]" />
+                  <span>Open Event Studio</span>
                 </button>
+              </Link>
+
+              <button
+                type="button"
+                onClick={handleCopyShareLink}
+                className="w-full h-12 flex items-center justify-center gap-2 rounded-2xl border border-white/[0.10] bg-white/[0.04] hover:bg-white/[0.08] hover:border-white/[0.20] text-xs font-bold text-white transition-all cursor-pointer"
+              >
+                {copied ? (
+                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                ) : (
+                  <Copy className="h-4 w-4 text-amber-400" />
+                )}
+                <span>{copied ? "Public URL Copied to Clipboard!" : "Copy Public Event Link"}</span>
+              </button>
+
+              <Link href="/dashboard" className="w-full pt-1">
+                <span className="inline-flex items-center gap-1 text-xs font-bold text-neutral-400 hover:text-white transition-colors cursor-pointer">
+                  Return to Dashboard Overview &rarr;
+                </span>
               </Link>
             </div>
           </div>
