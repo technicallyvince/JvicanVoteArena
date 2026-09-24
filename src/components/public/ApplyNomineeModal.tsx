@@ -270,19 +270,41 @@ export function ApplyNomineeModal({
               />
             </div>
 
-            {/* Image Photo URL */}
+            {/* Profile Photo Upload */}
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-neutral-300 flex items-center gap-1.5">
                 <ImageIcon className="h-3.5 w-3.5 text-[#C9A84C]" />
-                <span>Profile Photo URL (Optional)</span>
+                <span>Contestant Profile Photo</span>
               </label>
-              <input
-                type="url"
-                placeholder="https://... (or leave empty for default)"
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                className="w-full rounded-2xl border border-white/[0.08] bg-[#121212] px-4 py-2.5 text-xs sm:text-sm text-white placeholder:text-neutral-600 focus:border-[#C9A84C] focus:outline-none focus:ring-1 focus:ring-[#C9A84C]"
-              />
+              <div className="flex items-center gap-3 p-3 rounded-2xl border border-white/[0.08] bg-[#121212]">
+                <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-neutral-950 flex items-center justify-center">
+                  {imageUrl ? (
+                    <img src={imageUrl} alt="Preview" className="h-full w-full object-cover" />
+                  ) : (
+                    <User className="h-5 w-5 text-neutral-600" />
+                  )}
+                </div>
+                <label className="flex-1 flex items-center justify-center px-4 py-2.5 rounded-full border border-dashed border-[#C9A84C]/40 bg-[#C9A84C]/10 text-xs font-bold text-white hover:bg-[#C9A84C]/20 cursor-pointer transition-all">
+                  <span>{imageUrl ? "Replace Photo" : "Upload Photo"}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) {
+                        const reader = new FileReader()
+                        reader.onloadend = () => {
+                          if (typeof reader.result === "string") {
+                            setImageUrl(reader.result)
+                          }
+                        }
+                        reader.readAsDataURL(file)
+                      }
+                    }}
+                  />
+                </label>
+              </div>
             </div>
           </div>
 
