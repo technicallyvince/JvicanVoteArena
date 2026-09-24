@@ -29,17 +29,17 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
 
     const variants = {
       default:
-        "border border-slate-200/90 bg-white shadow-xs dark:border-slate-800/90 dark:bg-slate-900/90",
+        "border border-white/[0.08] bg-[#0a0a0a] shadow-xl text-white",
       surface:
-        "border border-slate-200/80 bg-slate-50/70 dark:border-slate-800 dark:bg-slate-900/50",
+        "border border-white/[0.06] bg-[#0a0a0a]/70 backdrop-blur-xl text-white",
       muted:
-        "border border-slate-100 bg-slate-50 dark:border-slate-800/60 dark:bg-slate-900/40",
+        "border border-white/[0.05] bg-[#121212] text-white",
       glass:
-        "glass-panel shadow-lg",
+        "glass-panel shadow-2xl border border-white/[0.08] bg-[#0a0a0a]/80 backdrop-blur-xl text-white",
       highlight:
-        "border-2 border-amber-500/30 bg-gradient-to-br from-amber-500/5 via-white to-amber-500/10 dark:from-amber-500/10 dark:via-slate-900 dark:to-slate-900 shadow-md",
+        "border border-[#C9A84C]/30 bg-gradient-to-br from-[#181818] via-[#0f0f0f] to-[#080808] shadow-2xl text-white",
       interactive:
-        "border border-slate-200/90 bg-white card-hover cursor-pointer dark:border-slate-800/90 dark:bg-slate-900/90",
+        "border border-white/[0.08] bg-[#0a0a0a] card-hover cursor-pointer text-white hover:border-[#C9A84C]/30",
     }
 
     return (

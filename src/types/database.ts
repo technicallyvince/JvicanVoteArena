@@ -17,17 +17,27 @@ export interface Profile {
   updated_at: string
 }
 
-export type EventStatus = 'draft' | 'published' | 'closed'
+export type EventStatus =
+  | 'draft'
+  | 'pending_approval'
+  | 'approved'
+  | 'published'
+  | 'closed'
+  | 'rejected'
+  | 'archived'
 
 export interface Event {
   id: string
   organizer_id: string
+  organizer_name?: string
+  organizer_email?: string
   name: string
   slug: string
   description?: string | null
   logo_url?: string | null
   cover_image_url?: string | null
   status: EventStatus
+  rejection_reason?: string | null
   start_date: string
   end_date: string
   vote_price: number
@@ -36,6 +46,9 @@ export interface Event {
   show_live_results: boolean
   is_featured: boolean
   display_order: number
+  payout_bank?: string | null
+  payout_account_number?: string | null
+  payout_account_name?: string | null
   created_at: string
   updated_at: string
 }
@@ -123,6 +136,110 @@ export interface Receipt {
   issued_at: string
   email_status: 'queued' | 'sent' | 'failed'
   created_at: string
+}
+
+export type NomineeApplicationStatus = 'pending' | 'approved' | 'rejected'
+
+export interface NomineeApplication {
+  id: string
+  event_id: string
+  category_id: string
+  full_name: string
+  email: string
+  phone: string
+  bio?: string | null
+  image_url?: string | null
+  instagram_handle?: string | null
+  reason_to_win?: string | null
+  status: NomineeApplicationStatus
+  admin_notes?: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type WithdrawalStatus =
+  | 'requested'
+  | 'pending_approval'
+  | 'approved'
+  | 'processing'
+  | 'completed'
+  | 'rejected'
+  | 'failed'
+
+export interface WithdrawalRequest {
+  id: string
+  organizer_id: string
+  organizer_name: string
+  organizer_email: string
+  event_id?: string | null
+  event_name?: string | null
+  amount: number
+  currency: string
+  payout_bank: string
+  payout_account_number: string
+  payout_account_name: string
+  status: WithdrawalStatus
+  rejection_reason?: string | null
+  admin_id?: string | null
+  approved_at?: string | null
+  completed_at?: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface FinancialLedgerEntry {
+  id: string
+  transaction_id: string
+  event_id: string
+  event_name: string
+  organizer_id: string
+  organizer_name: string
+  voter_email: string
+  gross_amount: number
+  platform_fee: number // 10%
+  organizer_amount: number // 90%
+  currency: string
+  payment_reference: string
+  status: 'verified' | 'pending' | 'reversed'
+  created_at: string
+}
+
+export type AuditAction =
+  | 'ADMIN_APPROVED_EVENT'
+  | 'ADMIN_REJECTED_EVENT'
+  | 'ADMIN_APPROVED_WITHDRAWAL'
+  | 'ADMIN_REJECTED_WITHDRAWAL'
+  | 'ADMIN_COMPLETED_WITHDRAWAL'
+  | 'ADMIN_SUSPENDED_EVENT'
+  | 'ADMIN_CHANGED_EVENT_STATUS'
+  | 'ADMIN_UPDATED_PLATFORM_SETTING'
+  | 'ORGANIZER_SUBMITTED_EVENT'
+  | 'ORGANIZER_REQUESTED_WITHDRAWAL'
+  | 'PAYMENT_VERIFIED'
+
+export interface AuditLog {
+  id: string
+  admin_id: string
+  admin_name: string
+  admin_email: string
+  action: AuditAction
+  target_type: 'event' | 'withdrawal' | 'setting' | 'user' | 'payment'
+  target_id: string
+  target_name?: string
+  previous_state?: string | null
+  new_state?: string | null
+  reason?: string | null
+  metadata?: Record<string, any>
+  created_at: string
+}
+
+export interface PlatformSettings {
+  platform_fee_percent: number
+  payout_delay_hours: number
+  minimum_withdrawal_amount: number
+  maintenance_mode: boolean
+  require_manual_event_approval: boolean
+  settlement_gateway: string
 }
 
 export interface LeaderboardEntry {

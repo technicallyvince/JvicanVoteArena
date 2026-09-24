@@ -27,6 +27,13 @@ import {
   ShieldCheck,
   ChevronRight,
   Sparkles,
+  UserCheck,
+  XCircle,
+  Clock,
+  Mail,
+  Phone,
+  AtSign,
+  CheckCircle2,
 } from "lucide-react"
 import Papa from "papaparse"
 import { nanoid } from "nanoid"
@@ -41,10 +48,22 @@ export default function EventStudioPage() {
     notFound()
   }
 
-  const [activeTab, setActiveTab] = useState<"overview" | "nominees" | "categories" | "votes" | "settings">("overview")
+  const [activeTab, setActiveTab] = useState<"overview" | "nominees" | "applications" | "categories" | "votes" | "settings">("overview")
   const [categories, setCategories] = useState(db.getCategories(event.id))
   const [nominees, setNominees] = useState(db.getNominees(event.id))
   const [votes, setVotes] = useState(db.getVotes(event.id))
+  const [applications, setApplications] = useState(db.getNomineeApplications(event.id))
+
+  const handleApproveApplication = (appId: string) => {
+    db.updateNomineeApplicationStatus(appId, "approved")
+    setApplications([...db.getNomineeApplications(event.id)])
+    setNominees([...db.getNominees(event.id)])
+  }
+
+  const handleRejectApplication = (appId: string) => {
+    db.updateNomineeApplicationStatus(appId, "rejected")
+    setApplications([...db.getNomineeApplications(event.id)])
+  }
 
   // Modal states
   const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false)
@@ -177,16 +196,16 @@ export default function EventStudioPage() {
   const isLive = event.status === "published" && new Date(event.end_date) > new Date()
 
   return (
-    <div className="py-8 sm:py-12 bg-[#06080e] min-h-screen text-white relative overflow-hidden pt-24 sm:pt-28 selection:bg-[#f59e0b] selection:text-black">
+    <div className="py-8 sm:py-12 bg-[#050608] min-h-screen text-white relative overflow-hidden pt-24 sm:pt-28 selection:bg-[#C9A84C] selection:text-[#0a0c14]">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Context-Aware Breadcrumbs & Back Navigation */}
         <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <nav className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
-            <Link href="/dashboard" className="hover:text-amber-400 transition-colors">
+            <Link href="/dashboard" className="hover:text-[#C9A84C] transition-colors">
               Dashboard
             </Link>
             <ChevronRight className="h-3.5 w-3.5 text-slate-600" />
-            <Link href="/dashboard/events" className="hover:text-amber-400 transition-colors">
+            <Link href="/dashboard/events" className="hover:text-[#C9A84C] transition-colors">
               Events
             </Link>
             <ChevronRight className="h-3.5 w-3.5 text-slate-600" />
@@ -197,7 +216,7 @@ export default function EventStudioPage() {
 
           <Link
             href="/dashboard/events"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-amber-400 transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-[#C9A84C] transition-colors"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             <span>Back to All Events</span>
@@ -205,24 +224,24 @@ export default function EventStudioPage() {
         </div>
 
         {/* Event Header & Performance Bar */}
-        <div className="rounded-3xl border border-white/[0.08] bg-[#0c101b]/95 backdrop-blur-xl p-6 sm:p-8 shadow-2xl mb-8">
+        <div className="rounded-3xl border border-white/[0.07] bg-[#0a0c14] backdrop-blur-xl p-5 sm:p-8 shadow-2xl mb-8">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div className="flex items-center gap-4">
               <img
                 src={event.logo_url || event.cover_image_url || undefined}
                 alt={event.name}
-                className="h-16 w-16 rounded-2xl object-cover ring-2 ring-amber-400/30 shadow-md"
+                className="h-14 w-14 sm:h-16 sm:w-16 rounded-2xl object-cover ring-2 ring-[#C9A84C]/30 shadow-md shrink-0"
               />
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-2xl sm:text-3xl font-black text-white">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="text-xl sm:text-3xl font-black text-white truncate">
                     {event.name}
                   </h1>
                   <span className="rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-0.5 text-[10px] font-bold uppercase text-emerald-400">
                     {isLive ? "LIVE" : event.status}
                   </span>
                 </div>
-                <p className="text-xs text-slate-400 font-mono mt-0.5">
+                <p className="text-xs text-slate-400 font-mono mt-0.5 truncate">
                   Canonical: /events/{event.slug} • Vote Price: {formatCurrency(event.vote_price, event.currency)}
                 </p>
               </div>
@@ -241,7 +260,7 @@ export default function EventStudioPage() {
               <Link href={`/events/${event.slug}`} target="_blank">
                 <button
                   type="button"
-                  className="inline-flex items-center gap-2 rounded-full bg-amber-500 px-5 py-2 text-xs font-black text-neutral-950 shadow-lg shadow-amber-500/20 hover:bg-amber-400 transition-all cursor-pointer"
+                  className="inline-flex items-center gap-2 rounded-full bg-[#C9A84C] px-5 py-2 text-xs font-black text-[#0a0c14] shadow-lg shadow-[#C9A84C]/20 hover:bg-[#D4B86A] transition-all cursor-pointer"
                 >
                   <ExternalLink className="h-4 w-4" />
                   <span>View Public Event</span>
@@ -251,7 +270,7 @@ export default function EventStudioPage() {
           </div>
 
           {/* Quick Metrics Bar */}
-          <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-4 border-t border-white/[0.08] pt-6">
+          <div className="mt-6 sm:mt-8 grid grid-cols-2 sm:grid-cols-4 gap-4 border-t border-white/[0.08] pt-6">
             <div>
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Revenue</span>
               <div className="text-xl sm:text-2xl font-black text-emerald-400 mt-0.5">
@@ -279,15 +298,15 @@ export default function EventStudioPage() {
           </div>
         </div>
 
-        {/* Persistent Event-Level Navigation: Overview | Nominees | Categories | Votes | Settings */}
+        {/* Persistent Event-Level Navigation: Overview | Nominees | Applications | Categories | Votes | Settings */}
         <div className="flex items-center gap-2 border-b border-white/10 pb-4 mb-6 overflow-x-auto no-scrollbar">
           <button
             onClick={() => setActiveTab("overview")}
             className={cn(
               "px-5 py-2.5 text-xs font-bold rounded-full transition-all cursor-pointer whitespace-nowrap flex items-center gap-2",
               activeTab === "overview"
-                ? "bg-amber-500 text-neutral-950 shadow-lg shadow-amber-500/20 font-black"
-                : "bg-neutral-900 text-slate-400 border border-white/[0.08] hover:text-white"
+                ? "bg-[#C9A84C] text-[#0a0c14] shadow-lg shadow-[#C9A84C]/20 font-black"
+                : "bg-[#0e1018] text-slate-400 border border-white/[0.07] hover:text-white hover:bg-[#161824]"
             )}
           >
             <BarChart3 className="h-3.5 w-3.5" />
@@ -299,8 +318,8 @@ export default function EventStudioPage() {
             className={cn(
               "px-5 py-2.5 text-xs font-bold rounded-full transition-all cursor-pointer whitespace-nowrap flex items-center gap-2",
               activeTab === "nominees"
-                ? "bg-amber-500 text-neutral-950 shadow-lg shadow-amber-500/20 font-black"
-                : "bg-neutral-900 text-slate-400 border border-white/[0.08] hover:text-white"
+                ? "bg-[#C9A84C] text-[#0a0c14] shadow-lg shadow-[#C9A84C]/20 font-black"
+                : "bg-[#0e1018] text-slate-400 border border-white/[0.07] hover:text-white hover:bg-[#161824]"
             )}
           >
             <Users className="h-3.5 w-3.5" />
@@ -308,12 +327,30 @@ export default function EventStudioPage() {
           </button>
 
           <button
+            onClick={() => setActiveTab("applications")}
+            className={cn(
+              "px-5 py-2.5 text-xs font-bold rounded-full transition-all cursor-pointer whitespace-nowrap flex items-center gap-2",
+              activeTab === "applications"
+                ? "bg-[#C9A84C] text-[#0a0c14] shadow-lg shadow-[#C9A84C]/20 font-black"
+                : "bg-[#0e1018] text-slate-400 border border-white/[0.07] hover:text-white hover:bg-[#161824]"
+            )}
+          >
+            <UserCheck className="h-3.5 w-3.5" />
+            <span>Applications ({applications.length})</span>
+            {applications.filter((a) => a.status === "pending").length > 0 && (
+              <span className="rounded-full bg-amber-400 text-black px-1.5 py-0.2 text-[10px] font-black">
+                {applications.filter((a) => a.status === "pending").length} new
+              </span>
+            )}
+          </button>
+
+          <button
             onClick={() => setActiveTab("categories")}
             className={cn(
               "px-5 py-2.5 text-xs font-bold rounded-full transition-all cursor-pointer whitespace-nowrap flex items-center gap-2",
               activeTab === "categories"
-                ? "bg-amber-500 text-neutral-950 shadow-lg shadow-amber-500/20 font-black"
-                : "bg-neutral-900 text-slate-400 border border-white/[0.08] hover:text-white"
+                ? "bg-[#C9A84C] text-[#0a0c14] shadow-lg shadow-[#C9A84C]/20 font-black"
+                : "bg-[#0e1018] text-slate-400 border border-white/[0.07] hover:text-white hover:bg-[#161824]"
             )}
           >
             <Layers className="h-3.5 w-3.5" />
@@ -325,8 +362,8 @@ export default function EventStudioPage() {
             className={cn(
               "px-5 py-2.5 text-xs font-bold rounded-full transition-all cursor-pointer whitespace-nowrap flex items-center gap-2",
               activeTab === "votes"
-                ? "bg-amber-500 text-neutral-950 shadow-lg shadow-amber-500/20 font-black"
-                : "bg-neutral-900 text-slate-400 border border-white/[0.08] hover:text-white"
+                ? "bg-[#C9A84C] text-[#0a0c14] shadow-lg shadow-[#C9A84C]/20 font-black"
+                : "bg-[#0e1018] text-slate-400 border border-white/[0.07] hover:text-white hover:bg-[#161824]"
             )}
           >
             <Vote className="h-3.5 w-3.5" />
@@ -338,8 +375,8 @@ export default function EventStudioPage() {
             className={cn(
               "px-5 py-2.5 text-xs font-bold rounded-full transition-all cursor-pointer whitespace-nowrap flex items-center gap-2",
               activeTab === "settings"
-                ? "bg-amber-500 text-neutral-950 shadow-lg shadow-amber-500/20 font-black"
-                : "bg-neutral-900 text-slate-400 border border-white/[0.08] hover:text-white"
+                ? "bg-[#C9A84C] text-[#0a0c14] shadow-lg shadow-[#C9A84C]/20 font-black"
+                : "bg-[#0e1018] text-slate-400 border border-white/[0.07] hover:text-white hover:bg-[#161824]"
             )}
           >
             <Settings className="h-3.5 w-3.5" />
@@ -350,12 +387,12 @@ export default function EventStudioPage() {
         {/* TAB: OVERVIEW */}
         {activeTab === "overview" && (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="rounded-3xl border border-white/[0.08] bg-[#0c101b]/95 p-6 shadow-xl">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+              <div className="rounded-3xl border border-white/[0.07] bg-[#0a0c14] p-6 shadow-xl">
                 <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-1">
                   Public Share Link
                 </span>
-                <p className="text-xs text-amber-400 font-mono break-all mb-4">
+                <p className="text-xs text-[#C9A84C] font-mono break-all mb-4">
                   {typeof window !== "undefined" ? `${window.location.origin}/events/${event.slug}` : `/events/${event.slug}`}
                 </p>
                 <Link href={`/events/${event.slug}`} target="_blank">
@@ -366,7 +403,7 @@ export default function EventStudioPage() {
                 </Link>
               </div>
 
-              <div className="rounded-3xl border border-white/[0.08] bg-[#0c101b]/95 p-6 shadow-xl">
+              <div className="rounded-3xl border border-white/[0.07] bg-[#0a0c14] p-6 shadow-xl">
                 <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-1">
                   Status &amp; Integrity
                 </span>
@@ -379,21 +416,21 @@ export default function EventStudioPage() {
                 </p>
               </div>
 
-              <div className="rounded-3xl border border-white/[0.08] bg-[#0c101b]/95 p-6 shadow-xl">
+              <div className="rounded-3xl border border-white/[0.07] bg-[#0a0c14] p-6 shadow-xl">
                 <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-1">
                   Quick Actions
                 </span>
                 <div className="space-y-2 mt-2">
                   <button
                     onClick={() => setActiveTab("nominees")}
-                    className="w-full text-left px-3 py-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-xs font-bold text-white flex items-center justify-between"
+                    className="w-full text-left px-3 py-2 rounded-xl bg-[#0e1018] hover:bg-[#161824] text-xs font-bold text-white flex items-center justify-between"
                   >
                     <span>Add / Manage Nominees</span>
-                    <Plus className="h-3.5 w-3.5 text-amber-400" />
+                    <Plus className="h-3.5 w-3.5 text-[#C9A84C]" />
                   </button>
                   <button
                     onClick={handleExportCSV}
-                    className="w-full text-left px-3 py-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-xs font-bold text-white flex items-center justify-between"
+                    className="w-full text-left px-3 py-2 rounded-xl bg-[#0e1018] hover:bg-[#161824] text-xs font-bold text-white flex items-center justify-between"
                   >
                     <span>Export Transaction Ledger</span>
                     <Download className="h-3.5 w-3.5 text-emerald-400" />
@@ -403,12 +440,12 @@ export default function EventStudioPage() {
             </div>
 
             {/* Recent transactions stream */}
-            <div className="rounded-3xl border border-white/[0.08] bg-[#0c101b]/95 p-6 shadow-xl">
+            <div className="rounded-3xl border border-white/[0.07] bg-[#0a0c14] p-5 sm:p-6 shadow-xl">
               <h3 className="text-base font-extrabold text-white mb-4">
                 Recent Event Transactions
               </h3>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
+              <div className="overflow-x-auto -mx-2 sm:mx-0">
+                <table className="w-full min-w-[550px] text-left text-xs">
                   <thead className="border-b border-white/[0.08] text-slate-400 uppercase text-[10px] font-bold">
                     <tr>
                       <th className="py-2.5 px-3">Time</th>
@@ -425,7 +462,7 @@ export default function EventStudioPage() {
                         <tr key={v.id}>
                           <td className="py-3 px-3 text-slate-400">{formatDateTime(v.created_at)}</td>
                           <td className="py-3 px-3 font-bold text-white">{nom?.name || "Nominee"}</td>
-                          <td className="py-3 px-3 font-bold text-amber-400">+{v.quantity}</td>
+                          <td className="py-3 px-3 font-bold text-[#C9A84C]">+{v.quantity}</td>
                           <td className="py-3 px-3 font-semibold text-white">{formatCurrency(v.total_amount, v.currency)}</td>
                           <td className="py-3 px-3 font-mono text-[11px] text-slate-400">{v.payment_reference}</td>
                         </tr>
@@ -441,7 +478,7 @@ export default function EventStudioPage() {
         {/* TAB: NOMINEES */}
         {activeTab === "nominees" && (
           <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#0c101b]/95 p-5 rounded-3xl border border-white/[0.08]">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#0a0c14] p-5 rounded-3xl border border-white/[0.07]">
               <div>
                 <h3 className="text-base sm:text-lg font-bold text-white">
                   Enrolled Nominees
@@ -454,14 +491,14 @@ export default function EventStudioPage() {
                   setNomineeCategoryId(categories[0]?.id || "")
                   setIsAddNomineeOpen(true)
                 }}
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-amber-500 px-6 py-2.5 text-xs font-black text-neutral-950 shadow-lg shadow-amber-500/20 hover:bg-amber-400 transition-all cursor-pointer"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-[#C9A84C] px-6 py-2.5 text-xs font-black text-[#0a0c14] shadow-lg shadow-[#C9A84C]/20 hover:bg-[#D4B86A] transition-all cursor-pointer"
               >
                 <Plus className="h-4 w-4 stroke-[3]" />
                 <span>Add Nominee</span>
               </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {nominees.map((c) => {
                 const category = categories.find((cat) => cat.id === c.category_id)
                 const nomineeVotes = db.getNomineeVoteCount(c.id)
@@ -469,17 +506,17 @@ export default function EventStudioPage() {
                 return (
                   <div
                     key={c.id}
-                    className="flex flex-col justify-between p-5 rounded-3xl border border-white/[0.08] bg-[#0c101b]/95 backdrop-blur-xl shadow-xl hover:border-amber-400/30 transition-all"
+                    className="flex flex-col justify-between p-5 rounded-3xl border border-white/[0.07] bg-[#0a0c14] backdrop-blur-xl shadow-xl hover:border-[#C9A84C]/30 transition-all"
                   >
                     <div className="flex items-start gap-4">
                       <img
                         src={c.image_url || undefined}
                         alt={c.name}
-                        className="h-16 w-16 rounded-2xl object-cover ring-2 ring-amber-400/20 shadow-sm"
+                        className="h-16 w-16 rounded-2xl object-cover ring-2 ring-[#C9A84C]/20 shadow-sm shrink-0"
                       />
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between">
-                          <span className="rounded-md bg-black/80 border border-white/10 px-2 py-0.5 text-[10px] font-mono font-bold text-amber-400">
+                          <span className="rounded-md bg-black/80 border border-white/10 px-2 py-0.5 text-[10px] font-mono font-bold text-[#C9A84C]">
                             #{c.public_id}
                           </span>
                           <button
@@ -502,14 +539,14 @@ export default function EventStudioPage() {
                     <div className="mt-4 pt-3 border-t border-white/[0.06] flex items-center justify-between">
                       <div>
                         <span className="text-[10px] font-bold uppercase text-slate-400">Votes:</span>
-                        <span className="text-xs font-black text-amber-400 ml-1">
+                        <span className="text-xs font-black text-[#C9A84C] ml-1">
                           {nomineeVotes.toLocaleString()}
                         </span>
                       </div>
 
                       <button
                         onClick={() => handleCopyLink(c.public_id)}
-                        className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-300 hover:text-amber-400 cursor-pointer transition-colors"
+                        className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-300 hover:text-[#C9A84C] cursor-pointer transition-colors"
                       >
                         {copiedId === c.public_id ? <CheckCircle className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
                         <span>{copiedId === c.public_id ? "Copied!" : "Copy Voting Link"}</span>
@@ -522,10 +559,196 @@ export default function EventStudioPage() {
           </div>
         )}
 
+        {/* TAB: NOMINEE APPLICATIONS (Organizer Approval Queue) */}
+        {activeTab === "applications" && (
+          <div className="space-y-6 animate-in fade-in duration-200">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#0a0c14] p-5 sm:p-6 rounded-3xl border border-white/[0.07]">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base sm:text-lg font-bold text-white">
+                    Contestant Applications &amp; Approvals
+                  </h3>
+                  <span className="rounded-full bg-[#C9A84C]/15 border border-[#C9A84C]/30 px-2.5 py-0.5 text-xs font-black text-[#D4B86A]">
+                    {applications.length} Received
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400 mt-1">
+                  People applying to contest as nominees. Only approved candidates receive a public voting ID and appear on the live leaderboard.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-400">
+                  {applications.filter((a) => a.status === "pending").length} Pending Review
+                </span>
+              </div>
+            </div>
+
+            {applications.length === 0 ? (
+              <div className="rounded-3xl border border-dashed border-white/10 p-12 text-center bg-[#0a0c14]">
+                <UserCheck className="mx-auto h-12 w-12 text-neutral-500 mb-3" />
+                <h4 className="text-base font-bold text-white">No Applications Received Yet</h4>
+                <p className="text-xs text-neutral-400 mt-1 max-w-sm mx-auto">
+                  When contestants apply from the public event page, their submissions will appear here for your review and approval.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {applications.map((app) => {
+                  const category = categories.find((c) => c.id === app.category_id)
+                  const isPending = app.status === "pending"
+                  const isApproved = app.status === "approved"
+                  const isRejected = app.status === "rejected"
+
+                  return (
+                    <div
+                      key={app.id}
+                      className={cn(
+                        "rounded-3xl border p-5 sm:p-6 transition-all duration-200 bg-[#0a0c14] backdrop-blur-xl shadow-xl",
+                        isPending
+                          ? "border-[#C9A84C]/35 ring-1 ring-[#C9A84C]/10"
+                          : isApproved
+                          ? "border-emerald-500/20 bg-emerald-950/05"
+                          : "border-white/[0.06] opacity-75"
+                      )}
+                    >
+                      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+                        {/* Candidate Details */}
+                        <div className="flex items-start gap-4">
+                          <img
+                            src={
+                              app.image_url ||
+                              "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80"
+                            }
+                            alt={app.full_name}
+                            className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl object-cover ring-2 ring-white/10 shadow-md shrink-0"
+                          />
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2.5 flex-wrap">
+                              <h4 className="text-base sm:text-lg font-black text-white">
+                                {app.full_name}
+                              </h4>
+                              {isPending && (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 border border-amber-500/30 px-2.5 py-0.5 text-[10px] font-bold uppercase text-amber-400">
+                                  <Clock className="h-3 w-3" />
+                                  Pending Review
+                                </span>
+                              )}
+                              {isApproved && (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-0.5 text-[10px] font-bold uppercase text-emerald-400">
+                                  <CheckCircle2 className="h-3 w-3" />
+                                  Approved &amp; Live Nominee
+                                </span>
+                              )}
+                              {isRejected && (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/10 border border-rose-500/30 px-2.5 py-0.5 text-[10px] font-bold uppercase text-rose-400">
+                                  <XCircle className="h-3 w-3" />
+                                  Declined
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="flex items-center gap-3 text-xs text-neutral-400 flex-wrap">
+                              <span className="font-semibold text-[#C9A84C]">
+                                Category: {category?.name || "Official Category"}
+                              </span>
+                              <span>•</span>
+                              <span className="flex items-center gap-1">
+                                <Mail className="h-3 w-3 text-neutral-500" />
+                                {app.email}
+                              </span>
+                              <span>•</span>
+                              <span className="flex items-center gap-1">
+                                <Phone className="h-3 w-3 text-neutral-500" />
+                                {app.phone}
+                              </span>
+                              {app.instagram_handle && (
+                                <>
+                                  <span>•</span>
+                                  <span className="flex items-center gap-1 text-slate-300">
+                                    <AtSign className="h-3 w-3 text-[#C9A84C]" />
+                                    {app.instagram_handle}
+                                  </span>
+                                </>
+                              )}
+                            </div>
+
+                            {app.bio && (
+                              <p className="text-xs text-slate-300 leading-relaxed pt-1 line-clamp-2">
+                                <strong className="text-white font-semibold">Bio:</strong> {app.bio}
+                              </p>
+                            )}
+
+                            {app.reason_to_win && (
+                              <p className="text-xs text-slate-400 leading-relaxed line-clamp-2">
+                                <strong className="text-neutral-300 font-semibold">Vision:</strong> {app.reason_to_win}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Admin Action Buttons */}
+                        <div className="flex items-center gap-2.5 self-end lg:self-center shrink-0">
+                          {isPending && (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => handleApproveApplication(app.id)}
+                                className="flex items-center gap-1.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black px-4 py-2 text-xs font-black transition-all cursor-pointer shadow-md shadow-emerald-500/20 active:scale-98"
+                              >
+                                <CheckCircle2 className="h-4 w-4" />
+                                <span>Approve Nominee</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleRejectApplication(app.id)}
+                                className="flex items-center gap-1.5 rounded-full border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 px-3.5 py-2 text-xs font-bold transition-all cursor-pointer"
+                              >
+                                <XCircle className="h-4 w-4" />
+                                <span>Decline</span>
+                              </button>
+                            </>
+                          )}
+
+                          {isApproved && (
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-emerald-400 font-bold flex items-center gap-1">
+                                <CheckCircle2 className="h-4 w-4" />
+                                Added to Nominees List
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => setActiveTab("nominees")}
+                                className="text-xs text-[#C9A84C] hover:underline cursor-pointer ml-2"
+                              >
+                                View Nominee
+                              </button>
+                            </div>
+                          )}
+
+                          {isRejected && (
+                            <button
+                              type="button"
+                              onClick={() => handleApproveApplication(app.id)}
+                              className="text-xs text-slate-400 hover:text-white underline cursor-pointer"
+                            >
+                              Reconsider &amp; Approve
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* TAB: CATEGORIES */}
         {activeTab === "categories" && (
           <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#0c101b]/95 p-5 rounded-3xl border border-white/[0.08]">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#0a0c14] p-5 rounded-3xl border border-white/[0.07]">
               <div>
                 <h3 className="text-base sm:text-lg font-bold text-white">
                   Event Categories
@@ -535,7 +758,7 @@ export default function EventStudioPage() {
               <button
                 type="button"
                 onClick={() => setIsAddCategoryOpen(true)}
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-amber-500 px-6 py-2.5 text-xs font-black text-neutral-950 shadow-lg shadow-amber-500/20 hover:bg-amber-400 transition-all cursor-pointer"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-[#C9A84C] px-6 py-2.5 text-xs font-black text-[#0a0c14] shadow-lg shadow-[#C9A84C]/20 hover:bg-[#D4B86A] transition-all cursor-pointer"
               >
                 <Plus className="h-4 w-4 stroke-[3]" />
                 <span>Create Category</span>
@@ -549,14 +772,14 @@ export default function EventStudioPage() {
                 return (
                   <div
                     key={cat.id}
-                    className="p-5 rounded-3xl border border-white/[0.08] bg-[#0c101b]/95 backdrop-blur-xl shadow-xl flex items-center justify-between"
+                    className="p-5 rounded-3xl border border-white/[0.07] bg-[#0a0c14] backdrop-blur-xl shadow-xl flex items-center justify-between"
                   >
                     <div>
                       <h4 className="text-base font-bold text-white">
                         {cat.name}
                       </h4>
                       <p className="text-xs text-slate-400 mt-0.5">{cat.description || "Official category"}</p>
-                      <span className="text-[11px] font-bold text-amber-400 mt-2 block">
+                      <span className="text-[11px] font-bold text-[#C9A84C] mt-2 block">
                         {count} Nominee{count === 1 ? "" : "s"} Assigned
                       </span>
                     </div>
@@ -577,7 +800,7 @@ export default function EventStudioPage() {
 
         {/* TAB: VOTES LEDGER */}
         {activeTab === "votes" && (
-          <div className="rounded-3xl border border-white/10 bg-[#0c101b]/95 backdrop-blur-xl p-6 shadow-2xl">
+          <div className="rounded-3xl border border-white/[0.07] bg-[#0a0c14] backdrop-blur-xl p-5 sm:p-6 shadow-2xl">
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h3 className="text-base font-extrabold text-white">
@@ -593,7 +816,7 @@ export default function EventStudioPage() {
 
             <div className="overflow-x-auto -mx-2 sm:mx-0">
               <table className="w-full min-w-[640px] text-left text-xs">
-                <thead className="border-b border-white/10 bg-[#121827]/60 text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
+                <thead className="border-b border-white/10 bg-[#0e1018]/60 text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
                   <tr>
                     <th className="py-3 px-4">Timestamp</th>
                     <th className="py-3 px-4">Nominee</th>
@@ -610,7 +833,7 @@ export default function EventStudioPage() {
                     const nom = db.getNomineeById(v.nominee_id)
                     const cat = db.getCategoryById(v.category_id)
                     return (
-                      <tr key={v.id} className="hover:bg-[#121827]/40 transition-colors">
+                      <tr key={v.id} className="hover:bg-[#161824]/40 transition-colors">
                         <td className="py-3.5 px-4 text-slate-400">
                           {formatDateTime(v.created_at)}
                         </td>
@@ -620,7 +843,7 @@ export default function EventStudioPage() {
                         <td className="py-3.5 px-4 text-slate-300">
                           {cat?.name || "Category"}
                         </td>
-                        <td className="py-3.5 px-4 font-bold text-amber-400">
+                        <td className="py-3.5 px-4 font-bold text-[#C9A84C]">
                           +{v.quantity}
                         </td>
                         <td className="py-3.5 px-4 font-bold text-white">
@@ -648,7 +871,7 @@ export default function EventStudioPage() {
 
         {/* TAB: SETTINGS */}
         {activeTab === "settings" && (
-          <div className="max-w-2xl rounded-3xl border border-white/10 bg-[#0c101b]/95 p-6 sm:p-8 shadow-2xl">
+          <div className="max-w-2xl rounded-3xl border border-white/[0.07] bg-[#0a0c14] p-5 sm:p-8 shadow-2xl">
             <h3 className="text-base font-extrabold text-white mb-1">
               Event Settings &amp; Configuration
             </h3>
@@ -670,11 +893,11 @@ export default function EventStudioPage() {
                   rows={3}
                   value={settingsData.description}
                   onChange={(e) => setSettingsData({ ...settingsData, description: e.target.value })}
-                  className="w-full rounded-2xl border border-white/[0.08] bg-neutral-900/90 p-3 text-xs sm:text-sm text-white focus:outline-none focus:border-amber-400"
+                  className="w-full rounded-2xl border border-white/[0.08] bg-[#0e1018] p-3 text-xs sm:text-sm text-white focus:outline-none focus:border-[#C9A84C]"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input
                   label="Start Date"
                   type="date"
@@ -735,7 +958,7 @@ export default function EventStudioPage() {
             <select
               value={nomineeCategoryId}
               onChange={(e) => setNomineeCategoryId(e.target.value)}
-              className="w-full rounded-2xl border border-white/[0.08] bg-neutral-900/90 p-3 text-xs sm:text-sm text-white focus:outline-none"
+              className="w-full rounded-2xl border border-white/[0.08] bg-[#0e1018] p-3 text-xs sm:text-sm text-white focus:outline-none"
             >
               {categories.map((cat) => (
                 <option key={cat.id} value={cat.id}>
@@ -749,7 +972,7 @@ export default function EventStudioPage() {
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
               Nominee Picture
             </label>
-            <div className="flex items-center gap-4 p-4 rounded-2xl border border-white/[0.08] bg-neutral-900/70">
+            <div className="flex items-center gap-4 p-4 rounded-2xl border border-white/[0.08] bg-[#0e1018]">
               <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-neutral-950 flex items-center justify-center">
                 {nomineeImage ? (
                   <img src={nomineeImage} alt="Preview" className="h-full w-full object-cover" />
@@ -757,7 +980,7 @@ export default function EventStudioPage() {
                   <Users className="h-6 w-6 text-slate-600" />
                 )}
               </div>
-              <label className="flex-1 flex items-center justify-center px-4 py-2.5 rounded-full border border-dashed border-amber-400/40 bg-amber-400/10 text-xs font-bold text-white hover:bg-amber-400/20 cursor-pointer">
+              <label className="flex-1 flex items-center justify-center px-4 py-2.5 rounded-full border border-dashed border-[#C9A84C]/40 bg-[#C9A84C]/10 text-xs font-bold text-white hover:bg-[#C9A84C]/20 cursor-pointer">
                 <span>{nomineeImage ? "Replace Photo" : "Upload Photo"}</span>
                 <input
                   type="file"
@@ -789,7 +1012,7 @@ export default function EventStudioPage() {
               placeholder="Short bio or manifesto..."
               value={nomineeBio}
               onChange={(e) => setNomineeBio(e.target.value)}
-              className="w-full rounded-2xl border border-white/[0.08] bg-neutral-900/90 p-3 text-xs sm:text-sm text-white focus:outline-none"
+              className="w-full rounded-2xl border border-white/[0.08] bg-[#0e1018] p-3 text-xs sm:text-sm text-white focus:outline-none"
             />
           </div>
 
@@ -797,13 +1020,13 @@ export default function EventStudioPage() {
             <button
               type="button"
               onClick={() => setIsAddNomineeOpen(false)}
-              className="px-5 py-2 text-xs font-bold rounded-full border border-white/10 bg-neutral-900 text-slate-300 hover:text-white"
+              className="px-5 py-2 text-xs font-bold rounded-full border border-white/10 bg-[#0e1018] text-slate-300 hover:text-white"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-6 py-2 text-xs font-black rounded-full bg-amber-500 text-neutral-950 hover:bg-amber-400"
+              className="px-6 py-2 text-xs font-black rounded-full bg-[#C9A84C] text-[#0a0c14] hover:bg-[#D4B86A]"
             >
               Save Nominee
             </button>
@@ -838,13 +1061,13 @@ export default function EventStudioPage() {
             <button
               type="button"
               onClick={() => setIsAddCategoryOpen(false)}
-              className="px-5 py-2 text-xs font-bold rounded-full border border-white/10 bg-neutral-900 text-slate-300 hover:text-white"
+              className="px-5 py-2 text-xs font-bold rounded-full border border-white/10 bg-[#0e1018] text-slate-300 hover:text-white"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-6 py-2 text-xs font-black rounded-full bg-amber-500 text-neutral-950 hover:bg-amber-400"
+              className="px-6 py-2 text-xs font-black rounded-full bg-[#C9A84C] text-[#0a0c14] hover:bg-[#D4B86A]"
             >
               Create Category
             </button>

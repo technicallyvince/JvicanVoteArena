@@ -202,7 +202,7 @@ export default function EventCreationWizardPage() {
       description: eventDetails.description.trim(),
       logo_url: eventDetails.logoUrl,
       cover_image_url: eventDetails.bannerImageUrl,
-      status: "published",
+      status: "pending_approval",
       start_date: new Date(eventDetails.startDate).toISOString(),
       end_date: new Date(eventDetails.endDate).toISOString(),
       vote_price: price,
@@ -272,25 +272,25 @@ export default function EventCreationWizardPage() {
   // Success State
   if (publishedEvent) {
     return (
-      <div className="py-16 sm:py-24 bg-[#06080e] min-h-screen text-white pt-24 sm:pt-28 selection:bg-[#f59e0b] selection:text-black">
+      <div className="py-12 sm:py-24 bg-[#050608] min-h-screen text-white pt-24 sm:pt-28 selection:bg-[#C9A84C] selection:text-[#0a0c14]">
         <div className="mx-auto max-w-xl px-4 sm:px-6 text-center">
-          <div className="rounded-3xl border border-emerald-500/30 bg-[#0c101b]/95 p-8 sm:p-12 shadow-2xl backdrop-blur-xl">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-              <CheckCircle2 className="h-8 w-8" />
+          <div className="rounded-3xl border border-amber-500/30 bg-[#0a0c14] p-6 sm:p-12 shadow-2xl backdrop-blur-xl">
+            <div className="mx-auto mb-4 flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">
+              <CheckCircle2 className="h-7 w-7 sm:h-8 sm:w-8" />
             </div>
 
             <h1 className="text-2xl sm:text-3xl font-black text-white">
-              ✓ Event Published
+              ✓ Event Submitted for Review
             </h1>
-            <p className="text-sm text-slate-300 mt-2">
-              Your event <span className="font-bold text-amber-400">"{publishedEvent.name}"</span> is now live and ready to receive verified votes.
+            <p className="text-xs sm:text-sm text-slate-300 mt-2">
+              Your event <span className="font-bold text-[#C9A84C]">"{publishedEvent.name}"</span> has been submitted for platform vetting. Once approved by the Super Admin, it will be published to the public marketplace.
             </p>
 
             <div className="mt-8 flex flex-col gap-3">
-              <Link href={`/events/${publishedEvent.slug}`}>
-                <Button variant="primary" size="lg" className="w-full justify-center rounded-full font-bold shadow-lg shadow-amber-500/20">
+              <Link href={`/dashboard/events/${publishedEvent.id}`}>
+                <Button variant="primary" size="lg" className="w-full justify-center rounded-full font-bold shadow-lg shadow-[#C9A84C]/20">
                   <ExternalLink className="h-4 w-4 mr-2" />
-                  View Event
+                  Manage in Dashboard
                 </Button>
               </Link>
 
@@ -300,7 +300,7 @@ export default function EventCreationWizardPage() {
                 onClick={handleCopyShareLink}
                 className="w-full justify-center rounded-full font-bold"
               >
-                {copied ? <CheckCircle2 className="h-4 w-4 mr-2 text-emerald-400" /> : <Copy className="h-4 w-4 mr-2 text-amber-400" />}
+                {copied ? <CheckCircle2 className="h-4 w-4 mr-2 text-emerald-400" /> : <Copy className="h-4 w-4 mr-2 text-[#C9A84C]" />}
                 {copied ? "Share Link Copied!" : "Copy Share Link"}
               </Button>
 
@@ -320,15 +320,15 @@ export default function EventCreationWizardPage() {
   }
 
   return (
-    <div className="py-12 sm:py-20 bg-[#06080e] min-h-screen text-white pt-24 sm:pt-28 selection:bg-[#f59e0b] selection:text-black">
+    <div className="py-10 sm:py-16 bg-[#050608] min-h-screen text-white pt-24 sm:pt-28 selection:bg-[#C9A84C] selection:text-[#0a0c14]">
       <div className="mx-auto max-w-3xl px-4 sm:px-6">
         {/* Context Breadcrumbs */}
         <div className="mb-6 flex items-center gap-1.5 text-xs text-slate-400">
-          <Link href="/dashboard" className="hover:text-amber-400 transition-colors">
+          <Link href="/dashboard" className="hover:text-[#C9A84C] transition-colors">
             Dashboard
           </Link>
           <span>/</span>
-          <Link href="/dashboard/events" className="hover:text-amber-400 transition-colors">
+          <Link href="/dashboard/events" className="hover:text-[#C9A84C] transition-colors">
             Events
           </Link>
           <span>/</span>
@@ -337,11 +337,11 @@ export default function EventCreationWizardPage() {
 
         {/* Wizard Header */}
         <div className="mb-8 text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3.5 py-1 text-xs font-bold uppercase tracking-widest text-amber-400 mb-3 backdrop-blur-md">
-            <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+          <div className="inline-flex items-center gap-2 rounded-full border border-[#C9A84C]/25 bg-[#C9A84C]/10 px-3.5 py-1 text-xs font-bold uppercase tracking-widest text-[#C9A84C] mb-3 backdrop-blur-md">
+            <Sparkles className="h-3.5 w-3.5 text-[#C9A84C]" />
             <span>Event Creation Studio</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
+          <h1 className="text-2xl min-[420px]:text-3xl sm:text-4xl font-black text-white tracking-tight">
             Create an Event
           </h1>
           <p className="mt-2 text-xs sm:text-sm text-slate-400">
@@ -350,24 +350,24 @@ export default function EventCreationWizardPage() {
         </div>
 
         {/* 3-Step Wizard Navigation Indicator */}
-        <div className="mb-8 grid grid-cols-3 gap-2 sm:gap-3">
+        <div className="mb-8 grid grid-cols-3 gap-1.5 sm:gap-3">
           {steps.map((s) => (
             <div
               key={s.num}
               className={cn(
-                "flex items-center gap-2 p-3 rounded-2xl border transition-all text-left",
+                "flex items-center gap-1.5 sm:gap-2 p-2.5 sm:p-3 rounded-2xl border transition-all text-left",
                 currentStep === s.num
-                  ? "border-amber-400 bg-amber-400/15 text-white font-bold ring-1 ring-amber-400/30"
+                  ? "border-[#C9A84C] bg-[#C9A84C]/15 text-white font-bold ring-1 ring-[#C9A84C]/30"
                   : currentStep > s.num
                   ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
-                  : "border-white/[0.08] bg-neutral-900/80 text-neutral-500"
+                  : "border-white/[0.07] bg-[#0e1018] text-neutral-500"
               )}
             >
               <div
                 className={cn(
-                  "flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-black",
+                  "flex h-5 w-5 sm:h-6 sm:w-6 shrink-0 items-center justify-center rounded-full text-[10px] sm:text-xs font-black",
                   currentStep === s.num
-                    ? "bg-amber-400 text-neutral-950"
+                    ? "bg-[#C9A84C] text-[#0a0c14]"
                     : currentStep > s.num
                     ? "bg-emerald-500 text-neutral-950"
                     : "bg-neutral-800 text-neutral-500"
@@ -375,13 +375,13 @@ export default function EventCreationWizardPage() {
               >
                 {currentStep > s.num ? "✓" : s.num}
               </div>
-              <span className="text-xs font-bold truncate">{s.title}</span>
+              <span className="text-[10px] min-[420px]:text-xs font-bold truncate">{s.title}</span>
             </div>
           ))}
         </div>
 
         {/* Wizard Form Container */}
-        <div className="rounded-3xl border border-white/[0.08] bg-[#0c101b]/95 p-6 sm:p-10 shadow-2xl backdrop-blur-xl">
+        <div className="rounded-3xl border border-white/[0.07] bg-[#0a0c14] p-5 sm:p-8 lg:p-10 shadow-2xl backdrop-blur-xl">
           <form onSubmit={handlePublishEvent} className="space-y-6">
             {/* STEP 1: EVENT DETAILS */}
             {currentStep === 1 && (
@@ -716,40 +716,40 @@ export default function EventCreationWizardPage() {
                 </div>
 
                 {/* Review Summary Box */}
-                <div className="rounded-2xl bg-neutral-900/90 p-5 border border-white/[0.08] space-y-2.5 text-xs">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-amber-400 pb-1 border-b border-white/[0.06]">
+                <div className="rounded-2xl bg-[#0e1018] p-4 sm:p-5 border border-white/[0.06] space-y-2.5 text-xs">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#C9A84C] pb-1 border-b border-white/[0.06]">
                     Review Configuration
                   </h4>
 
-                  <div className="flex justify-between py-1">
+                  <div className="flex flex-col sm:flex-row sm:justify-between py-1 gap-0.5">
                     <span className="text-slate-400">Event Name:</span>
                     <span className="font-bold text-white">{eventDetails.name}</span>
                   </div>
-                  <div className="flex justify-between py-1">
+                  <div className="flex flex-col sm:flex-row sm:justify-between py-1 gap-0.5">
                     <span className="text-slate-400">Canonical Slug:</span>
-                    <span className="font-mono text-amber-400">/events/{eventDetails.slug || slugify(eventDetails.name)}</span>
+                    <span className="font-mono text-[#C9A84C]">/events/{eventDetails.slug || slugify(eventDetails.name)}</span>
                   </div>
-                  <div className="flex justify-between py-1">
+                  <div className="flex flex-col sm:flex-row sm:justify-between py-1 gap-0.5">
                     <span className="text-slate-400">Categories:</span>
                     <span className="font-semibold text-white">{categories.map((c) => c.name).join(", ")}</span>
                   </div>
-                  <div className="flex justify-between py-1">
+                  <div className="flex flex-col sm:flex-row sm:justify-between py-1 gap-0.5">
                     <span className="text-slate-400">Nominees Enrolled:</span>
                     <span className="font-bold text-emerald-400">{nominees.length} Nominees</span>
                   </div>
-                  <div className="flex justify-between py-1">
+                  <div className="flex flex-col sm:flex-row sm:justify-between py-1 gap-0.5">
                     <span className="text-slate-400">Vote Price:</span>
-                    <span className="font-bold text-amber-400">
+                    <span className="font-bold text-[#C9A84C]">
                       {formatCurrency(Number(votingConfig.votePrice) || 0, votingConfig.currency)} / vote
                     </span>
                   </div>
-                  <div className="flex justify-between py-1">
+                  <div className="flex flex-col sm:flex-row sm:justify-between py-1 gap-0.5">
                     <span className="text-slate-400">Voting Window:</span>
                     <span className="font-medium text-slate-300">{eventDetails.startDate} → {eventDetails.endDate}</span>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 rounded-2xl bg-emerald-500/10 p-4 text-xs text-emerald-300 border border-emerald-500/20">
+                <div className="flex items-center gap-2.5 rounded-2xl bg-emerald-500/10 p-3.5 sm:p-4 text-xs text-emerald-300 border border-emerald-500/20">
                   <ShieldCheck className="h-5 w-5 text-emerald-400 shrink-0" />
                   <span>
                     Server-authoritative pricing and instant cryptographic receipt generation are pre-configured for this event.
@@ -765,12 +765,12 @@ export default function EventCreationWizardPage() {
             )}
 
             {/* Wizard Navigation Buttons */}
-            <div className="pt-4 border-t border-white/[0.08] flex items-center justify-between">
+            <div className="pt-4 border-t border-white/[0.08] flex items-center justify-between gap-3">
               {currentStep > 1 ? (
                 <button
                   type="button"
                   onClick={handleBack}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.1] bg-neutral-900 px-5 py-2.5 text-xs font-bold text-slate-300 hover:text-white transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.1] bg-[#0e1018] px-5 py-2.5 text-xs font-bold text-slate-300 hover:text-white transition-colors cursor-pointer"
                 >
                   <ArrowLeft className="h-4 w-4" />
                   <span>Back</span>
@@ -783,7 +783,7 @@ export default function EventCreationWizardPage() {
                 <button
                   type="button"
                   onClick={handleNext}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-amber-500 px-6 py-2.5 text-xs font-black text-neutral-950 shadow-md shadow-amber-500/20 hover:bg-amber-400 transition-all cursor-pointer"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-[#C9A84C] px-6 py-2.5 text-xs font-black text-[#0a0c14] shadow-md shadow-[#C9A84C]/20 hover:bg-[#D4B86A] transition-all cursor-pointer"
                 >
                   <span>Continue</span>
                   <ArrowRight className="h-4 w-4" />
@@ -792,7 +792,7 @@ export default function EventCreationWizardPage() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="inline-flex items-center gap-2 rounded-full bg-amber-500 px-8 py-3 text-sm font-black text-neutral-950 shadow-lg shadow-amber-500/25 hover:bg-amber-400 transition-all cursor-pointer"
+                  className="inline-flex items-center gap-2 rounded-full bg-[#C9A84C] px-8 py-3 text-xs sm:text-sm font-black text-[#0a0c14] shadow-lg shadow-[#C9A84C]/25 hover:bg-[#D4B86A] transition-all cursor-pointer"
                 >
                   <Trophy className="h-4 w-4" />
                   <span>{isLoading ? "Publishing..." : "Publish Event"}</span>

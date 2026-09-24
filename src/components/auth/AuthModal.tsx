@@ -70,10 +70,10 @@ export function AuthModal({
 
         <div className="flex items-center justify-between text-xs pt-1">
           <label className="flex items-center gap-2 text-neutral-400 cursor-pointer">
-            <input type="checkbox" defaultChecked className="rounded border-neutral-700 bg-neutral-900 text-[#ff5500] focus:ring-[#ff5500]" />
+            <input type="checkbox" defaultChecked className="rounded border-neutral-700 bg-neutral-900 text-[#C9A84C] focus:ring-[#C9A84C]" />
             <span>Remember me</span>
           </label>
-          <a href="#" className="font-bold text-[#ff5500] hover:text-[#ff6b1a]">
+          <a href="#" className="font-bold text-[#C9A84C] hover:text-[#D4B86A]">
             Forgot password?
           </a>
         </div>
@@ -81,7 +81,7 @@ export function AuthModal({
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full flex items-center justify-center gap-2 rounded-full bg-[#ff5500] py-3.5 px-6 font-bold text-xs text-white shadow-lg shadow-[#ff5500]/25 hover:bg-[#ff661a] transition-all cursor-pointer mt-2"
+          className="w-full flex items-center justify-center gap-2 rounded-full bg-[#C9A84C] py-3.5 px-6 font-extrabold text-xs text-[#0a0c14] shadow-lg shadow-[#C9A84C]/25 hover:bg-[#D4B86A] transition-all cursor-pointer mt-2 btn-shimmer active:scale-98"
         >
           <span>{isLoading ? "Signing in..." : "Sign In & Continue"}</span>
           <ArrowRight className="h-4 w-4" />
@@ -90,7 +90,7 @@ export function AuthModal({
 
       <div className="mt-6 border-t border-white/10 pt-4 text-center text-xs text-neutral-400">
         <div className="rounded-2xl bg-neutral-900 p-2.5 text-[11px] text-neutral-400 flex items-center justify-center gap-1.5 border border-white/5">
-          <ShieldCheck className="h-3.5 w-3.5 text-[#ff5500]" />
+          <ShieldCheck className="h-3.5 w-3.5 text-[#C9A84C]" />
           <span>Voters do not need an account to vote.</span>
         </div>
       </div>

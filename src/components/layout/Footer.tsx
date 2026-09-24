@@ -5,22 +5,22 @@ import { BrandLogo } from "../ui/BrandLogo"
 
 export function Footer() {
   return (
-    <footer className="border-t border-white/[0.05] bg-[#050608] text-slate-500 selection:bg-[#C9A84C] selection:text-[#050608]">
+    <footer className="border-t border-white/[0.05] bg-[#040404] text-neutral-400 selection:bg-[#C9A84C] selection:text-[#040404]">
       {/* Top gold line */}
       <div className="h-px bg-gradient-to-r from-transparent via-[#C9A84C]/20 to-transparent" />
 
-      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 gap-10 md:grid-cols-4 lg:grid-cols-5">
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:py-16 px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 sm:gap-10">
           {/* Brand Col */}
-          <div className="md:col-span-2 space-y-5">
+          <div className="sm:col-span-2 space-y-4 sm:space-y-5">
             <Link href="/" className="inline-flex items-center">
               <BrandLogo size="md" showName showSubtitle variant="dark" />
             </Link>
-            <p className="text-sm leading-relaxed text-slate-500 max-w-sm">
+            <p className="text-xs sm:text-sm leading-relaxed text-neutral-400 max-w-sm">
               JVican Vote Arena is the premier event voting platform for pageants, cultural recognitions, academic awards, and talent showcases. Frictionless voter checkout with cryptographic instant receipts.
             </p>
-            <div className="flex flex-wrap items-center gap-3 pt-1 text-xs font-semibold">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/[0.04] border border-white/[0.08] px-3 py-1.5 text-slate-400">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 pt-1 text-xs font-semibold">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/[0.04] border border-white/[0.08] px-3 py-1.5 text-neutral-300">
                 <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
                 TransactPay Encrypted
               </span>
@@ -33,10 +33,10 @@ export function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h4 className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#C9A84C] mb-5">
+            <h4 className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#C9A84C] mb-4 sm:mb-5">
               Explore
             </h4>
-            <ul className="space-y-3 text-sm">
+            <ul className="space-y-2.5 sm:space-y-3 text-xs sm:text-sm">
               <li>
                 <Link href="/events" className="hover:text-[#C9A84C] transition-colors duration-150">
                   All Events
@@ -45,11 +45,6 @@ export function Footer() {
               <li>
                 <Link href="/nominees" className="hover:text-[#C9A84C] transition-colors duration-150">
                   Browse Nominees
-                </Link>
-              </li>
-              <li>
-                <Link href="/winners" className="hover:text-[#C9A84C] transition-colors duration-150">
-                  Hall of Champions
                 </Link>
               </li>
               <li>
@@ -67,10 +62,10 @@ export function Footer() {
 
           {/* Platform */}
           <div>
-            <h4 className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#C9A84C] mb-5">
+            <h4 className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#C9A84C] mb-4 sm:mb-5">
               Platform
             </h4>
-            <ul className="space-y-3 text-sm">
+            <ul className="space-y-2.5 sm:space-y-3 text-xs sm:text-sm">
               <li>
                 <Link href="/how-it-works" className="hover:text-[#C9A84C] transition-colors duration-150">
                   How It Works
@@ -96,10 +91,10 @@ export function Footer() {
 
           {/* Security & Integrity */}
           <div>
-            <h4 className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#C9A84C] mb-5">
+            <h4 className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#C9A84C] mb-4 sm:mb-5">
               Integrity
             </h4>
-            <ul className="space-y-3 text-xs text-slate-500 leading-relaxed">
+            <ul className="space-y-3 text-xs text-neutral-400 leading-relaxed">
               <li className="flex items-start gap-2">
                 <Lock className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
                 <span>100% Server-Authoritative pricing model.</span>
@@ -122,9 +117,9 @@ export function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="mt-14 border-t border-white/[0.05] pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-600">
+        <div className="mt-10 sm:mt-14 border-t border-white/[0.05] pt-6 sm:pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-neutral-500 text-center sm:text-left">
           <p>© {new Date().getFullYear()} JVican Vote Arena. All rights reserved.</p>
-          <div className="flex items-center gap-6 font-medium">
+          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 font-medium">
             <span>Powered by TransactPay &amp; Supabase</span>
             <span>•</span>
             <Link href="/about" className="hover:text-[#C9A84C] transition-colors">Privacy &amp; Terms</Link>

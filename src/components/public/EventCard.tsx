@@ -38,7 +38,7 @@ export function EventCard({
   return (
     <div
       className={cn(
-        "group relative flex flex-col overflow-hidden rounded-3xl border border-white/[0.07] bg-[#0a0c14] transition-all duration-300 hover:border-[#C9A84C]/30 hover:shadow-[0_12px_40px_-12px_rgba(0,0,0,0.95),0_0_30px_-6px_rgba(201,168,76,0.12)] hover:-translate-y-1 text-white shadow-2xl shadow-black/70",
+        "group relative flex flex-col overflow-hidden rounded-3xl border border-white/[0.07] bg-[#0a0a0a] transition-all duration-300 hover:border-[#C9A84C]/30 hover:shadow-[0_12px_40px_-12px_rgba(0,0,0,0.95),0_0_30px_-6px_rgba(201,168,76,0.12)] hover:-translate-y-1 text-white shadow-2xl shadow-black/70",
         isFeatured && "md:col-span-2 md:row-span-2",
         className
       )}
@@ -46,7 +46,7 @@ export function EventCard({
       {/* Visual Cover Photo */}
       <div
         className={cn(
-          "relative w-full overflow-hidden bg-neutral-950",
+          "relative w-full overflow-hidden bg-[#040404]",
           isFeatured ? "aspect-16/10 sm:aspect-16/9" : "aspect-16/10"
         )}
       >
@@ -59,7 +59,7 @@ export function EventCard({
           className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out brightness-[0.80] group-hover:brightness-95"
         />
         {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0c14] via-[#0a0c14]/20 to-black/20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/20 to-black/20" />
         {/* Top gold shimmer line on hover */}
         <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-[#C9A84C]/0 to-transparent group-hover:via-[#C9A84C]/40 transition-all duration-500" />
 
@@ -94,7 +94,7 @@ export function EventCard({
 
           <div className="rounded-full bg-black/75 backdrop-blur-md px-3 py-1 text-xs font-bold text-[#C9A84C] border border-[#C9A84C]/20 shadow-sm">
             {formatCurrency(event.vote_price, event.currency)}
-            <span className="text-[10px] text-slate-400 font-normal"> / vote</span>
+            <span className="text-[10px] text-neutral-400 font-normal"> / vote</span>
           </div>
         </div>
 
@@ -119,19 +119,19 @@ export function EventCard({
       {/* Card Body */}
       <div className="flex flex-1 flex-col justify-between p-5">
         <div>
-          <p className="line-clamp-2 text-xs sm:text-sm text-slate-400 leading-relaxed">
+          <p className="line-clamp-2 text-xs sm:text-sm text-neutral-400 leading-relaxed">
             {event.description || "Discover verified nominees, cast your vote securely, and follow live cryptographic standings."}
           </p>
 
           {/* Metadata Grid */}
           <div className="mt-4 grid grid-cols-2 gap-3 border-t border-white/[0.05] pt-3.5 text-xs">
-            <div className="flex items-center gap-1.5 text-slate-500">
+            <div className="flex items-center gap-1.5 text-neutral-500">
               <Calendar className="h-3.5 w-3.5 text-[#C9A84C]/70 shrink-0" />
               <span className="truncate text-[11px]">
                 {isClosed ? "Ended " + formatDate(event.end_date) : `${daysLeft} days remaining`}
               </span>
             </div>
-            <div className="flex items-center justify-end gap-1.5 font-semibold text-slate-400">
+            <div className="flex items-center justify-end gap-1.5 font-semibold text-neutral-400">
               <Trophy className="h-3.5 w-3.5 text-[#C9A84C]/70 shrink-0" />
               <span className="text-[11px]">{event.show_live_results ? "Live Standings" : "Certified"}</span>
             </div>
@@ -143,9 +143,9 @@ export function EventCard({
           <Link href={`/events/${event.slug}`}>
             <button
               type="button"
-              className="w-full flex items-center justify-center gap-2 rounded-full border border-white/[0.07] bg-[#0e1018] py-3 text-xs font-bold text-white/80 transition-all duration-200 hover:border-[#C9A84C]/35 hover:bg-[#C9A84C] hover:text-[#0a0c14] cursor-pointer shadow-md active:scale-98"
+              className="w-full flex items-center justify-center gap-2 rounded-full border border-white/[0.07] bg-[#121212] py-3 text-xs font-bold text-white/80 transition-all duration-200 hover:border-[#C9A84C]/35 hover:bg-[#C9A84C] hover:text-[#050505] cursor-pointer shadow-md active:scale-98"
             >
-              <span>{isClosed ? "View Results & Certified Tallies" : "Explore Nominees & Vote"}</span>
+              <span>{isClosed ? "View Results & Certified Tallies" : "Explore Categories & Nominees"}</span>
               <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
             </button>
           </Link>

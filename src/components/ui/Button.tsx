@@ -28,24 +28,24 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const baseStyles =
-      "group relative inline-flex items-center justify-center font-bold tracking-tight transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A84C] focus-visible:ring-offset-2 focus-visible:ring-offset-[#050608] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer select-none active:scale-[0.98] overflow-hidden"
+      "group relative inline-flex items-center justify-center font-bold tracking-tight transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A84C] focus-visible:ring-offset-2 focus-visible:ring-offset-[#040404] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer select-none active:scale-[0.98] overflow-hidden"
 
     const variants = {
       // Primary: Liquid Gold — shimmer on hover
       primary:
-        "bg-[#C9A84C] text-[#0a0c14] hover:bg-[#D4B86A] active:bg-[#A07828] shadow-lg shadow-[#C9A84C]/20 border border-[#D4B86A]/20 hover:shadow-xl hover:shadow-[#C9A84C]/30 hover:-translate-y-0.5 btn-shimmer font-extrabold",
-      // Secondary: Deep charcoal
+        "bg-[#C9A84C] text-[#050505] hover:bg-[#D4B86A] active:bg-[#A07828] shadow-lg shadow-[#C9A84C]/20 border border-[#D4B86A]/20 hover:shadow-xl hover:shadow-[#C9A84C]/30 hover:-translate-y-0.5 btn-shimmer font-extrabold",
+      // Secondary: Deep stealth carbon
       secondary:
-        "bg-[#0e1018] text-white hover:bg-[#161824] active:bg-[#0a0c14] shadow-md border border-white/[0.08] hover:border-white/[0.16]",
+        "bg-[#121212] text-white hover:bg-[#1a1a1a] active:bg-[#0a0a0a] shadow-md border border-white/[0.08] hover:border-white/[0.16]",
       // Accent: Gold gradient
       accent:
-        "bg-gradient-to-r from-[#C9A84C] to-[#D4B86A] text-[#0a0c14] hover:from-[#D4B86A] hover:to-[#C9A84C] shadow-lg shadow-[#C9A84C]/20 border border-white/10 hover:-translate-y-0.5 btn-shimmer font-extrabold",
+        "bg-gradient-to-r from-[#C9A84C] to-[#D4B86A] text-[#050505] hover:from-[#D4B86A] hover:to-[#C9A84C] shadow-lg shadow-[#C9A84C]/20 border border-white/10 hover:-translate-y-0.5 btn-shimmer font-extrabold",
       // Outline: Obsidian glass border
       outline:
         "border border-white/[0.10] bg-white/[0.02] text-white hover:bg-white/[0.06] hover:border-[#C9A84C]/30 backdrop-blur-md active:bg-white/[0.04]",
-      // Glass: Semi-transparent with gold hover
+      // Glass: Semi-transparent stealth with gold hover
       glass:
-        "border border-white/[0.10] bg-[#0a0c14]/80 text-white hover:bg-[#161824] backdrop-blur-xl shadow-lg hover:border-[#C9A84C]/30",
+        "border border-white/[0.10] bg-[#0a0a0a]/80 text-white hover:bg-[#141414] backdrop-blur-xl shadow-lg hover:border-[#C9A84C]/30",
       // Ghost: Flat
       ghost:
         "text-neutral-300 hover:bg-white/[0.05] hover:text-white active:bg-white/[0.08]",
@@ -54,7 +54,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         "bg-rose-600 text-white hover:bg-rose-500 active:bg-rose-700 shadow-md shadow-rose-600/20 border border-rose-500/30",
       // Success
       success:
-        "bg-emerald-500 text-[#050608] hover:bg-emerald-400 active:bg-emerald-600 shadow-md shadow-emerald-500/20 border border-emerald-400/30",
+        "bg-emerald-500 text-[#050505] hover:bg-emerald-400 active:bg-emerald-600 shadow-md shadow-emerald-500/20 border border-emerald-400/30",
     }
 
     const sizes = {

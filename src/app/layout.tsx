@@ -71,7 +71,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`h-full scroll-smooth ${plusJakartaSans.variable}`}>
-      <body className="flex min-h-screen flex-col bg-[#050608] text-[#f0efe8] font-sans antialiased selection:bg-[#C9A84C] selection:text-[#050608]">
+      <body className="flex min-h-screen flex-col bg-[#040404] text-[#f0efe8] font-sans antialiased selection:bg-[#C9A84C] selection:text-[#040404]">
         <AuthProvider>
           <Navbar />
           <main className="flex-1">{children}</main>

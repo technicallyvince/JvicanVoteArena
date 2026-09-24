@@ -30,20 +30,20 @@ function SimulateCheckoutContent() {
   }
 
   return (
-    <div className="flex min-h-[85vh] items-center justify-center p-4 bg-[#06080e] relative overflow-hidden">
+    <div className="flex min-h-[85vh] items-center justify-center p-4 bg-[#050608] relative overflow-hidden">
       {/* Background ambient light */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] sm:w-[500px] h-[220px] sm:h-[300px] bg-[#C9A84C]/5 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="w-full max-w-md overflow-hidden rounded-3xl border border-white/10 bg-[#0c101b]/95 backdrop-blur-xl p-8 shadow-2xl relative z-10">
+      <div className="w-full max-w-md overflow-hidden rounded-3xl border border-white/[0.07] bg-[#0a0c14] backdrop-blur-xl p-6 sm:p-8 shadow-2xl relative z-10">
         {/* Gateway Header */}
         <div className="flex items-center justify-between border-b border-white/10 pb-5">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-amber-500 to-amber-400 text-slate-950 font-black text-xs shadow-md">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#C9A84C] text-[#0a0c14] font-black text-xs shadow-md">
               TP
             </div>
             <div>
               <span className="text-base font-bold text-white tracking-tight">
-                Transact<span className="text-amber-400">Pay</span> Direct
+                Transact<span className="text-[#C9A84C]">Pay</span> Direct
               </span>
               <span className="block text-[10px] uppercase tracking-wider font-semibold text-slate-400">
                 Sandbox Gateway
@@ -60,19 +60,19 @@ function SimulateCheckoutContent() {
         <div className="my-6 space-y-4">
           <div className="text-center py-2">
             <span className="text-xs text-slate-400">Total Authorized Amount</span>
-            <div className="text-3xl font-black text-amber-400 mt-0.5">
+            <div className="text-3xl font-black text-[#C9A84C] mt-0.5">
               {formatCurrency(amount, "NGN")}
             </div>
           </div>
 
-          <div className="rounded-2xl bg-[#121827]/80 p-4 text-xs space-y-2.5 border border-white/10">
+          <div className="rounded-2xl bg-[#0e1018] p-4 text-xs space-y-2.5 border border-white/10">
             <div className="flex justify-between text-slate-400">
               <span>Customer Email:</span>
               <span className="font-semibold text-white">{email}</span>
             </div>
             <div className="flex justify-between text-slate-400">
               <span>Order Reference:</span>
-              <span className="font-mono text-amber-400">{reference}</span>
+              <span className="font-mono text-[#C9A84C]">{reference}</span>
             </div>
             <div className="flex justify-between text-slate-400">
               <span>Gateway Engine:</span>
@@ -88,7 +88,7 @@ function SimulateCheckoutContent() {
             size="lg"
             isLoading={isProcessing}
             onClick={handleSimulateSuccess}
-            className="w-full justify-center font-black text-sm shadow-lg shadow-amber-500/20 py-3.5"
+            className="w-full justify-center font-black text-xs sm:text-sm shadow-lg shadow-[#C9A84C]/20 py-3.5"
           >
             <CreditCard className="h-4 w-4 mr-2" />
             Simulate Successful Payment
@@ -98,7 +98,7 @@ function SimulateCheckoutContent() {
             variant="outline"
             size="md"
             onClick={handleSimulateCancel}
-            className="w-full justify-center text-xs border-white/10 hover:border-amber-400/30 text-slate-400 hover:text-white"
+            className="w-full justify-center text-xs border-white/10 hover:border-[#C9A84C]/30 text-slate-400 hover:text-white"
           >
             Cancel and Return
           </Button>
@@ -116,8 +116,8 @@ export default function SimulateCheckoutPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-[60vh] items-center justify-center bg-[#06080e]">
-          <Clock className="h-8 w-8 animate-spin text-amber-400" />
+        <div className="flex min-h-[60vh] items-center justify-center bg-[#050608]">
+          <Clock className="h-8 w-8 animate-spin text-[#C9A84C]" />
         </div>
       }
     >

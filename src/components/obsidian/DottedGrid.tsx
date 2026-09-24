@@ -134,8 +134,10 @@ export function DottedGrid({ className, style, paused = false }: DottedGridProps
 
     const createDots = () => {
       dots = []
-      for (let y = SPACING / 2; y < height; y += SPACING) {
-        for (let x = SPACING / 2; x < width; x += SPACING) {
+      // Use responsive spacing to keep dot count efficient and fluid on mobile & desktop
+      const effectiveSpacing = Math.max(34, SPACING * (width < 768 ? 1.4 : 1.1))
+      for (let y = effectiveSpacing / 2; y < height; y += effectiveSpacing) {
+        for (let x = effectiveSpacing / 2; x < width; x += effectiveSpacing) {
           dots.push({
             x,
             y,

@@ -5,7 +5,7 @@ export function Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivEl
   return (
     <div
       className={cn(
-        "animate-pulse rounded-2xl bg-slate-200/80 dark:bg-slate-800/80",
+        "animate-pulse rounded-2xl bg-white/[0.06]",
         className
       )}
       {...props}
@@ -15,7 +15,7 @@ export function Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivEl
 
 export function CardSkeleton() {
   return (
-    <div className="rounded-3xl border border-slate-200/80 bg-white p-5 dark:border-slate-800 dark:bg-slate-900 space-y-4">
+    <div className="rounded-3xl border border-white/[0.08] bg-[#0a0a0a] p-5 space-y-4">
       <Skeleton className="aspect-16/10 w-full rounded-2xl" />
       <div className="space-y-2 pt-2">
         <Skeleton className="h-5 w-3/4" />

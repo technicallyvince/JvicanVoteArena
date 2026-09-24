@@ -2,15 +2,15 @@
 
 @layer base {
   :root {
-    /* ─── Deep Obsidian Blacks ─── */
-    --background: #050608;
+    /* ─── Stealth Black Obsidian Tokens ─── */
+    --background: #040404;
     --foreground: #f0efe8;
-    --surface: #0a0c14;
-    --surface-muted: #0e1018;
+    --surface: #0a0a0a;
+    --surface-muted: #121212;
     --border: rgba(255, 255, 255, 0.06);
     --border-strong: rgba(255, 255, 255, 0.10);
-    --muted: #8a8a94;
-    --muted-foreground: #5c5c68;
+    --muted: #888888;
+    --muted-foreground: #555555;
 
     /* ─── Liquid Gold Accent System ─── */
     --gold:          #C9A84C;   /* antique gold — primary accent */
@@ -26,7 +26,7 @@
     --brand-primary-hover: var(--gold-light);
     --brand-secondary:     var(--gold-muted);
     --brand-accent:        var(--gold-dark);
-    --brand-dark:          #050608;
+    --brand-dark:          #040404;
 
     /* ─── Semantic States ─── */
     --success: #10b981;
@@ -205,11 +205,11 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #050608;
+  background: #040404;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1e1f28;
+  background: #1c1c1c;
   border-radius: 9999px;
 }
 

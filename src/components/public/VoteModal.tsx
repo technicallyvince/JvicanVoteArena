@@ -147,22 +147,22 @@ export function VoteModal({
       {step === "select" ? (
         <form onSubmit={handleContinueToReview} className="space-y-5">
           {/* Nominee Info Card */}
-          <div className="flex items-center gap-3.5 rounded-2xl bg-neutral-900/90 p-3.5 border border-white/[0.08]">
+          <div className="flex items-center gap-3 sm:gap-3.5 rounded-2xl bg-[#0e1018] p-3 sm:p-3.5 border border-white/[0.08]">
             <img
               src={nominee.image_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80"}
               alt={nominee.name}
-              className="h-14 w-14 rounded-xl object-cover shadow-sm ring-1 ring-white/10"
+              className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl object-cover shadow-sm ring-1 ring-white/10 shrink-0"
             />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <h4 className="text-sm font-extrabold text-white truncate">
+                <h4 className="text-xs sm:text-sm font-extrabold text-white truncate">
                   {nominee.name}
                 </h4>
-                <span className="rounded-md bg-black/70 px-1.5 py-0.5 text-[10px] font-mono font-bold text-amber-400 border border-white/10">
+                <span className="rounded-md bg-black/70 px-1.5 py-0.5 text-[10px] font-mono font-bold text-[#C9A84C] border border-white/10 shrink-0">
                   #{nominee.public_id}
                 </span>
               </div>
-              <p className="text-xs text-neutral-400 truncate mt-0.5">
+              <p className="text-[11px] sm:text-xs text-neutral-400 truncate mt-0.5">
                 {category?.name || "Official Category"}
               </p>
               <div className="flex items-center gap-2 mt-1">
@@ -172,7 +172,7 @@ export function VoteModal({
                     Free Community Voting
                   </span>
                 ) : (
-                  <span className="text-xs font-bold text-amber-400">
+                  <span className="text-xs font-bold text-[#C9A84C]">
                     {formatCurrency(unitPrice, currency)} <span className="text-[10px] font-normal text-neutral-400">/ vote</span>
                   </span>
                 )}
@@ -189,7 +189,7 @@ export function VoteModal({
               <span className="text-[11px] text-neutral-400">Quick packages</span>
             </div>
 
-            <div className="grid grid-cols-6 gap-2">
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
               {defaultPackages.map((pkg: any) => {
                 const isSelected = !isCustom && selectedQuantity === pkg.quantity
                 return (
@@ -198,9 +198,9 @@ export function VoteModal({
                     type="button"
                     onClick={() => handlePackageSelect(pkg.quantity)}
                     className={cn(
-                      "relative flex flex-col items-center justify-center p-2.5 rounded-xl border text-center transition-all duration-200 cursor-pointer",
+                      "relative flex flex-col items-center justify-center p-2 sm:p-2.5 rounded-xl border text-center transition-all duration-200 cursor-pointer active:scale-98",
                       isSelected
-                        ? "border-amber-400 bg-amber-400/15 text-white font-bold ring-1 ring-amber-400/40 shadow-sm"
+                        ? "border-[#C9A84C] bg-[#C9A84C]/15 text-white font-bold ring-1 ring-[#C9A84C]/40 shadow-sm"
                         : "border-white/[0.08] bg-neutral-900/80 hover:border-white/20 text-neutral-300 hover:text-white"
                     )}
                   >
@@ -222,10 +222,10 @@ export function VoteModal({
                 value={customQuantity}
                 onChange={handleCustomChange}
                 className={cn(
-                  "w-full rounded-xl border px-4 py-2 text-sm transition-all focus:outline-none bg-neutral-900/90 text-white placeholder:text-neutral-500",
+                  "w-full rounded-xl border px-3.5 py-2 text-xs sm:text-sm transition-all focus:outline-none bg-neutral-900/90 text-white placeholder:text-neutral-500",
                   isCustom && customQuantity
-                    ? "border-amber-400 ring-1 ring-amber-400/30 bg-amber-400/10 font-bold"
-                    : "border-white/[0.08] hover:border-white/20 focus:border-amber-400"
+                    ? "border-[#C9A84C] ring-1 ring-[#C9A84C]/30 bg-[#C9A84C]/10 font-bold"
+                    : "border-white/[0.08] hover:border-white/20 focus:border-[#C9A84C]"
                 )}
               />
             </div>
@@ -250,12 +250,12 @@ export function VoteModal({
           </div>
 
           {/* Dynamic Total */}
-          <div className="rounded-2xl border border-white/[0.08] bg-neutral-900/80 p-4 flex items-baseline justify-between">
+          <div className="rounded-2xl border border-white/[0.08] bg-[#0e1018] p-3.5 sm:p-4 flex items-baseline justify-between">
             <div>
               <span className="text-xs text-neutral-400 block">Total</span>
               <span className="text-[11px] text-neutral-500">{finalQuantity} vote{finalQuantity > 1 ? "s" : ""} selected</span>
             </div>
-            <span className="text-2xl font-black text-amber-400">
+            <span className="text-xl sm:text-2xl font-black text-[#C9A84C]">
               {isFreeVoting ? "Free" : formatCurrency(totalAmount, currency)}
             </span>
           </div>
@@ -273,56 +273,56 @@ export function VoteModal({
               type="submit"
               variant="primary"
               size="lg"
-              className="w-full justify-center text-sm font-extrabold shadow-lg shadow-amber-500/20 rounded-full py-3.5"
+              className="w-full justify-center text-xs sm:text-sm font-extrabold shadow-lg shadow-[#C9A84C]/20 rounded-full py-3 sm:py-3.5 btn-shimmer"
             >
               <span>Continue</span>
               <ArrowRight className="h-4 w-4 ml-1.5" />
             </Button>
-            <div className="flex items-center justify-center gap-1.5 text-[11px] text-neutral-400 text-center">
-              <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
+            <div className="flex items-center justify-center gap-1.5 text-[10px] sm:text-[11px] text-neutral-400 text-center">
+              <ShieldCheck className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
               <span>TransactPay Authoritative Pricing • Instant Verified Proof</span>
             </div>
           </div>
         </form>
       ) : (
         /* STEP 2: VOTE REVIEW STEP */
-        <div className="space-y-5 animate-in fade-in duration-200">
-          <div className="rounded-2xl border border-white/[0.08] bg-neutral-900/90 p-5 divide-y divide-white/[0.06] text-xs">
-            <div className="flex items-center justify-between pb-3">
+        <div className="space-y-4 sm:space-y-5 animate-in fade-in duration-200">
+          <div className="rounded-2xl border border-white/[0.08] bg-[#0e1018] p-4 sm:p-5 divide-y divide-white/[0.06] text-xs">
+            <div className="flex items-center justify-between pb-2.5 sm:pb-3">
               <span className="text-neutral-400">Nominee</span>
-              <span className="font-extrabold text-white text-sm">{nominee.name}</span>
+              <span className="font-extrabold text-white text-xs sm:text-sm">{nominee.name}</span>
             </div>
 
-            <div className="flex items-center justify-between py-2.5">
+            <div className="flex items-center justify-between py-2 sm:py-2.5">
               <span className="text-neutral-400">Event</span>
-              <span className="font-semibold text-neutral-200">{event.name}</span>
+              <span className="font-semibold text-neutral-200 truncate max-w-[200px]">{event.name}</span>
             </div>
 
-            <div className="flex items-center justify-between py-2.5">
+            <div className="flex items-center justify-between py-2 sm:py-2.5">
               <span className="text-neutral-400">Category</span>
-              <span className="font-semibold text-neutral-200">{category?.name || "Official Category"}</span>
+              <span className="font-semibold text-neutral-200 truncate max-w-[200px]">{category?.name || "Official Category"}</span>
             </div>
 
-            <div className="flex items-center justify-between py-2.5">
+            <div className="flex items-center justify-between py-2 sm:py-2.5">
               <span className="text-neutral-400">Votes</span>
-              <span className="font-bold text-amber-400">{finalQuantity}</span>
+              <span className="font-bold text-[#C9A84C]">{finalQuantity}</span>
             </div>
 
-            <div className="flex items-center justify-between py-2.5">
+            <div className="flex items-center justify-between py-2 sm:py-2.5">
               <span className="text-neutral-400">Price</span>
               <span className="font-medium text-neutral-300">
                 {isFreeVoting ? "Free" : `${formatCurrency(unitPrice, currency)} / vote`}
               </span>
             </div>
 
-            <div className="flex items-center justify-between py-3">
+            <div className="flex items-center justify-between py-2.5 sm:py-3">
               <span className="text-neutral-400">Receipt email</span>
-              <span className="font-mono text-neutral-200">{email}</span>
+              <span className="font-mono text-neutral-200 truncate max-w-[180px]">{email}</span>
             </div>
 
             <div className="flex items-center justify-between pt-3 text-sm">
               <span className="font-bold text-white">Total</span>
-              <span className="text-2xl font-black text-amber-400">
+              <span className="text-xl sm:text-2xl font-black text-[#C9A84C]">
                 {isFreeVoting ? "₦0 (Free)" : formatCurrency(totalAmount, currency)}
               </span>
             </div>
@@ -336,14 +336,14 @@ export function VoteModal({
           )}
 
           {/* Action Buttons: Back & Proceed to Secure Payment */}
-          <div className="flex items-center gap-3 pt-1">
+          <div className="flex flex-col sm:flex-row items-center gap-2.5 sm:gap-3 pt-1">
             <Button
               type="button"
               variant="outline"
               size="lg"
               onClick={() => setStep("select")}
               disabled={isLoading}
-              className="flex-1 justify-center rounded-full text-xs font-bold"
+              className="w-full sm:flex-1 justify-center rounded-full text-xs font-bold"
             >
               <ArrowLeft className="h-4 w-4 mr-1.5" />
               Back
@@ -355,15 +355,15 @@ export function VoteModal({
               size="lg"
               onClick={handleProceedToPayment}
               isLoading={isLoading}
-              className="flex-2 justify-center rounded-full text-xs sm:text-sm font-extrabold shadow-lg shadow-amber-500/20"
+              className="w-full sm:flex-2 justify-center rounded-full text-xs sm:text-sm font-extrabold shadow-lg shadow-[#C9A84C]/20 btn-shimmer"
             >
               <Lock className="h-4 w-4 mr-1.5" />
               Proceed to Secure Payment
             </Button>
           </div>
 
-          <div className="flex items-center justify-center gap-1.5 text-[11px] text-neutral-400 text-center">
-            <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
+          <div className="flex items-center justify-center gap-1.5 text-[10px] sm:text-[11px] text-neutral-400 text-center">
+            <ShieldCheck className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
             <span>Bank-grade 256-bit encryption • Zero duplicate webhooks</span>
           </div>
         </div>
