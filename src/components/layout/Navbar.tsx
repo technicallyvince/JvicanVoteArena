@@ -3,11 +3,12 @@
 import React, { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { Menu, X, ChevronRight, ArrowUpRight, LogOut, User, Sparkles, ShieldAlert, ChevronDown, Wallet, Calendar, PlusCircle } from "lucide-react"
+import { Menu, X, ChevronRight, ArrowUpRight, LogOut, User, Sparkles, ShieldAlert, ChevronDown, Wallet, Calendar, PlusCircle, Trophy, Users, HelpCircle, Info } from "lucide-react"
 import { BrandLogo } from "../ui/BrandLogo"
 import { Button } from "../ui/Button"
 import { AuthModal } from "../auth/AuthModal"
 import { MenuDropdown } from "../ui/MenuDropdown"
+import { GooeyNav } from "../ui/gooey-nav"
 import { useAuth } from "@/lib/auth"
 import { cn } from "@/lib/utils"
 
@@ -34,10 +35,10 @@ export function Navbar() {
   }, [pathname])
 
   const navLinks = [
-    { name: "Events", href: "/events" },
-    { name: "Nominees", href: "/nominees" },
-    { name: "How It Works", href: "/how-it-works" },
-    { name: "About", href: "/about" },
+    { label: "Events", href: "/events", icon: <Trophy className="h-3.5 w-3.5" /> },
+    { label: "Nominees", href: "/nominees", icon: <Users className="h-3.5 w-3.5" /> },
+    { label: "How It Works", href: "/how-it-works", icon: <HelpCircle className="h-3.5 w-3.5" /> },
+    { label: "About", href: "/about", icon: <Info className="h-3.5 w-3.5" /> },
   ]
 
   const isActive = (path: string) => {
@@ -64,7 +65,7 @@ export function Navbar() {
           scrolled && "top-2 sm:top-3 md:top-4"
         )}
       >
-        <nav className="pointer-events-auto relative z-10 flex w-full max-w-4xl items-center justify-between gap-2">
+        <nav className="pointer-events-auto relative z-10 flex w-full max-w-5xl items-center justify-between gap-3">
           {/* Brand Pill */}
           <Link
             href="/"
@@ -79,32 +80,13 @@ export function Navbar() {
             />
           </Link>
 
-          {/* Desktop Navigation Links Pill */}
-          <div className="hidden h-12 items-center rounded-full border border-white/[0.06] bg-[#080808]/95 px-2 shadow-2xl shadow-black/60 backdrop-blur-xl md:flex">
-            {navLinks.map((link, i) => {
-              const active = isActive(link.href)
-              return (
-                <React.Fragment key={link.href}>
-                  {i > 0 && (
-                    <span className="h-3.5 w-px bg-white/[0.08]" />
-                  )}
-                  <Link
-                    href={link.href}
-                    className={cn(
-                      "relative px-3.5 text-sm font-medium transition-all duration-150 ease-out rounded-full py-1.5",
-                      active
-                        ? "text-[#C9A84C] font-bold"
-                        : "text-white/60 hover:text-white/90"
-                    )}
-                  >
-                    {link.name}
-                    {active && (
-                      <span className="absolute inset-x-2 bottom-0.5 h-px rounded-full bg-[#C9A84C]/60" />
-                    )}
-                  </Link>
-                </React.Fragment>
-              )
-            })}
+          {/* Gooey Animated Navigation (Desktop) */}
+          <div className="hidden md:flex items-center">
+            <GooeyNav
+              items={navLinks}
+              size="md"
+              className="bg-[#080808]/95"
+            />
           </div>
 
           {/* Desktop Action Pills */}
@@ -235,7 +217,10 @@ export function Navbar() {
                         : "text-white/70 hover:text-white hover:bg-white/[0.04]"
                     )}
                   >
-                    <span>{link.name}</span>
+                    <div className="flex items-center gap-3">
+                      <span className={active ? "text-[#C9A84C]" : "text-white/40"}>{link.icon}</span>
+                      <span>{link.label}</span>
+                    </div>
                     <ChevronRight className={cn("h-4 w-4", active ? "text-[#C9A84C]/70" : "text-white/20")} />
                   </Link>
                 )
