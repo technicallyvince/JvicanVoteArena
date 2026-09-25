@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { db } from "@/lib/db"
 import { EventCard } from "@/components/public/EventCard"
 import { DottedGrid } from "@/components/obsidian/DottedGrid"
@@ -8,12 +8,27 @@ import { Search, Trophy, Sparkles, Flame, CheckCircle2, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 export default function EventsDiscoveryPage() {
+  const [events, setEvents] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<"all" | "live" | "upcoming" | "completed">("all")
   const [selectedCategoryType, setSelectedCategoryType] = useState<string>("all")
   const [searchQuery, setSearchQuery] = useState("")
 
-  const allEvents = db
-    .getEvents()
+  useEffect(() => {
+    fetch("/api/admin/events")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.events)) {
+          setEvents(data.events)
+        } else {
+          setEvents(db.getEvents())
+        }
+      })
+      .catch(() => setEvents(db.getEvents()))
+      .finally(() => setIsLoading(false))
+  }, [])
+
+  const allEvents = (events.length > 0 ? events : db.getEvents())
     .filter((e) => e.status !== "draft")
 
   const filteredEvents = allEvents.filter((event) => {

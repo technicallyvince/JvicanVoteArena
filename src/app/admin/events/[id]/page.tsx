@@ -44,20 +44,51 @@ export default function AdminEventDetailPage({
     message: string;
   } | null>(null);
 
+  const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
     loadEventData();
   }, [resolvedParams.id]);
 
-  const loadEventData = () => {
-    const ev = db.getEventById(resolvedParams.id);
-    if (ev) {
-      setEvent(ev);
-      const cats = db.getCategories(ev.id);
-      setCategories(cats);
-      const noms = db.getNominees(ev.id);
-      setNominees(noms);
+  const loadEventData = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch(`/api/events/details?id=${encodeURIComponent(resolvedParams.id)}&slug=${encodeURIComponent(resolvedParams.id)}`);
+      const data = await res.json();
+      if (data.success && data.event) {
+        setEvent(data.event);
+        setCategories(data.categories || []);
+        setNominees(data.nominees || []);
+      } else {
+        const ev = db.getEventById(resolvedParams.id) || db.getEventBySlug(resolvedParams.id);
+        if (ev) {
+          setEvent(ev);
+          setCategories(db.getCategories(ev.id));
+          setNominees(db.getNominees(ev.id));
+        } else {
+          setEvent(null);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching admin event details:', err);
+      const ev = db.getEventById(resolvedParams.id) || db.getEventBySlug(resolvedParams.id);
+      if (ev) {
+        setEvent(ev);
+        setCategories(db.getCategories(ev.id));
+        setNominees(db.getNominees(ev.id));
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-[400px] flex items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-amber-400 border-t-transparent" />
+      </div>
+    );
+  }
 
   if (!event) {
     return (
@@ -80,9 +111,17 @@ export default function AdminEventDetailPage({
   const handleApprove = async () => {
     setActionLoading(true);
     try {
+      const res = await fetch('/api/admin/events', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventId: event.id, status: 'published' }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to approve event in database');
+
       db.updateEventApprovalStatus(
         event.id,
-        'approved',
+        'published',
         undefined,
         user?.id || 'admin-0000-0000-0000-000000000000'
       );
@@ -91,10 +130,10 @@ export default function AdminEventDetailPage({
         message: `Event "${event.name}" has been approved and published to the public marketplace!`,
       });
       loadEventData();
-    } catch {
+    } catch (err: any) {
       setNotification({
         type: 'error',
-        message: 'Failed to approve event.',
+        message: err?.message || 'Failed to approve event.',
       });
     } finally {
       setActionLoading(false);
@@ -105,6 +144,18 @@ export default function AdminEventDetailPage({
     if (!rejectionReason.trim()) return;
     setActionLoading(true);
     try {
+      const res = await fetch('/api/admin/events', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventId: event.id,
+          status: 'rejected',
+          rejectionReason,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to reject event in database');
+
       db.updateEventApprovalStatus(
         event.id,
         'rejected',
@@ -114,13 +165,13 @@ export default function AdminEventDetailPage({
       setIsRejectModalOpen(false);
       setNotification({
         type: 'success',
-        message: `Event "${event.name}" was marked as rejected with reasons recorded in the audit log.`,
+        message: `Event "${event.name}" was marked as rejected.`,
       });
       loadEventData();
-    } catch {
+    } catch (err: any) {
       setNotification({
         type: 'error',
-        message: 'Failed to reject event.',
+        message: err?.message || 'Failed to reject event.',
       });
     } finally {
       setActionLoading(false);
