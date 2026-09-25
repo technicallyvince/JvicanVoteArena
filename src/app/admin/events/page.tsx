@@ -70,8 +70,8 @@ export default function AdminAllEventsPage() {
   ]
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto">
-      <div className="mb-8">
+    <div className="max-w-7xl w-full mx-auto space-y-6">
+      <div>
         <div className="inline-flex items-center gap-1.5 rounded-full border border-[#C9A84C]/25 bg-[#C9A84C]/10 px-3.5 py-1 text-xs font-black uppercase tracking-widest text-[#C9A84C] mb-2">
           <CalendarCheck2 className="h-3.5 w-3.5" />
           <span>Event Registry</span>

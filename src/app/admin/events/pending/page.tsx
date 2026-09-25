@@ -47,7 +47,7 @@ export default function PendingEventsPage() {
   const currentPending = db.getEvents().filter((e) => e.status === "pending_approval")
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto">
+    <div className="max-w-7xl w-full mx-auto space-y-6">
       {/* Header */}
       <div className="mb-8">
         <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/25 bg-amber-500/10 px-3.5 py-1 text-xs font-black uppercase tracking-widest text-amber-400 mb-2">

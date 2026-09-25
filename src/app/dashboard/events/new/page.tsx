@@ -184,8 +184,8 @@ export default function EventCreationWizardPage() {
     setErrorMsg("")
 
     const price = parseFloat(votingConfig.votePrice)
-    if (isNaN(price) || price < 0) {
-      setErrorMsg("Please provide a valid vote price.")
+    if (isNaN(price) || price < 100) {
+      setErrorMsg("The minimum amount per vote that an organizer can set is ₦100 (NGN).")
       return
     }
 
@@ -721,14 +721,20 @@ export default function EventCreationWizardPage() {
             {currentStep === 3 && (
               <div className="space-y-5 animate-in fade-in duration-200">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Input
-                    label="Price per Vote (NGN)"
-                    type="number"
-                    min="0"
-                    value={votingConfig.votePrice}
-                    onChange={(e) => setVotingConfig({ ...votingConfig, votePrice: e.target.value })}
-                    required
-                  />
+                  <div>
+                    <Input
+                      label="Price per Vote (NGN)"
+                      type="number"
+                      min="100"
+                      placeholder="e.g. 100 (Minimum ₦100)"
+                      value={votingConfig.votePrice}
+                      onChange={(e) => setVotingConfig({ ...votingConfig, votePrice: e.target.value })}
+                      required
+                    />
+                    <p className="text-[10px] text-amber-400 mt-1 font-semibold">
+                      * Minimum allowed price per vote is ₦100.
+                    </p>
+                  </div>
 
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">

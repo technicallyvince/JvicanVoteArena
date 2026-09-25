@@ -37,28 +37,28 @@ export function VoteModal({
 
   if (!nominee || !event) return null
 
-  const unitPrice = Number(event.vote_price) || 100
+  const unitPrice = Math.max(100, Number(event.vote_price) || 100)
   const currency = event.currency || "NGN"
   const isFreeVoting = unitPrice === 0
 
   const finalQuantity = isCustom
-    ? Math.max(1, parseInt(customQuantity, 10) || 1)
+    ? Math.max(10, parseInt(customQuantity, 10) || 10)
     : selectedQuantity
 
   const totalAmount = isFreeVoting ? 0 : finalQuantity * unitPrice
 
   const defaultPackages = packages.length > 0 ? packages : [
-    { id: "1", label: "1", quantity: 1, tag: "" },
-    { id: "5", label: "5", quantity: 5, tag: "" },
-    { id: "10", label: "10", quantity: 10, tag: "Popular" },
-    { id: "20", label: "20", quantity: 20, tag: "" },
-    { id: "50", label: "50", quantity: 50, tag: "Value" },
-    { id: "100", label: "100", quantity: 100, tag: "VIP" },
+    { id: "10", label: "10 Votes", quantity: 10, tag: "Starter" },
+    { id: "25", label: "25 Votes", quantity: 25, tag: "Popular" },
+    { id: "50", label: "50 Votes", quantity: 50, tag: "Value" },
+    { id: "100", label: "100 Votes", quantity: 100, tag: "Bronze" },
+    { id: "250", label: "250 Votes", quantity: 250, tag: "Silver" },
+    { id: "500", label: "500 Votes", quantity: 500, tag: "Gold VIP" },
   ]
 
   const handlePackageSelect = (qty: number) => {
     setIsCustom(false)
-    setSelectedQuantity(qty)
+    setSelectedQuantity(Math.max(10, qty))
   }
 
   const handleCustomChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -82,8 +82,10 @@ export function VoteModal({
       return
     }
 
-    if (finalQuantity <= 0) {
-      setErrorMsg("Please select at least 1 vote.")
+    const parsedQty = isCustom ? parseInt(customQuantity, 10) : selectedQuantity
+
+    if (!parsedQty || isNaN(parsedQty) || parsedQty < 10) {
+      setErrorMsg("The minimum vote quantity is 10 votes (₦1,000 minimum).")
       return
     }
 
@@ -212,13 +214,16 @@ export function VoteModal({
 
             {/* Custom Quantity Input */}
             <div className="mt-3">
-              <label className="block text-[11px] text-neutral-400 mb-1">
-                Or enter custom quantity:
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-[11px] text-neutral-400">
+                  Or enter custom quantity:
+                </label>
+                <span className="text-[10px] text-[#C9A84C] font-semibold">Min 10 votes (₦1,000)</span>
+              </div>
               <input
                 type="number"
-                min="1"
-                placeholder="e.g. 25"
+                min="10"
+                placeholder="e.g. 25 (minimum 10)"
                 value={customQuantity}
                 onChange={handleCustomChange}
                 className={cn(

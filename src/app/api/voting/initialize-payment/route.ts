@@ -17,9 +17,9 @@ export async function POST(req: NextRequest) {
     }
 
     const voteQty = parseInt(quantity, 10)
-    if (isNaN(voteQty) || voteQty <= 0) {
+    if (isNaN(voteQty) || voteQty < 10) {
       return NextResponse.json(
-        { success: false, error: 'Vote quantity must be a positive integer.' },
+        { success: false, error: 'The minimum vote quantity from voters is 10 votes (₦1,000 minimum).' },
         { status: 400 }
       )
     }
@@ -64,9 +64,16 @@ export async function POST(req: NextRequest) {
     }
 
     // 3. Server-Authoritative calculation (never trust frontend math)
-    const unitPrice = Number(event.vote_price)
+    const unitPrice = Math.max(100, Number(event.vote_price) || 100)
     const totalAmount = voteQty * unitPrice
     const currency = event.currency || 'NGN'
+
+    if (totalAmount < 1000 && currency === 'NGN') {
+      return NextResponse.json(
+        { success: false, error: 'The minimum order amount is ₦1,000 (minimum 10 votes at ₦100/vote).' },
+        { status: 400 }
+      )
+    }
 
     // Unique payment reference
     const paymentRef = `JVA-${Date.now()}-${nanoid(6).toUpperCase()}`

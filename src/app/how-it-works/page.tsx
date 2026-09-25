@@ -50,7 +50,7 @@ export default function HowItWorksPage() {
               <div className="text-xs font-bold text-[#C9A84C] mb-2 font-mono">02. BUNDLE</div>
               <h3 className="text-base font-bold text-white mb-1.5">Choose Vote Package</h3>
               <p className="text-xs text-slate-400 leading-relaxed">
-                Select preconfigured packages (1, 5, 10, 20, 50, 100 votes) or enter a custom quantity with instant total calculation.
+                Select preconfigured packages (10, 25, 50, 100, 250, 500 votes) or enter a custom quantity (minimum 10 votes / ₦1,000) with instant total calculation.
               </p>
             </div>
 

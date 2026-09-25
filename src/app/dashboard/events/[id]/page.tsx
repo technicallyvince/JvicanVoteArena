@@ -34,6 +34,7 @@ import {
   Phone,
   AtSign,
   CheckCircle2,
+  AlertCircle,
 } from "lucide-react"
 import Papa from "papaparse"
 import { nanoid } from "nanoid"
@@ -184,8 +185,26 @@ export default function EventStudioPage() {
     document.body.removeChild(link)
   }
 
+  const [settingsError, setSettingsError] = useState("")
+
   const handleSaveSettings = (e: React.FormEvent) => {
     e.preventDefault()
+    setSettingsError("")
+
+    const parsedPrice = parseFloat(settingsData.votePrice)
+    if (isNaN(parsedPrice) || parsedPrice < 100) {
+      setSettingsError("The minimum amount per vote that an organizer can set is ₦100 (NGN).")
+      return
+    }
+
+    db.updateEvent(event.id, {
+      name: settingsData.name.trim(),
+      description: settingsData.description.trim(),
+      vote_price: parsedPrice,
+      start_date: settingsData.startDate ? new Date(settingsData.startDate).toISOString() : event.start_date,
+      end_date: settingsData.endDate ? new Date(settingsData.endDate).toISOString() : event.end_date,
+    })
+
     setSettingsSaved(true)
     setTimeout(() => setSettingsSaved(false), 2500)
   }
@@ -912,12 +931,29 @@ export default function EventStudioPage() {
                 />
               </div>
 
-              <Input
-                label="Vote Price (NGN)"
-                type="number"
-                value={settingsData.votePrice}
-                onChange={(e) => setSettingsData({ ...settingsData, votePrice: e.target.value })}
-              />
+              <div>
+                <Input
+                  label="Vote Price (NGN)"
+                  type="number"
+                  min="100"
+                  value={settingsData.votePrice}
+                  onChange={(e) => {
+                    setSettingsData({ ...settingsData, votePrice: e.target.value })
+                    if (settingsError) setSettingsError("")
+                  }}
+                  required
+                />
+                <p className="text-[10px] text-amber-400 mt-1 font-semibold">
+                  * Minimum allowed price per vote is ₦100.
+                </p>
+              </div>
+
+              {settingsError && (
+                <div className="flex items-center gap-2 rounded-xl bg-rose-500/10 p-3 text-xs font-semibold text-rose-400 border border-rose-500/20">
+                  <AlertCircle className="h-4 w-4 shrink-0" />
+                  <span>{settingsError}</span>
+                </div>
+              )}
 
               <div className="pt-3 flex items-center justify-between">
                 {settingsSaved ? (

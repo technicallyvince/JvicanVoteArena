@@ -200,20 +200,23 @@ export default function CanonicalNomineeDetailPage() {
               {/* Fast Vote Bundles Preview */}
               {!isClosed && (
                 <div className="space-y-2.5 pt-2">
-                  <label className="text-xs font-extrabold uppercase tracking-wider text-slate-300 block">
-                    Quick Vote Packages
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-extrabold uppercase tracking-wider text-slate-300 block">
+                      Quick Vote Packages
+                    </label>
+                    <span className="text-[10px] text-[#C9A84C] font-semibold">Min 10 Votes (₦1,000)</span>
+                  </div>
                   <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                    {[1, 5, 10, 20, 50, 100].map((qty) => (
+                    {[10, 25, 50, 100, 250, 500].map((qty) => (
                       <button
                         key={qty}
                         type="button"
                         onClick={() => setIsVoteModalOpen(true)}
                         className="flex flex-col items-center justify-center p-2 sm:p-2.5 rounded-2xl border border-white/[0.08] bg-neutral-900/80 hover:bg-neutral-800 hover:border-[#C9A84C]/30 transition-all cursor-pointer"
                       >
-                        <span className="text-xs font-black text-white">{qty} {qty === 1 ? 'Vote' : 'Votes'}</span>
+                        <span className="text-xs font-black text-white">{qty} Votes</span>
                         <span className="text-[10px] font-bold text-[#C9A84C] mt-0.5">
-                          {formatCurrency(qty * event.vote_price, event.currency)}
+                          {formatCurrency(qty * Math.max(100, Number(event.vote_price) || 100), event.currency)}
                         </span>
                       </button>
                     ))}
