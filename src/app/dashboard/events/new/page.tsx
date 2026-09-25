@@ -179,7 +179,7 @@ export default function EventCreationWizardPage() {
     setCurrentStep((prev) => Math.max(prev - 1, 1))
   }
 
-  const handlePublishEvent = (e: React.FormEvent) => {
+  const handlePublishEvent = async (e: React.FormEvent) => {
     e.preventDefault()
     setErrorMsg("")
 
@@ -194,65 +194,57 @@ export default function EventCreationWizardPage() {
     const baseSlug = eventDetails.slug.trim() || slugify(eventDetails.name)
     const uniqueSlug = `${baseSlug}-${nanoid(4).toLowerCase()}`
 
-    const newEvent = db.createEvent({
-      id: nanoid(),
-      organizer_id: "11111111-1111-1111-1111-111111111111",
-      name: eventDetails.name.trim(),
-      slug: uniqueSlug,
-      description: eventDetails.description.trim(),
-      logo_url: eventDetails.logoUrl,
-      cover_image_url: eventDetails.bannerImageUrl,
-      status: "pending_approval",
-      start_date: new Date(eventDetails.startDate).toISOString(),
-      end_date: new Date(eventDetails.endDate).toISOString(),
-      vote_price: price,
-      currency: votingConfig.currency,
-      allow_multiple_votes: true,
-      show_live_results: votingConfig.showLiveResults,
-      is_featured: false,
-      display_order: 10,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    })
-
-    // Map for created categories
-    const categoryMap: { [draftId: string]: string } = {}
-
-    categories.forEach((cat, index) => {
-      const createdCat = db.createCategory({
-        id: nanoid(),
-        event_id: newEvent.id,
-        name: cat.name.trim(),
-        slug: slugify(`${cat.name.trim()}-${nanoid(3)}`),
-        description: cat.description || "Official title bracket",
-        display_order: index + 1,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+    try {
+      const res = await fetch("/api/events/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: eventDetails.name.trim(),
+          slug: uniqueSlug,
+          description: eventDetails.description.trim(),
+          logoUrl: eventDetails.logoUrl,
+          bannerImageUrl: eventDetails.bannerImageUrl,
+          startDate: eventDetails.startDate,
+          endDate: eventDetails.endDate,
+          votePrice: price,
+          currency: votingConfig.currency,
+          showLiveResults: votingConfig.showLiveResults,
+          payoutBank: votingConfig.payoutBank,
+          categories: categories.map((cat) => ({
+            id: cat.id,
+            name: cat.name.trim(),
+            description: cat.description || "Official title bracket",
+          })),
+          nominees: nominees.map((nom) => ({
+            name: nom.name.trim(),
+            categoryId: nom.categoryId,
+            bio: nom.bio || "Official contestant in competition",
+            imageUrl: nom.imageUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80",
+          })),
+        }),
       })
-      categoryMap[cat.id] = createdCat.id
-    })
 
-    // Create all user-specified nominees
-    nominees.forEach((nom, index) => {
-      const actualCategoryId = categoryMap[nom.categoryId] || Object.values(categoryMap)[0]
-      db.createNominee({
-        id: nanoid(),
-        event_id: newEvent.id,
-        category_id: actualCategoryId,
-        name: nom.name.trim(),
-        slug: slugify(`${nom.name.trim()}-${nanoid(3)}`),
-        description: nom.bio || "Official contestant in competition",
-        image_url: nom.imageUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80",
-        public_id: `NOM-${nanoid(4).toUpperCase()}`,
-        display_order: index + 1,
-        status: "active",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to create event in database.")
+      }
+
+      if (data.supabaseError) {
+        console.warn("[Supabase Event Creation Warning]:", data.supabaseError)
+      }
+
+      setPublishedEvent({
+        id: data.event.id,
+        slug: data.event.slug,
+        name: data.event.name,
       })
-    })
-
-    setIsLoading(false)
-    setPublishedEvent({ id: newEvent.id, slug: newEvent.slug, name: newEvent.name })
+    } catch (err: any) {
+      console.error("Event creation error:", err)
+      setErrorMsg(err?.message || "Failed to create event. Please try again.")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleCopyShareLink = () => {
