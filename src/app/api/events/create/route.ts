@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { supabaseAdmin } from '@/lib/supabase/admin'
+import { getSupabaseAdmin } from '@/lib/supabase/admin'
 import { db } from '@/lib/db'
 
 export async function POST(req: NextRequest) {
   try {
+    const admin = getSupabaseAdmin()
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -36,17 +37,13 @@ export async function POST(req: NextRequest) {
 
     const price = Number(votePrice) || 100
 
-    // 1. Check if Supabase keys and database connection are configured
-    const isSupabaseConfigured =
-      Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL) &&
-      Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)
-
     let supabaseEventId: string | null = null
     let supabaseError: any = null
 
-    if (isSupabaseConfigured) {
-      // Use supabaseAdmin or user-scoped client to insert event
-      const client = supabaseAdmin || supabase
+    // Pick client: admin client (bypasses RLS) if available, otherwise scoped supabase client
+    const client = admin || supabase
+
+    if (process.env.NEXT_PUBLIC_SUPABASE_URL && (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)) {
 
       // Ensure profile exists if user is authenticated
       let organizerId: string | null = user?.id || null
