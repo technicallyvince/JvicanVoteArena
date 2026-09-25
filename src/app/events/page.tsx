@@ -28,21 +28,22 @@ export default function EventsDiscoveryPage() {
       .finally(() => setIsLoading(false))
   }, [])
 
+  // Only show published or approved events on the public page
   const allEvents = (events.length > 0 ? events : db.getEvents())
-    .filter((e) => e.status !== "draft")
+    .filter((e) => e.status === "published" || e.status === "approved")
 
   const filteredEvents = allEvents.filter((event) => {
-    const isLive = (event.status === "published" || event.status === "approved" || event.status === "pending_approval") && new Date(event.end_date) > new Date()
-    const isUpcoming = (event.status === "published" || event.status === "approved") && new Date(event.start_date) > new Date()
+    const isLive = new Date(event.end_date) > new Date() && new Date(event.start_date) <= new Date()
+    const isUpcoming = new Date(event.start_date) > new Date()
     const isCompleted = event.status === "closed" || new Date(event.end_date) <= new Date()
 
     if (activeTab === "live" && !isLive) return false
     if (activeTab === "upcoming" && !isUpcoming) return false
     if (activeTab === "completed" && !isCompleted) return false
 
-    // Fetch categories and nominees for deep filtering
-    const categories = db.getCategories(event.id)
-    const nominees = db.getNominees(event.id)
+    // Use categories/nominees from API response if available, fall back to local db
+    const categories = event.categories || db.getCategories(event.id)
+    const nominees = event.nominees || db.getNominees(event.id)
 
     // Filter by type keywords
     if (selectedCategoryType !== "all") {
@@ -50,7 +51,7 @@ export default function EventsDiscoveryPage() {
       const eventMatches =
         event.name.toLowerCase().includes(qType) ||
         (event.description && event.description.toLowerCase().includes(qType)) ||
-        categories.some((c) => c.name.toLowerCase().includes(qType))
+        categories.some((c: any) => c.name.toLowerCase().includes(qType))
       if (!eventMatches) return false
     }
 
@@ -59,9 +60,9 @@ export default function EventsDiscoveryPage() {
       const matchesEventName = event.name.toLowerCase().includes(q)
       const matchesSlug = event.slug.toLowerCase().includes(q)
       const matchesDescription = event.description ? event.description.toLowerCase().includes(q) : false
-      const matchesCategory = categories.some((c) => c.name.toLowerCase().includes(q))
+      const matchesCategory = categories.some((c: any) => c.name.toLowerCase().includes(q))
       const matchesNominee = nominees.some(
-        (n) => n.name.toLowerCase().includes(q) || n.public_id.toLowerCase().includes(q)
+        (n: any) => n.name.toLowerCase().includes(q) || n.public_id?.toLowerCase().includes(q)
       )
 
       return matchesEventName || matchesSlug || matchesDescription || matchesCategory || matchesNominee
@@ -224,8 +225,8 @@ export default function EventsDiscoveryPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
               {filteredEvents.map((event) => {
-                const categories = db.getCategories(event.id)
-                const nominees = db.getNominees(event.id)
+                const categories = event.categories || db.getCategories(event.id)
+                const nominees = event.nominees || db.getNominees(event.id)
 
                 return (
                   <EventCard

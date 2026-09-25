@@ -8,34 +8,46 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url)
     const status = searchParams.get('status')
 
-    const admin = getSupabaseAdmin()
-    const supabase = await createClient()
-    const client = admin || supabase
-
     let events: any[] = []
 
-    if (process.env.NEXT_PUBLIC_SUPABASE_URL && (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)) {
-      let query = client
-        .from('events')
-        .select(`
-          *,
-          categories:categories(*),
-          nominees:nominees(*)
-        `)
-        .order('created_at', { ascending: false })
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const hasSupabase = supabaseUrl && !supabaseUrl.includes('placeholder')
 
-      if (status) {
-        query = query.eq('status', status)
-      }
+    if (hasSupabase) {
+      // Try admin client first, then fall back to anon client
+      const admin = getSupabaseAdmin()
+      const supabase = await createClient()
 
-      const { data, error } = await query
+      for (const client of [admin, supabase].filter(Boolean)) {
+        if (events.length > 0) break
 
-      if (!error && data) {
-        events = data
+        let query = client!
+          .from('events')
+          .select(`
+            *,
+            categories:categories(*),
+            nominees:nominees(*)
+          `)
+          .order('created_at', { ascending: false })
+
+        if (status) {
+          query = query.eq('status', status)
+        }
+
+        const { data, error } = await query
+
+        if (error) {
+          console.error('[Admin Events GET] Supabase query error:', error.message)
+          continue // try next client
+        }
+
+        if (data && data.length > 0) {
+          events = data
+        }
       }
     }
 
-    // Fallback/merge with local mock store if Supabase returns nothing or in local test mode
+    // Fallback to local mock store only if Supabase returned nothing
     if (events.length === 0) {
       let localEvents = db.getEvents()
       if (status) {
@@ -70,26 +82,42 @@ export async function PATCH(req: NextRequest) {
       )
     }
 
-    const admin = getSupabaseAdmin()
-    const supabase = await createClient()
-    const client = admin || supabase
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const hasSupabase = supabaseUrl && !supabaseUrl.includes('placeholder')
 
-    if (process.env.NEXT_PUBLIC_SUPABASE_URL && (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)) {
-      const { data, error } = await client
-        .from('events')
-        .update({
-          status,
-          rejection_reason: rejectionReason || null,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', eventId)
-        .select()
+    let dbUpdated = false
 
-      if (error) {
-        console.error('[Supabase Admin Event Approval Error]:', error)
+    if (hasSupabase) {
+      const admin = getSupabaseAdmin()
+      const supabase = await createClient()
+
+      for (const client of [admin, supabase].filter(Boolean)) {
+        if (dbUpdated) break
+
+        const { data, error } = await client!
+          .from('events')
+          .update({
+            status,
+            rejection_reason: rejectionReason || null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', eventId)
+          .select()
+
+        if (error) {
+          console.error('[Admin Events PATCH] Supabase update error:', error.message)
+          continue
+        }
+
+        if (data && data.length > 0) {
+          dbUpdated = true
+        }
+      }
+
+      if (!dbUpdated) {
         return NextResponse.json(
-          { error: `Database update failed: ${error.message}` },
-          { status: 403 }
+          { error: 'Failed to update event in database. Check service role key configuration.' },
+          { status: 500 }
         )
       }
     }

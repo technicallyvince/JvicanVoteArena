@@ -9,36 +9,45 @@ export async function GET(req: NextRequest) {
     const slug = searchParams.get('slug')
     const id = searchParams.get('id')
 
-    const admin = getSupabaseAdmin()
-    const supabase = await createClient()
-    const client = admin || supabase
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const hasSupabase = supabaseUrl && !supabaseUrl.includes('placeholder')
 
-    if (process.env.NEXT_PUBLIC_SUPABASE_URL && (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)) {
-      let query = client
-        .from('events')
-        .select(`
-          *,
-          categories:categories(*),
-          nominees:nominees(*),
-          vote_packages:vote_packages(*)
-        `)
+    if (hasSupabase) {
+      const admin = getSupabaseAdmin()
+      const supabase = await createClient()
 
-      if (slug) {
-        query = query.eq('slug', slug)
-      } else if (id) {
-        query = query.eq('id', id)
-      }
+      for (const client of [admin, supabase].filter(Boolean)) {
+        let query = client!
+          .from('events')
+          .select(`
+            *,
+            categories:categories(*),
+            nominees:nominees(*),
+            vote_packages:vote_packages(*)
+          `)
 
-      const { data, error } = await query.maybeSingle()
+        if (slug) {
+          query = query.eq('slug', slug)
+        } else if (id) {
+          query = query.eq('id', id)
+        }
 
-      if (!error && data) {
-        return NextResponse.json({
-          success: true,
-          event: data,
-          categories: data.categories || [],
-          nominees: data.nominees || [],
-          packages: data.vote_packages || [],
-        })
+        const { data, error } = await query.maybeSingle()
+
+        if (error) {
+          console.error('[Event Details] Supabase query error:', error.message)
+          continue // try next client
+        }
+
+        if (data) {
+          return NextResponse.json({
+            success: true,
+            event: data,
+            categories: data.categories || [],
+            nominees: data.nominees || [],
+            packages: data.vote_packages || [],
+          })
+        }
       }
     }
 
