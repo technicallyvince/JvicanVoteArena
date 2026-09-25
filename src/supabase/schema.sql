@@ -199,9 +199,11 @@ CREATE TABLE IF NOT EXISTS email_logs (
   provider_message_id TEXT,
   idempotency_key TEXT UNIQUE,
   status TEXT NOT NULL DEFAULT 'queued' CHECK (status IN ('queued', 'sent', 'failed')),
+  attempt_count INT DEFAULT 1,
   error TEXT,
   sent_at TIMESTAMPTZ,
-  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- 10. Newsletter Subscribers
@@ -223,9 +225,24 @@ CREATE INDEX IF NOT EXISTS idx_email_logs_idempotency ON email_logs(idempotency_
 CREATE INDEX IF NOT EXISTS idx_newsletter_email ON newsletter_subscribers(email);
 CREATE INDEX IF NOT EXISTS idx_newsletter_status ON newsletter_subscribers(status);
 
+-- Enable RLS for newly added tables
+ALTER TABLE email_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE newsletter_subscribers ENABLE ROW LEVEL SECURITY;
+
 -- Receipts: Public can view specific receipt by public_id lookup
 CREATE POLICY "Public can view receipts" ON receipts
   FOR SELECT USING (true);
+
+-- Email Logs: Service role only (Server actions / API routes)
+CREATE POLICY "Service role manages email logs" ON email_logs
+  FOR ALL USING (auth.role() = 'service_role');
+
+-- Newsletter Subscribers: Public can insert/opt-in, service role manages all
+CREATE POLICY "Public can subscribe to newsletter" ON newsletter_subscribers
+  FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "Service role manages newsletter subscribers" ON newsletter_subscribers
+  FOR ALL USING (auth.role() = 'service_role');
 
 -- Votes & Payments: Read restricted to organizers of the event or service role
 CREATE POLICY "Organizers can view votes for their events" ON votes
