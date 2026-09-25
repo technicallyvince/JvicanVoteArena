@@ -1,92 +1,60 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
-import { generateReceiptNumber } from '@/lib/utils'
-import { sendReceiptEmail } from '@/lib/email/sender'
-import { nanoid } from 'nanoid'
+import {
+  processTransactPayPayment,
+  verifyWebhookSignature,
+} from '@/lib/payments/transactpay/webhook'
 
 export async function POST(req: NextRequest) {
   try {
     const rawBody = await req.text()
-    let payload: any = {}
+    const signature =
+      req.headers.get('x-transactpay-signature') ||
+      req.headers.get('x-signature') ||
+      req.headers.get('signature')
 
+    const secretKey =
+      process.env.TRANSACTPAY_WEBHOOK_SECRET ||
+      process.env.TRANSACTPAY_SECRET_KEY ||
+      ''
+
+    // 1. Signature Verification (if secret configured)
+    if (secretKey && signature) {
+      const isValid = verifyWebhookSignature(rawBody, signature, secretKey)
+      if (!isValid) {
+        console.error('[TransactPay Webhook] Invalid webhook signature rejected')
+        return NextResponse.json(
+          { error: 'Invalid webhook signature' },
+          { status: 401 }
+        )
+      }
+    }
+
+    let payload: any = {}
     try {
       payload = JSON.parse(rawBody)
-    } catch {
+    } catch (parseErr) {
+      console.error('[TransactPay Webhook] Invalid JSON payload:', parseErr)
       return NextResponse.json({ error: 'Invalid JSON payload' }, { status: 400 })
     }
 
-    // Reference from TransactPay webhook event
-    const reference = payload.reference || payload.order?.reference || payload.data?.reference
+    // 2. Process payment idempotently
+    const result = await processTransactPayPayment(payload, 'webhook')
 
-    if (!reference) {
-      return NextResponse.json({ error: 'No reference in webhook payload' }, { status: 400 })
+    if (!result.success && result.statusCode === 404) {
+      return NextResponse.json({ error: result.message }, { status: 404 })
     }
 
-    const vote = db.getVoteByRef(reference)
-    const payment = db.getPayments().find((p) => p.payment_reference === reference)
-
-    if (!vote || !payment) {
-      return NextResponse.json({ error: 'Transaction not found' }, { status: 404 })
-    }
-
-    // Idempotent safeguard: If already confirmed, acknowledge success immediately
-    if (vote.status === 'confirmed') {
-      return NextResponse.json({ success: true, message: 'Already processed idempotently.' })
-    }
-
-    const eventType = payload.event || payload.status
-    if (eventType === 'payment.success' || payload.status === 'successful' || payload.status === 'success') {
-      db.updatePaymentStatus(reference, 'successful', payload.gateway_reference || payload.id)
-      db.updateVoteStatus(reference, 'confirmed', payment.id)
-
-      const receiptPublicId = `rc_${nanoid(12)}`
-      const receiptNumber = generateReceiptNumber()
-
-      const receipt = db.createReceipt({
-        id: nanoid(),
-        vote_id: vote.id,
-        receipt_number: receiptNumber,
-        public_id: receiptPublicId,
-        voter_email: vote.voter_email,
-        amount: vote.total_amount,
-        currency: vote.currency,
-        issued_at: new Date().toISOString(),
-        email_status: 'queued',
-        created_at: new Date().toISOString(),
-      })
-
-      const event = db.getEventById(vote.event_id)
-      const nominee = db.getNomineeById(vote.nominee_id)
-      const category = db.getCategoryById(vote.category_id)
-
-      // Send receipt email
-      sendReceiptEmail({
-        to: vote.voter_email,
-        subject: `Official Voting Receipt [${receiptNumber}] - ${event?.name || 'JVican Vote Arena'}`,
-        props: {
-          eventName: event?.name || 'Event',
-          eventLogo: event?.logo_url,
-          nomineeName: nominee?.name || 'Nominee',
-          categoryName: category?.name || 'Category',
-          receiptNumber,
-          publicId: receiptPublicId,
-          voterEmail: vote.voter_email,
-          quantity: vote.quantity,
-          unitPrice: vote.unit_price,
-          totalAmount: vote.total_amount,
-          currency: vote.currency,
-          paymentReference: reference,
-          issuedAt: receipt.issued_at,
-        },
-      })
-    } else {
-      db.updatePaymentStatus(reference, 'failed')
-      db.updateVoteStatus(reference, 'failed')
-    }
-
-    return NextResponse.json({ success: true })
+    // Always respond with 200 OK to TransactPay to acknowledge receipt
+    return NextResponse.json({
+      success: true,
+      message: result.message,
+      alreadyProcessed: result.alreadyProcessed,
+    })
   } catch (err: any) {
-    console.error('Webhook error:', err)
-    return NextResponse.json({ error: err.message }, { status: 500 })
+    console.error('[TransactPay Webhook] Error handling webhook:', err)
+    return NextResponse.json(
+      { error: err.message || 'Internal webhook error' },
+      { status: 500 }
+    )
   }
 }

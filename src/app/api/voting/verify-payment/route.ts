@@ -1,9 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
-import { transactPay } from '@/lib/payments/transactpay/client'
-import { generateReceiptNumber } from '@/lib/utils'
-import { sendReceiptEmail } from '@/lib/email/sender'
-import { nanoid } from 'nanoid'
+import { verifyAndFulfillPayment } from '@/lib/payments/transactpay/verify-payment'
 
 export async function GET(req: NextRequest) {
   try {
@@ -11,103 +7,36 @@ export async function GET(req: NextRequest) {
     const reference = searchParams.get('ref')
 
     if (!reference) {
-      return NextResponse.json({ success: false, error: 'Missing reference parameter' }, { status: 400 })
+      return NextResponse.json(
+        { success: false, error: 'Missing payment reference' },
+        { status: 400 }
+      )
     }
 
-    const vote = db.getVoteByRef(reference)
-    const payment = db.getPayments().find((p) => p.payment_reference === reference)
+    const result = await verifyAndFulfillPayment(reference)
 
-    if (!vote || !payment) {
-      return NextResponse.json({ success: false, error: 'Transaction record not found' }, { status: 404 })
+    if (!result.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: result.error || 'Payment verification failed',
+        },
+        { status: 400 }
+      )
     }
-
-    // Idempotency check: if vote is already confirmed, return existing receipt
-    if (vote.status === 'confirmed') {
-      const existingReceipt = db.getReceiptByVoteId(vote.id)
-      return NextResponse.json({
-        success: true,
-        alreadyProcessed: true,
-        vote,
-        payment,
-        receipt: existingReceipt,
-      })
-    }
-
-    // Authoritative verification with TransactPay
-    const verifyResult = await transactPay.verifyTransaction(reference)
-
-    if (!verifyResult.status || verifyResult.data?.status !== 'successful') {
-      db.updatePaymentStatus(reference, 'failed')
-      db.updateVoteStatus(reference, 'failed')
-      return NextResponse.json({
-        success: false,
-        error: 'Payment verification was not successful.',
-        details: verifyResult.message,
-      })
-    }
-
-    // Mark payment successful and vote confirmed
-    const gatewayRef = verifyResult.data?.gateway_reference || `TP-${Date.now()}`
-    db.updatePaymentStatus(reference, 'successful', gatewayRef)
-    db.updateVoteStatus(reference, 'confirmed', payment.id)
-
-    // Generate unique official voting receipt
-    const receiptPublicId = `rc_${nanoid(12)}`
-    const receiptNumber = generateReceiptNumber()
-
-    const receipt = db.createReceipt({
-      id: nanoid(),
-      vote_id: vote.id,
-      receipt_number: receiptNumber,
-      public_id: receiptPublicId,
-      voter_email: vote.voter_email,
-      amount: vote.total_amount,
-      currency: vote.currency,
-      issued_at: new Date().toISOString(),
-      email_status: 'queued',
-      created_at: new Date().toISOString(),
-    })
-
-    // Look up related entities for email formatting
-    const event = db.getEventById(vote.event_id)
-    const nominee = db.getNomineeById(vote.nominee_id)
-    const category = db.getCategoryById(vote.category_id)
-
-    // Send transactional receipt email asynchronously
-    sendReceiptEmail({
-      to: vote.voter_email,
-      subject: `Official Voting Receipt [${receiptNumber}] - ${event?.name || 'JVican Vote Arena'}`,
-      props: {
-        eventName: event?.name || 'Event',
-        eventLogo: event?.logo_url,
-        nomineeName: nominee?.name || 'Nominee',
-        categoryName: category?.name || 'General Category',
-        receiptNumber,
-        publicId: receiptPublicId,
-        voterEmail: vote.voter_email,
-        quantity: vote.quantity,
-        unitPrice: vote.unit_price,
-        totalAmount: vote.total_amount,
-        currency: vote.currency,
-        paymentReference: reference,
-        issuedAt: receipt.issued_at,
-      },
-    }).then((res) => {
-      if (res.success) {
-        receipt.email_status = 'sent'
-      } else {
-        receipt.email_status = 'failed'
-      }
-    })
 
     return NextResponse.json({
       success: true,
-      vote,
-      payment,
-      receipt,
+      alreadyProcessed: result.alreadyProcessed,
+      vote: result.vote,
+      payment: result.payment,
+      receipt: result.receipt,
     })
   } catch (err: any) {
-    console.error('Error in verify-payment:', err)
-    return NextResponse.json({ success: false, error: err.message || 'Verification error' }, { status: 500 })
+    console.error('Error in verify-payment route:', err)
+    return NextResponse.json(
+      { success: false, error: err.message || 'Verification error' },
+      { status: 500 }
+    )
   }
 }

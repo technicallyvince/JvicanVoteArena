@@ -29,10 +29,13 @@ export interface CreateOrderResponse {
   data?: {
     checkoutUrl?: string
     paymentUrl?: string
+    redirect_url?: string
     reference: string
     orderId?: string
   }
 }
+
+export type TransactPayPaymentStatus = 'successful' | 'failed' | 'pending' | 'cancelled'
 
 export interface VerifyTransactionResponse {
   status: boolean
@@ -40,10 +43,51 @@ export interface VerifyTransactionResponse {
   data?: {
     reference: string
     gateway_reference?: string
+    order_id?: string
     amount: number
     currency: string
-    status: 'successful' | 'failed' | 'pending' | 'cancelled'
+    status: TransactPayPaymentStatus
     paid_at?: string
     customer_email?: string
+    metadata?: Record<string, any>
   }
+}
+
+export interface TransactPayWebhookPayload {
+  event?: string
+  status?: string
+  reference?: string
+  orderId?: string
+  order?: {
+    reference?: string
+    orderId?: string
+    amount?: number
+    currency?: string
+    status?: string
+  }
+  data?: {
+    reference?: string
+    orderId?: string
+    amount?: number
+    currency?: string
+    status?: string
+    gateway_reference?: string
+    paid_at?: string
+    customer?: {
+      email?: string
+    }
+  }
+  id?: string
+  gateway_reference?: string
+  amount?: number
+  currency?: string
+  paid_at?: string
+}
+
+export interface TransactPayConfig {
+  apiUrl: string
+  publicKey: string
+  secretKey: string
+  webhookSecret?: string
+  env: 'test' | 'live'
 }

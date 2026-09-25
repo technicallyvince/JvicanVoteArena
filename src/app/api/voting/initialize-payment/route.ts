@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { transactPay } from '@/lib/payments/transactpay/client'
+import { createTransactPayCheckout } from '@/lib/payments/transactpay/create-checkout'
 import { nanoid } from 'nanoid'
 
 export async function POST(req: NextRequest) {
@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     const voteQty = parseInt(quantity, 10)
     if (isNaN(voteQty) || voteQty < 10) {
       return NextResponse.json(
-        { success: false, error: 'The minimum vote quantity from voters is 10 votes (₦1,000 minimum).' },
+        { success: false, error: 'The minimum vote quantity is 10 votes (₦1,000 minimum).' },
         { status: 400 }
       )
     }
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // 3. Server-Authoritative calculation (never trust frontend math)
+    // 3. Server-Authoritative calculation (never trust frontend amounts)
     const unitPrice = Math.max(100, Number(event.vote_price) || 100)
     const totalAmount = voteQty * unitPrice
     const currency = event.currency || 'NGN'
@@ -108,44 +108,31 @@ export async function POST(req: NextRequest) {
       created_at: new Date().toISOString(),
     })
 
-    // 5. Initialize standard checkout with TransactPay
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-    const redirectUrl = `${baseUrl}/payment/callback?ref=${paymentRef}`
-
-    const orderResponse = await transactPay.createOrder({
-      customer: {
-        firstname: 'Voter',
-        lastname: nominee.name.split(' ')[0] || 'Supporter',
-        email: voterEmail.trim().toLowerCase(),
-        country: 'NG',
-      },
-      order: {
-        amount: totalAmount,
-        currency,
-        reference: paymentRef,
-        description: `${voteQty} Vote(s) for ${nominee.name} - ${event.name}`,
-      },
-      payment: {
-        RedirectUrl: redirectUrl,
-      },
+    // 5. Initialize hosted checkout session with TransactPay
+    const checkoutResult = await createTransactPayCheckout({
+      reference: paymentRef,
+      amount: totalAmount,
+      currency,
+      voterEmail: voterEmail.trim().toLowerCase(),
+      nomineeName: nominee.name,
+      eventName: event.name,
+      voteQuantity: voteQty,
     })
 
-    if (!orderResponse.status || !orderResponse.data) {
+    if (!checkoutResult.success || !checkoutResult.redirectUrl) {
       db.updatePaymentStatus(paymentRef, 'failed')
       db.updateVoteStatus(paymentRef, 'failed')
       return NextResponse.json(
-        { success: false, error: orderResponse.message || 'Payment initialization failed with gateway.' },
+        { success: false, error: checkoutResult.error || 'Payment initialization failed with gateway.' },
         { status: 502 }
       )
     }
 
-    const checkoutUrl = orderResponse.data.checkoutUrl || orderResponse.data.paymentUrl
-
     return NextResponse.json({
       success: true,
       reference: paymentRef,
-      checkoutUrl,
-      orderId: orderResponse.data.orderId,
+      checkoutUrl: checkoutResult.redirectUrl,
+      orderId: checkoutResult.orderId,
     })
   } catch (err: any) {
     console.error('Error in initialize-payment:', err)
