@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import Link from "next/link"
 import { db } from "@/lib/db"
 import { formatCurrency, formatDate } from "@/lib/utils"
@@ -17,13 +17,38 @@ import {
   XCircle,
   Archive,
   Filter,
+  Loader2,
 } from "lucide-react"
 
 export default function AdminAllEventsPage() {
+  const [events, setEvents] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [searchQuery, setSearchQuery] = useState("")
 
-  const allEvents = db.getEvents()
+  const fetchEvents = async () => {
+    try {
+      setIsLoading(true)
+      const res = await fetch("/api/admin/events")
+      const data = await res.json()
+      if (data.success && Array.isArray(data.events)) {
+        setEvents(data.events)
+      } else {
+        setEvents(db.getEvents())
+      }
+    } catch (err) {
+      console.error("Failed to load events:", err)
+      setEvents(db.getEvents())
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchEvents()
+  }, [])
+
+  const allEvents = events
 
   const filteredEvents = allEvents.filter((e) => {
     if (statusFilter !== "all" && e.status !== statusFilter) return false

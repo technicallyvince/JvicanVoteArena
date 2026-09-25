@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import Link from "next/link"
 import { db } from "@/lib/db"
 import { formatCurrency, formatDate, formatDateTime } from "@/lib/utils"
@@ -17,34 +17,90 @@ import {
   Users,
   Layers,
   ArrowRight,
+  Loader2,
 } from "lucide-react"
 
 export default function PendingEventsPage() {
+  const [events, setEvents] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const [rejectionModal, setRejectionModal] = useState<{ eventId: string; eventName: string } | null>(null)
   const [rejectionReason, setRejectionReason] = useState("")
   const [actionFeedback, setActionFeedback] = useState<string | null>(null)
-  const [, setRefreshKey] = useState(0)
+  const [isProcessingId, setIsProcessingId] = useState<string | null>(null)
 
-  const pendingEvents = db.getEvents().filter((e) => e.status === "pending_approval")
-
-  const handleApprove = (eventId: string) => {
-    db.updateEventApprovalStatus(eventId, "published")
-    setActionFeedback(`Event approved and published to the live marketplace.`)
-    setRefreshKey((k) => k + 1)
-    setTimeout(() => setActionFeedback(null), 3000)
+  const fetchPendingEvents = async () => {
+    try {
+      setIsLoading(true)
+      const res = await fetch("/api/admin/events?status=pending_approval")
+      const data = await res.json()
+      if (data.success && Array.isArray(data.events)) {
+        setEvents(data.events)
+      } else {
+        setEvents(db.getEvents().filter((e) => e.status === "pending_approval"))
+      }
+    } catch (err) {
+      console.error("Failed to load pending events:", err)
+      setEvents(db.getEvents().filter((e) => e.status === "pending_approval"))
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  const handleReject = () => {
+  useEffect(() => {
+    fetchPendingEvents()
+  }, [])
+
+  const handleApprove = async (eventId: string) => {
+    try {
+      setIsProcessingId(eventId)
+      const res = await fetch("/api/admin/events", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ eventId, status: "published" }),
+      })
+      if (!res.ok) throw new Error("Failed to approve event")
+
+      db.updateEventApprovalStatus(eventId, "published")
+      setActionFeedback(`Event approved and published to the live marketplace.`)
+      setEvents((prev) => prev.filter((e) => e.id !== eventId))
+      setTimeout(() => setActionFeedback(null), 3000)
+    } catch (err: any) {
+      alert(err?.message || "Failed to approve event")
+    } finally {
+      setIsProcessingId(null)
+    }
+  }
+
+  const handleReject = async () => {
     if (!rejectionModal) return
-    db.updateEventApprovalStatus(rejectionModal.eventId, "rejected", rejectionReason || "Does not meet platform requirements.")
-    setRejectionModal(null)
-    setRejectionReason("")
-    setActionFeedback("Event rejected. The organizer will be notified.")
-    setRefreshKey((k) => k + 1)
-    setTimeout(() => setActionFeedback(null), 3000)
+    const id = rejectionModal.eventId
+    try {
+      setIsProcessingId(id)
+      const res = await fetch("/api/admin/events", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          eventId: id,
+          status: "rejected",
+          rejectionReason: rejectionReason || "Does not meet platform requirements.",
+        }),
+      })
+      if (!res.ok) throw new Error("Failed to reject event")
+
+      db.updateEventApprovalStatus(id, "rejected", rejectionReason || "Does not meet platform requirements.")
+      setRejectionModal(null)
+      setRejectionReason("")
+      setActionFeedback("Event rejected. The organizer will be notified.")
+      setEvents((prev) => prev.filter((e) => e.id !== id))
+      setTimeout(() => setActionFeedback(null), 3000)
+    } catch (err: any) {
+      alert(err?.message || "Failed to reject event")
+    } finally {
+      setIsProcessingId(null)
+    }
   }
 
-  const currentPending = db.getEvents().filter((e) => e.status === "pending_approval")
+  const currentPending = events
 
   return (
     <div className="max-w-7xl w-full mx-auto space-y-6">
@@ -82,8 +138,8 @@ export default function PendingEventsPage() {
       ) : (
         <div className="space-y-4">
           {currentPending.map((event) => {
-            const categories = db.getCategories(event.id)
-            const nominees = db.getNominees(event.id)
+            const categories = Array.isArray(event.categories) && event.categories.length > 0 ? event.categories : db.getCategories(event.id)
+            const nominees = Array.isArray(event.nominees) && event.nominees.length > 0 ? event.nominees : db.getNominees(event.id)
             return (
               <div
                 key={event.id}

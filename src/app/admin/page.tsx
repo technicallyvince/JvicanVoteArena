@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react"
+import React, { useState, useEffect } from "react"
 import Link from "next/link"
 import { db } from "@/lib/db"
 import { formatCurrency, formatDateTime } from "@/lib/utils"
@@ -23,7 +23,22 @@ import {
 import { cn } from "@/lib/utils"
 
 export default function SuperAdminOverviewPage() {
-  const allEvents = db.getEvents()
+  const [events, setEvents] = useState<any[]>([])
+
+  useEffect(() => {
+    fetch("/api/admin/events")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.events)) {
+          setEvents(data.events)
+        } else {
+          setEvents(db.getEvents())
+        }
+      })
+      .catch(() => setEvents(db.getEvents()))
+  }, [])
+
+  const allEvents = events.length > 0 ? events : db.getEvents()
   const ledger = db.getLedger()
   const withdrawals = db.getWithdrawals()
   const auditLogs = db.getAuditLogs(10)
