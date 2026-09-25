@@ -58,14 +58,18 @@ export default function PendingEventsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ eventId, status: "published" }),
       })
-      if (!res.ok) throw new Error("Failed to approve event")
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to approve event in Supabase")
+      }
 
       db.updateEventApprovalStatus(eventId, "published")
       setActionFeedback(`Event approved and published to the live marketplace.`)
       setEvents((prev) => prev.filter((e) => e.id !== eventId))
       setTimeout(() => setActionFeedback(null), 3000)
     } catch (err: any) {
-      alert(err?.message || "Failed to approve event")
+      console.error("Approve error:", err)
+      alert(err?.message || "Failed to approve event in database. Please check Supabase credentials.")
     } finally {
       setIsProcessingId(null)
     }

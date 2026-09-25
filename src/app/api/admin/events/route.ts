@@ -75,7 +75,7 @@ export async function PATCH(req: NextRequest) {
     const client = admin || supabase
 
     if (process.env.NEXT_PUBLIC_SUPABASE_URL && (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)) {
-      await client
+      const { data, error } = await client
         .from('events')
         .update({
           status,
@@ -83,6 +83,15 @@ export async function PATCH(req: NextRequest) {
           updated_at: new Date().toISOString(),
         })
         .eq('id', eventId)
+        .select()
+
+      if (error) {
+        console.error('[Supabase Admin Event Approval Error]:', error)
+        return NextResponse.json(
+          { error: `Database update failed: ${error.message}` },
+          { status: 403 }
+        )
+      }
     }
 
     // Also update local store

@@ -319,11 +319,19 @@ CREATE POLICY "Public can subscribe to newsletter" ON public.newsletter_subscrib
 CREATE POLICY "Users can read own profile" ON public.profiles FOR SELECT USING (auth.uid() = id);
 CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id);
 
--- Organizers Policies
+-- Organizers & Admin Policies
 CREATE POLICY "Organizers can insert events" ON public.events FOR INSERT WITH CHECK (auth.uid() = organizer_id);
 CREATE POLICY "Organizers can update own events" ON public.events FOR UPDATE USING (auth.uid() = organizer_id);
+CREATE POLICY "Admins can update all events" ON public.events FOR UPDATE USING (
+  EXISTS (SELECT 1 FROM public.profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin')
+);
+CREATE POLICY "Service role manages all events" ON public.events FOR ALL USING (auth.role() = 'service_role');
+
 CREATE POLICY "Organizers can view own withdrawals" ON public.withdrawal_requests FOR SELECT USING (auth.uid() = organizer_id);
 CREATE POLICY "Organizers can insert withdrawals" ON public.withdrawal_requests FOR INSERT WITH CHECK (auth.uid() = organizer_id);
+CREATE POLICY "Admins manage all withdrawals" ON public.withdrawal_requests FOR ALL USING (
+  EXISTS (SELECT 1 FROM public.profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin')
+);
 
 -- Service Role Policies (Server actions & webhooks)
 CREATE POLICY "Service role manages email logs" ON public.email_logs FOR ALL USING (auth.role() = 'service_role');
