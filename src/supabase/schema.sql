@@ -187,6 +187,42 @@ CREATE POLICY "Public can view vote packages" ON vote_packages
 CREATE POLICY "Organizers can manage vote packages" ON vote_packages
   FOR ALL USING (event_id IN (SELECT e.id FROM events e JOIN profiles p ON e.organizer_id = p.id WHERE p.user_id = auth.uid()));
 
+-- 9. Email Logs
+CREATE TABLE IF NOT EXISTS email_logs (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  type TEXT NOT NULL,
+  recipient TEXT NOT NULL,
+  subject TEXT NOT NULL,
+  related_resource_type TEXT,
+  related_resource_id TEXT,
+  provider TEXT NOT NULL DEFAULT 'resend',
+  provider_message_id TEXT,
+  idempotency_key TEXT UNIQUE,
+  status TEXT NOT NULL DEFAULT 'queued' CHECK (status IN ('queued', 'sent', 'failed')),
+  error TEXT,
+  sent_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+-- 10. Newsletter Subscribers
+CREATE TABLE IF NOT EXISTS newsletter_subscribers (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  email TEXT UNIQUE NOT NULL,
+  name TEXT,
+  status TEXT NOT NULL DEFAULT 'SUBSCRIBED' CHECK (status IN ('SUBSCRIBED', 'UNSUBSCRIBED')),
+  source TEXT NOT NULL DEFAULT 'WEBSITE',
+  resend_contact_id TEXT,
+  subscribed_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  unsubscribed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_email_logs_recipient ON email_logs(recipient);
+CREATE INDEX IF NOT EXISTS idx_email_logs_idempotency ON email_logs(idempotency_key);
+CREATE INDEX IF NOT EXISTS idx_newsletter_email ON newsletter_subscribers(email);
+CREATE INDEX IF NOT EXISTS idx_newsletter_status ON newsletter_subscribers(status);
+
 -- Receipts: Public can view specific receipt by public_id lookup
 CREATE POLICY "Public can view receipts" ON receipts
   FOR SELECT USING (true);

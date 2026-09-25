@@ -4,7 +4,7 @@ import React, { useState } from "react"
 import { db } from "@/lib/db"
 import { NomineeCard } from "@/components/public/NomineeCard"
 import { VoteModal } from "@/components/public/VoteModal"
-import { Search, Users, Sparkles } from "lucide-react"
+import { Search, Users, Sparkles, X } from "lucide-react"
 import { Nominee } from "@/types/database"
 import { cn } from "@/lib/utils"
 
@@ -20,12 +20,17 @@ export default function NomineesDiscoveryPage() {
   const filteredNominees = allNominees.filter((c) => {
     if (selectedEventFilter !== "all" && c.event_id !== selectedEventFilter) return false
     if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase()
-      return (
-        c.name.toLowerCase().includes(q) ||
-        c.public_id.toLowerCase().includes(q) ||
-        (c.description && c.description.toLowerCase().includes(q))
-      )
+      const q = searchQuery.toLowerCase().trim()
+      const category = allCategories.find((cat) => cat.id === c.category_id)
+      const event = allEvents.find((e) => e.id === c.event_id)
+
+      const matchesName = c.name.toLowerCase().includes(q)
+      const matchesPublicId = c.public_id.toLowerCase().includes(q)
+      const matchesBio = c.description ? c.description.toLowerCase().includes(q) : false
+      const matchesCategory = category ? category.name.toLowerCase().includes(q) : false
+      const matchesEvent = event ? event.name.toLowerCase().includes(q) : false
+
+      return matchesName || matchesPublicId || matchesBio || matchesCategory || matchesEvent
     }
     return true
   })
@@ -37,6 +42,10 @@ export default function NomineesDiscoveryPage() {
     ? db.getCategoryById(votingNominee.category_id) || null
     : null
   const currentPackages = currentEvent ? db.getVotePackages(currentEvent.id) : []
+
+  const handleClearSearch = () => {
+    setSearchQuery("")
+  }
 
   return (
     <div className="py-10 sm:py-16 bg-[#050608] min-h-screen text-white pt-24 sm:pt-28 selection:bg-[#C9A84C] selection:text-[#0a0c14]">
@@ -56,8 +65,8 @@ export default function NomineesDiscoveryPage() {
         </div>
 
         {/* Filter Toolbar */}
-        <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pb-6 border-b border-white/[0.08]">
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+        <div className="mt-8 sm:mt-10 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 pb-6 border-b border-white/[0.08]">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar max-w-full">
             <button
               onClick={() => setSelectedEventFilter("all")}
               className={cn(
@@ -85,18 +94,39 @@ export default function NomineesDiscoveryPage() {
             ))}
           </div>
 
-          <div className="w-full sm:w-80">
-            <div className="relative">
+          {/* Search Bar with Button */}
+          <form
+            onSubmit={(e) => e.preventDefault()}
+            className="flex items-center gap-2 w-full lg:w-auto"
+          >
+            <div className="relative flex-1 sm:w-80">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <input
                 type="text"
-                placeholder="Search nominee name or ID..."
+                placeholder="Search nominee name, ID, category..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full rounded-full border border-white/[0.08] bg-[#0e1018] pl-10 pr-4 py-2.5 text-xs sm:text-sm text-white placeholder:text-neutral-500 focus:border-[#C9A84C] focus:outline-none focus:ring-1 focus:ring-[#C9A84C] shadow-md"
+                className="w-full rounded-full border border-white/[0.08] bg-[#0e1018] pl-10 pr-9 py-2.5 text-xs sm:text-sm text-white placeholder:text-neutral-500 focus:border-[#C9A84C] focus:outline-none focus:ring-1 focus:ring-[#C9A84C] shadow-md"
               />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white p-0.5 rounded-full hover:bg-white/10 transition-colors"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
             </div>
-          </div>
+
+            <button
+              type="submit"
+              className="inline-flex items-center gap-1.5 rounded-full bg-[#C9A84C] px-4 sm:px-5 py-2.5 text-xs sm:text-sm font-black text-[#0a0c14] shadow-md shadow-[#C9A84C]/20 hover:bg-[#D4B86A] transition-all cursor-pointer shrink-0"
+            >
+              <Search className="h-3.5 w-3.5 text-[#0a0c14]" />
+              <span>Search</span>
+            </button>
+          </form>
         </div>
 
         {/* Nominees Grid */}

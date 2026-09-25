@@ -31,6 +31,7 @@ export function VoteModal({
   const [customQuantity, setCustomQuantity] = useState<string>("")
   const [isCustom, setIsCustom] = useState<boolean>(false)
   const [email, setEmail] = useState<string>("")
+  const [newsletterOptIn, setNewsletterOptIn] = useState<boolean>(false)
   const [emailError, setEmailError] = useState<string>("")
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [errorMsg, setErrorMsg] = useState<string>("")
@@ -97,6 +98,15 @@ export function VoteModal({
 
     try {
       setIsLoading(true)
+
+      // If user voluntarily opted into newsletter, register their email
+      if (newsletterOptIn && email.trim()) {
+        fetch('/api/newsletter/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email.trim(), source: 'VOTING_FLOW' }),
+        }).catch((err) => console.warn('Newsletter subscription during voting non-fatal error:', err))
+      }
 
       const response = await fetch("/api/voting/initialize-payment", {
         method: "POST",
@@ -252,6 +262,20 @@ export function VoteModal({
               error={emailError}
               required
             />
+          </div>
+
+          {/* Optional Newsletter Opt-In (Unchecked by default) */}
+          <div className="flex items-start gap-2.5 p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
+            <input
+              id="newsletter-opt-in"
+              type="checkbox"
+              checked={newsletterOptIn}
+              onChange={(e) => setNewsletterOptIn(e.target.checked)}
+              className="mt-0.5 h-4 w-4 rounded border-white/20 bg-neutral-900 text-[#C9A84C] focus:ring-[#C9A84C] focus:ring-offset-0 cursor-pointer"
+            />
+            <label htmlFor="newsletter-opt-in" className="text-[11px] text-neutral-300 cursor-pointer leading-tight">
+              Receive updates about new events, featured nominees, and JVican announcements (optional)
+            </label>
           </div>
 
           {/* Dynamic Total */}

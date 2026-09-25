@@ -20,6 +20,8 @@ import {
   Sparkles,
   ArrowLeftRight,
   CheckCircle2,
+  Mail,
+  Inbox,
 } from "lucide-react"
 import { useAuth } from "@/lib/auth"
 import { BrandLogo } from "@/components/ui/BrandLogo"
@@ -41,6 +43,8 @@ export default function AdminLayout({
     { name: "All Events", href: "/admin/events", icon: CalendarCheck2 },
     { name: "Transactions Ledger", href: "/admin/transactions", icon: ReceiptText },
     { name: "Withdrawals", href: "/admin/withdrawals", icon: Wallet },
+    { name: "Newsletter & Audience", href: "/admin/newsletter", icon: Mail },
+    { name: "Email Delivery Logs", href: "/admin/emails", icon: Inbox },
     { name: "Audit Log", href: "/admin/audit-log", icon: ScrollText },
     { name: "Platform Settings", href: "/admin/settings", icon: SlidersHorizontal },
   ]

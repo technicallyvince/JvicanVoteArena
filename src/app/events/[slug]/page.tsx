@@ -40,7 +40,7 @@ export default function EventDetailPage() {
   const slug = params?.slug as string
 
   const event = db.getEventBySlug(slug)
-  if (!event || event.status === "draft") {
+  if (!event) {
     notFound()
   }
 
@@ -55,8 +55,10 @@ export default function EventDetailPage() {
   const nominees = db.getNominees(event.id)
   const packages = db.getVotePackages(event.id)
 
-  const isLive = event.status === "published" && new Date(event.end_date) > new Date()
-  const isUpcoming = event.status === "published" && new Date(event.start_date) > new Date()
+  const isPending = event.status === "pending_approval"
+  const isDraft = event.status === "draft"
+  const isLive = (event.status === "published" || event.status === "approved" || isPending) && new Date(event.end_date) > new Date()
+  const isUpcoming = (event.status === "published" || event.status === "approved") && new Date(event.start_date) > new Date()
   const isClosed = event.status === "closed" || new Date(event.end_date) <= new Date()
 
   const daysLeft = Math.max(
@@ -106,6 +108,18 @@ export default function EventDetailPage() {
 
   return (
     <div className="min-h-screen pb-24 bg-[#040404] text-white selection:bg-[#C9A84C] selection:text-[#040404]">
+      {/* Pending / Draft Preview Mode Notice */}
+      {(isPending || isDraft) && (
+        <div className="sticky top-16 z-30 bg-amber-500/15 backdrop-blur-md border-b border-amber-500/30 px-4 py-2.5 text-center text-xs font-semibold text-amber-300 flex items-center justify-center gap-2">
+          <Clock className="h-4 w-4 text-amber-400 shrink-0" />
+          <span>
+            {isPending
+              ? "Preview Mode: This contest is currently awaiting Super Admin review before it appears in public marketplace listings. You can still test categories and contestant applications."
+              : "Draft Preview Mode: This event is currently a draft."}
+          </span>
+        </div>
+      )}
+
       {/* 1. EVENT HERO HEADER WITH STEALTH OBSIDIAN & GOLD GLOW */}
       <div className="relative overflow-hidden bg-[#040404] text-white pt-20 sm:pt-24">
         {/* Cover Photo Backdrop with Gradient Blend */}
@@ -130,7 +144,13 @@ export default function EventDetailPage() {
                 <span className="inline-flex items-center gap-1 rounded-full bg-[#C9A84C]/15 px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider text-[#D4B86A] border border-[#C9A84C]/30 backdrop-blur-md">
                   JVican Vote Arena
                 </span>
-                {isLive && (
+                {isPending && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/20 px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider text-amber-400 border border-amber-500/30 backdrop-blur-md">
+                    <Clock className="h-3.5 w-3.5 text-amber-400" />
+                    PENDING REVIEW
+                  </span>
+                )}
+                {isLive && !isPending && (
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/90 px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider text-white shadow-md backdrop-blur-md">
                     <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
                     LIVE VOTING

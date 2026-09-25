@@ -135,7 +135,61 @@ export interface Receipt {
   currency: string
   issued_at: string
   email_status: 'queued' | 'sent' | 'failed'
+  email_sent_at?: string | null
+  email_idempotency_key?: string | null
   created_at: string
+}
+
+export type EmailType =
+  | 'RECEIPT'
+  | 'PAYMENT_SUCCESS'
+  | 'PAYMENT_FAILED'
+  | 'PAYMENT_PENDING'
+  | 'EVENT_SUBMITTED'
+  | 'EVENT_APPROVED'
+  | 'EVENT_REJECTED'
+  | 'WITHDRAWAL_REQUESTED'
+  | 'WITHDRAWAL_APPROVED'
+  | 'WITHDRAWAL_REJECTED'
+  | 'WITHDRAWAL_COMPLETED'
+  | 'WITHDRAWAL_FAILED'
+  | 'NEWSLETTER_WELCOME'
+  | 'NEWSLETTER_BROADCAST'
+
+export interface EmailLog {
+  id: string
+  type: EmailType
+  recipient: string
+  subject: string
+  related_resource_type?: 'receipt' | 'payment' | 'event' | 'withdrawal' | 'newsletter' | string | null
+  related_resource_id?: string | null
+  provider: 'resend' | 'brevo' | 'system'
+  primary_provider?: 'resend' | 'brevo' | 'system' | null
+  provider_used?: 'resend' | 'brevo' | 'system' | null
+  provider_message_id?: string | null
+  idempotency_key?: string | null
+  status: 'sent' | 'failed' | 'queued'
+  attempt_count?: number
+  error?: string | null
+  sent_at?: string | null
+  created_at: string
+  updated_at?: string
+}
+
+export type NewsletterStatus = 'SUBSCRIBED' | 'UNSUBSCRIBED'
+export type NewsletterSource = 'WEBSITE' | 'VOTING_FLOW' | 'ORGANIZER' | 'ADMIN'
+
+export interface NewsletterSubscriber {
+  id: string
+  email: string
+  name?: string | null
+  status: NewsletterStatus
+  source: NewsletterSource
+  resend_contact_id?: string | null
+  subscribed_at: string
+  unsubscribed_at?: string | null
+  created_at: string
+  updated_at: string
 }
 
 export type NomineeApplicationStatus = 'pending' | 'approved' | 'rejected'
@@ -216,6 +270,9 @@ export type AuditAction =
   | 'ORGANIZER_SUBMITTED_EVENT'
   | 'ORGANIZER_REQUESTED_WITHDRAWAL'
   | 'PAYMENT_VERIFIED'
+  | 'NEWSLETTER_SUBSCRIBED'
+  | 'NEWSLETTER_UNSUBSCRIBED'
+  | 'EMAIL_SENT'
 
 export interface AuditLog {
   id: string
@@ -223,7 +280,7 @@ export interface AuditLog {
   admin_name: string
   admin_email: string
   action: AuditAction
-  target_type: 'event' | 'withdrawal' | 'setting' | 'user' | 'payment'
+  target_type: 'event' | 'withdrawal' | 'setting' | 'user' | 'payment' | 'newsletter' | 'email'
   target_id: string
   target_name?: string
   previous_state?: string | null

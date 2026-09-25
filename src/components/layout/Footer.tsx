@@ -2,6 +2,7 @@ import React from "react"
 import Link from "next/link"
 import { ShieldCheck, Mail, ArrowRight, CheckCircle2, Lock, Crown } from "lucide-react"
 import { BrandLogo } from "../ui/BrandLogo"
+import { NewsletterSignup } from "../newsletter/NewsletterSignup"
 
 export function Footer() {
   return (
@@ -89,30 +90,9 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Security & Integrity */}
-          <div>
-            <h4 className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#C9A84C] mb-4 sm:mb-5">
-              Integrity
-            </h4>
-            <ul className="space-y-3 text-xs text-neutral-400 leading-relaxed">
-              <li className="flex items-start gap-2">
-                <Lock className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
-                <span>100% Server-Authoritative pricing model.</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
-                <span>Zero duplicate vote webhook guarantee.</span>
-              </li>
-              <li className="pt-2">
-                <Link
-                  href="/about"
-                  className="inline-flex items-center gap-1 text-xs font-bold text-[#C9A84C] hover:text-[#D4B86A] transition-colors"
-                >
-                  Transparency Model
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
-              </li>
-            </ul>
+          {/* Stay Updated / Newsletter */}
+          <div className="sm:col-span-1">
+            <NewsletterSignup />
           </div>
         </div>
 
