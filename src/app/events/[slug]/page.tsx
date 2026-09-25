@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { notFound, useParams } from "next/navigation"
 import Link from "next/link"
 import { db } from "@/lib/db"
@@ -39,8 +39,29 @@ export default function EventDetailPage() {
   const params = useParams()
   const slug = params?.slug as string
 
-  const event = db.getEventBySlug(slug)
-  if (!event) {
+  const localEvent = db.getEventBySlug(slug)
+  const [event, setEvent] = useState<any>(localEvent)
+  const [categories, setCategories] = useState<any[]>(localEvent ? db.getCategories(localEvent.id) : [])
+  const [nominees, setNominees] = useState<any[]>(localEvent ? db.getNominees(localEvent.id) : [])
+  const [packages, setPackages] = useState<any[]>(localEvent ? db.getVotePackages(localEvent.id) : [])
+  const [isLoadingEvent, setIsLoadingEvent] = useState(!localEvent)
+
+  useEffect(() => {
+    fetch(`/api/events/details?slug=${encodeURIComponent(slug)}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.event) {
+          setEvent(data.event)
+          if (Array.isArray(data.categories)) setCategories(data.categories)
+          if (Array.isArray(data.nominees)) setNominees(data.nominees)
+          if (Array.isArray(data.packages)) setPackages(data.packages)
+        }
+      })
+      .catch((err) => console.error("Error loading event from database:", err))
+      .finally(() => setIsLoadingEvent(false))
+  }, [slug])
+
+  if (!event && !isLoadingEvent) {
     notFound()
   }
 
@@ -51,9 +72,13 @@ export default function EventDetailPage() {
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false)
   const [copied, setCopied] = useState(false)
 
-  const categories = db.getCategories(event.id)
-  const nominees = db.getNominees(event.id)
-  const packages = db.getVotePackages(event.id)
+  if (!event) {
+    return (
+      <div className="min-h-screen bg-[#040404] text-white flex items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#C9A84C] border-t-transparent" />
+      </div>
+    )
+  }
 
   const isPending = event.status === "pending_approval"
   const isDraft = event.status === "draft"

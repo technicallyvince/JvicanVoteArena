@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { notFound, useParams } from "next/navigation"
 import Link from "next/link"
 import { db } from "@/lib/db"
@@ -44,16 +44,41 @@ export default function EventStudioPage() {
   const params = useParams()
   const eventId = params?.id as string
 
-  const event = db.getEventById(eventId)
-  if (!event) {
+  const localEvent = db.getEventById(eventId) || db.getEventBySlug(eventId)
+  const [event, setEvent] = useState<any>(localEvent)
+  const [categories, setCategories] = useState<any[]>(localEvent ? db.getCategories(localEvent.id) : [])
+  const [nominees, setNominees] = useState<any[]>(localEvent ? db.getNominees(localEvent.id) : [])
+  const [votes, setVotes] = useState<any[]>(localEvent ? db.getVotes(localEvent.id) : [])
+  const [applications, setApplications] = useState<any[]>(localEvent ? db.getNomineeApplications(localEvent.id) : [])
+  const [isLoadingEvent, setIsLoadingEvent] = useState(!localEvent)
+
+  useEffect(() => {
+    fetch(`/api/events/details?id=${encodeURIComponent(eventId)}&slug=${encodeURIComponent(eventId)}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.event) {
+          setEvent(data.event)
+          if (Array.isArray(data.categories)) setCategories(data.categories)
+          if (Array.isArray(data.nominees)) setNominees(data.nominees)
+        }
+      })
+      .catch((err) => console.error("Error loading studio event from database:", err))
+      .finally(() => setIsLoadingEvent(false))
+  }, [eventId])
+
+  const [activeTab, setActiveTab] = useState<"overview" | "nominees" | "applications" | "categories" | "votes" | "settings">("overview")
+
+  if (!event && !isLoadingEvent) {
     notFound()
   }
 
-  const [activeTab, setActiveTab] = useState<"overview" | "nominees" | "applications" | "categories" | "votes" | "settings">("overview")
-  const [categories, setCategories] = useState(db.getCategories(event.id))
-  const [nominees, setNominees] = useState(db.getNominees(event.id))
-  const [votes, setVotes] = useState(db.getVotes(event.id))
-  const [applications, setApplications] = useState(db.getNomineeApplications(event.id))
+  if (!event) {
+    return (
+      <div className="min-h-screen bg-[#050608] text-white flex items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#C9A84C] border-t-transparent" />
+      </div>
+    )
+  }
 
   const handleApproveApplication = (appId: string) => {
     db.updateNomineeApplicationStatus(appId, "approved")
