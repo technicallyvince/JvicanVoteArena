@@ -18,7 +18,7 @@ import {
 import { cn } from "@/lib/utils"
 
 export default function OrganizerEventsPortfolioPage() {
-  const [filter, setFilter] = useState<"all" | "active" | "upcoming" | "completed">("all")
+  const [filter, setFilter] = useState<"all" | "active" | "pending" | "upcoming" | "completed">("all")
   const [events, setEvents] = useState<any[]>(db.getEvents())
   const [isLoading, setIsLoading] = useState(true)
 
@@ -40,8 +40,10 @@ export default function OrganizerEventsPortfolioPage() {
     const isLive = (e.status === "published" || e.status === "approved") && new Date(e.end_date) > new Date()
     const isUpcoming = (e.status === "published" || e.status === "approved") && new Date(e.start_date) > new Date()
     const isCompleted = e.status === "closed" || new Date(e.end_date) <= new Date()
+    const isPending = e.status === "pending_approval"
 
     if (filter === "active" && !isLive) return false
+    if (filter === "pending" && !isPending) return false
     if (filter === "upcoming" && !isUpcoming) return false
     if (filter === "completed" && !isCompleted) return false
     return true
@@ -87,10 +89,10 @@ export default function OrganizerEventsPortfolioPage() {
 
         {/* Filter Tabs */}
         <div className="flex items-center gap-2 pb-4 mb-6 border-b border-white/[0.08] overflow-x-auto no-scrollbar">
-          {(["all", "active", "upcoming", "completed"] as const).map((tab) => (
+          {(["all", "active", "pending", "upcoming", "completed"] as const).map((tab) => (
             <button
               key={tab}
-              onClick={() => setFilter(tab)}
+              onClick={() => setFilter(tab as any)}
               className={cn(
                 "px-5 py-2 text-xs font-bold rounded-full capitalize transition-all cursor-pointer whitespace-nowrap",
                 filter === tab
@@ -98,12 +100,14 @@ export default function OrganizerEventsPortfolioPage() {
                   : "bg-[#0e1018] text-slate-400 border border-white/[0.07] hover:text-white hover:bg-[#161824]"
               )}
             >
-              {tab === "all" ? "All Events" : tab === "active" ? "Active Events" : tab === "upcoming" ? "Upcoming" : "Completed"} ({
+              {tab === "all" ? "All Events" : tab === "active" ? "Active Live" : tab === "pending" ? "Pending Approval" : tab === "upcoming" ? "Upcoming" : "Completed"} ({
                 events.filter((e) => {
                   const isLive = (e.status === "published" || e.status === "approved") && new Date(e.end_date) > new Date()
                   const isUpcoming = (e.status === "published" || e.status === "approved") && new Date(e.start_date) > new Date()
                   const isCompleted = e.status === "closed" || new Date(e.end_date) <= new Date()
+                  const isPending = e.status === "pending_approval"
                   if (tab === "active") return isLive
+                  if (tab === "pending") return isPending
                   if (tab === "upcoming") return isUpcoming
                   if (tab === "completed") return isCompleted
                   return true

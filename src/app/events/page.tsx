@@ -15,7 +15,7 @@ export default function EventsDiscoveryPage() {
   const [searchQuery, setSearchQuery] = useState("")
 
   useEffect(() => {
-    fetch("/api/admin/events")
+    fetch("/api/admin/events", { cache: "no-store" })
       .then((res) => res.json())
       .then((data) => {
         if (data.success && Array.isArray(data.events)) {
@@ -29,8 +29,7 @@ export default function EventsDiscoveryPage() {
   }, [])
 
   // Only show published or approved events on the public page
-  const allEvents = (events.length > 0 ? events : db.getEvents())
-    .filter((e) => e.status === "published" || e.status === "approved")
+  const allEvents = events.filter((e) => e.status === "published" || e.status === "approved")
 
   const filteredEvents = allEvents.filter((event) => {
     const isLive = new Date(event.end_date) > new Date() && new Date(event.start_date) <= new Date()
