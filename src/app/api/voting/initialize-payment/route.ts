@@ -80,13 +80,38 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const nominee = db.getNomineeById(nomineeId)
+    let nominee: any = null
+    let category: any = null
+
+    if (hasSupabase) {
+      const admin = getSupabaseAdmin()
+      const supabase = await createClient()
+      for (const client of [admin, supabase].filter(Boolean)) {
+        // Query nominee by id or public_id
+        const { data: nomData } = await client!
+          .from('nominees')
+          .select('*')
+          .or(`id.eq.${nomineeId},public_id.eq.${nomineeId}`)
+          .maybeSingle()
+        if (nomData) {
+          nominee = nomData
+          break
+        }
+      }
+    }
+
+    if (!nominee) {
+      nominee = db.getNomineeById(nomineeId) || db.getNomineeByPublicId(nomineeId)
+    }
+
     if (!nominee || nominee.status !== 'active') {
       return NextResponse.json(
         { success: false, error: 'The selected nominee is invalid or not active.' },
         { status: 400 }
       )
     }
+
+    const resolvedCategoryId = categoryId || nominee.category_id
 
     // 3. Server-Authoritative calculation (never trust frontend amounts)
     const unitPrice = Math.max(100, Number(event.vote_price) || 100)
@@ -102,10 +127,12 @@ export async function POST(req: NextRequest) {
 
     // Unique payment reference
     const paymentRef = `JVA-${Date.now()}-${nanoid(6).toUpperCase()}`
+    const paymentId = nanoid()
+    const voteId = nanoid()
 
     // 4. Create pending Payment & Vote records in database
     const payment = db.createPayment({
-      id: nanoid(),
+      id: paymentId,
       event_id: event.id,
       voter_email: voterEmail.trim().toLowerCase(),
       amount: totalAmount,
@@ -118,9 +145,9 @@ export async function POST(req: NextRequest) {
     })
 
     const vote = db.createVote({
-      id: nanoid(),
+      id: voteId,
       event_id: event.id,
-      category_id: categoryId || nominee.category_id,
+      category_id: resolvedCategoryId,
       nominee_id: nominee.id,
       voter_email: voterEmail.trim().toLowerCase(),
       quantity: voteQty,
@@ -132,6 +159,46 @@ export async function POST(req: NextRequest) {
       status: 'pending',
       created_at: new Date().toISOString(),
     })
+
+    // Also persist pending records to Supabase if configured
+    if (hasSupabase) {
+      const admin = getSupabaseAdmin()
+      const supabase = await createClient()
+      const dbClient = admin || supabase
+      if (dbClient) {
+        try {
+          await dbClient.from('payments').insert({
+            id: paymentId,
+            event_id: event.id,
+            voter_email: voterEmail.trim().toLowerCase(),
+            amount: totalAmount,
+            currency,
+            payment_reference: paymentRef,
+            gateway: 'transactpay',
+            status: 'pending',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          await dbClient.from('votes').insert({
+            id: voteId,
+            event_id: event.id,
+            category_id: resolvedCategoryId,
+            nominee_id: nominee.id,
+            voter_email: voterEmail.trim().toLowerCase(),
+            quantity: voteQty,
+            unit_price: unitPrice,
+            total_amount: totalAmount,
+            currency,
+            payment_id: paymentId,
+            payment_reference: paymentRef,
+            status: 'pending',
+            created_at: new Date().toISOString(),
+          })
+        } catch (supabaseInsertErr) {
+          console.warn('Non-fatal error inserting pending payment/vote to Supabase:', supabaseInsertErr)
+        }
+      }
+    }
 
     // 5. Initialize hosted checkout session with TransactPay
     const checkoutResult = await createTransactPayCheckout({
