@@ -1,3 +1,4 @@
+import crypto from 'crypto'
 import {
   CreateOrderRequest,
   CreateOrderResponse,
@@ -10,6 +11,7 @@ export class TransactPayClient {
   private publicKey: string
   private secretKey: string
   private webhookSecret: string
+  private encryptionKey: string
   private env: 'test' | 'live'
 
   constructor() {
@@ -18,6 +20,7 @@ export class TransactPayClient {
     this.publicKey = process.env.TRANSACTPAY_PUBLIC_KEY || ''
     this.secretKey = process.env.TRANSACTPAY_SECRET_KEY || ''
     this.webhookSecret = process.env.TRANSACTPAY_WEBHOOK_SECRET || ''
+    this.encryptionKey = process.env.TRANSACTPAY_ENCRYPTION_KEY || ''
     this.env = (process.env.TRANSACTPAY_ENV as 'test' | 'live') || 'test'
   }
 
@@ -37,25 +40,80 @@ export class TransactPayClient {
   }
 
   /**
+   * Encrypts data using the TransactPay RSA public key (supports XML RSAKeyValue base64 or PEM format).
+   */
+  private encryptPayload(payload: object): string {
+    if (!this.encryptionKey) {
+      throw new Error('TRANSACTPAY_ENCRYPTION_KEY is not configured')
+    }
+
+    let publicKeyObject: crypto.KeyObject
+
+    // Check if key is base64 XML (starts with base64 encoded '4096!<RSAKeyValue>' or '<RSAKeyValue>')
+    try {
+      const decoded = Buffer.from(this.encryptionKey.trim(), 'base64').toString('utf8')
+      const modulusMatch = decoded.match(/<Modulus>(.*?)<\/Modulus>/)
+      const exponentMatch = decoded.match(/<Exponent>(.*?)<\/Exponent>/)
+
+      if (modulusMatch && exponentMatch) {
+        const n = Buffer.from(modulusMatch[1], 'base64')
+        const e = Buffer.from(exponentMatch[1], 'base64')
+        publicKeyObject = crypto.createPublicKey({
+          key: {
+            kty: 'RSA',
+            n: n.toString('base64url'),
+            e: e.toString('base64url'),
+          },
+          format: 'jwk',
+        })
+      } else if (this.encryptionKey.includes('BEGIN PUBLIC KEY')) {
+        publicKeyObject = crypto.createPublicKey(this.encryptionKey)
+      } else {
+        throw new Error('Unrecognized key format in TRANSACTPAY_ENCRYPTION_KEY')
+      }
+    } catch (err: any) {
+      console.error('[TransactPay] Error parsing encryption key:', err.message)
+      throw new Error(`Failed to parse TransactPay encryption key: ${err.message}`)
+    }
+
+    const payloadBuffer = Buffer.from(JSON.stringify(payload), 'utf8')
+    const encrypted = crypto.publicEncrypt(
+      {
+        key: publicKeyObject,
+        padding: crypto.constants.RSA_PKCS1_PADDING,
+      },
+      payloadBuffer
+    )
+
+    return encrypted.toString('base64')
+  }
+
+  /**
    * Creates a hosted checkout order on TransactPay.
    *
-   * Per the official TransactPay "Getting Started" docs, the Standard Checkout
-   * order creation endpoint accepts PLAIN JSON with the api-key header set to
-   * the Public Key. Encryption is ONLY required for direct card payment flows
-   * (where raw card data is submitted via the REST Card Payments API).
+   * If TRANSACTPAY_ENCRYPTION_KEY is present, sends: { "data": "<encrypted_base64>" }
+   * Otherwise sends raw payload: { customer, order, payment }
    *
    * Official endpoint: POST /payment/order/create
    * Header: api-key: PUBLIC_KEY
-   * Body: { customer, order, payment } (plain JSON — NOT encrypted)
-   *
-   * Reference: https://transactpay.readme.io/docs/api-keys (Step 3)
    */
   async createOrder(payload: CreateOrderRequest): Promise<CreateOrderResponse> {
     if (this.isConfigured()) {
       try {
-        console.log('[TransactPay] Creating order with plain JSON payload (Standard Checkout flow)')
+        console.log('[TransactPay] Creating order...')
         console.log('[TransactPay] Endpoint:', `${this.apiUrl}/payment/order/create`)
         console.log('[TransactPay] API Key prefix:', this.publicKey.substring(0, 20) + '...')
+
+        let requestBody: any
+
+        if (this.encryptionKey) {
+          console.log('[TransactPay] Encrypting order payload with RSA public key')
+          const encryptedData = this.encryptPayload(payload)
+          requestBody = { data: encryptedData }
+        } else {
+          console.log('[TransactPay] Sending unencrypted payload (TRANSACTPAY_ENCRYPTION_KEY not set)')
+          requestBody = payload
+        }
 
         const response = await fetch(`${this.apiUrl}/payment/order/create`, {
           method: 'POST',
@@ -63,7 +121,7 @@ export class TransactPayClient {
             'Content-Type': 'application/json',
             'api-key': this.publicKey,
           },
-          body: JSON.stringify(payload),
+          body: JSON.stringify(requestBody),
         })
 
         if (!response.ok) {
