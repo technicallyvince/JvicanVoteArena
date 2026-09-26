@@ -166,7 +166,41 @@ export default function EventCreationWizardPage() {
         return
       }
     } else if (currentStep === 2) {
-      if (categories.length === 0) {
+      // Auto-commit any category typed in the input field
+      let currentCategories = [...categories]
+      if (newCategoryName.trim()) {
+        const autoCat = {
+          id: nanoid(),
+          name: newCategoryName.trim(),
+          description: newCategoryDesc.trim(),
+        }
+        currentCategories.push(autoCat)
+        setCategories(currentCategories)
+        setNewCategoryName("")
+        setNewCategoryDesc("")
+      }
+
+      // Auto-commit any nominee typed in the input field
+      if (newNomineeName.trim()) {
+        const targetCatId = newNomineeCategoryId || currentCategories[0]?.id
+        if (targetCatId) {
+          setNominees((prev) => [
+            ...prev,
+            {
+              id: nanoid(),
+              name: newNomineeName.trim(),
+              categoryId: targetCatId,
+              bio: newNomineeBio.trim(),
+              imageUrl: newNomineeImage.trim() || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80",
+            },
+          ])
+          setNewNomineeName("")
+          setNewNomineeBio("")
+          setNewNomineeImage("")
+        }
+      }
+
+      if (currentCategories.length === 0) {
         setErrorMsg("Please add at least one category.")
         return
       }
