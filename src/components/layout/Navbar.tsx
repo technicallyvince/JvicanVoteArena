@@ -21,6 +21,13 @@ export function Navbar() {
   const router = useRouter()
   const { isAuthenticated, user, logout, isSuperAdmin } = useAuth()
 
+  // Hide the public floating navbar on superadmin (/admin) routes since it has its own dedicated command sidebar/drawer
+  const isAdminRoute = pathname?.startsWith("/admin")
+
+  if (isAdminRoute) {
+    return null
+  }
+
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20)

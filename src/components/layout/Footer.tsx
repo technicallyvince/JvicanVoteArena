@@ -1,10 +1,20 @@
+"use client"
+
 import React from "react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { ShieldCheck, Mail, ArrowRight, CheckCircle2, Lock, Crown } from "lucide-react"
 import { BrandLogo } from "../ui/BrandLogo"
 import { NewsletterSignup } from "../newsletter/NewsletterSignup"
 
 export function Footer() {
+  const pathname = usePathname()
+
+  // Hide the public footer on admin routes
+  if (pathname?.startsWith("/admin")) {
+    return null
+  }
+
   return (
     <footer className="border-t border-white/[0.05] bg-[#040404] text-neutral-400 selection:bg-[#C9A84C] selection:text-[#040404]">
       {/* Top gold line */}
