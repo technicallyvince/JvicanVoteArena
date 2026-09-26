@@ -38,6 +38,35 @@ export async function subscribeToNewsletter(params: SubscribeParams): Promise<{
     source: params.source || 'WEBSITE',
   });
 
+  // Persist to Supabase if configured
+  try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const hasSupabase = supabaseUrl && !supabaseUrl.includes('placeholder')
+    if (hasSupabase) {
+      const { getSupabaseAdmin } = await import('@/lib/supabase/admin')
+      const { createClient } = await import('@/lib/supabase/server')
+      const admin = getSupabaseAdmin()
+      const supabase = await createClient()
+      const client = admin || supabase
+
+      if (client) {
+        await client.from('newsletter_subscribers').upsert(
+          {
+            email,
+            name: params.name || null,
+            source: params.source || 'WEBSITE',
+            status: 'SUBSCRIBED',
+            subscribed_at: new Date().toISOString(),
+            unsubscribed_at: null,
+          },
+          { onConflict: 'email' }
+        )
+      }
+    }
+  } catch (supabaseErr) {
+    console.warn('[subscribeToNewsletter] Supabase persistence error (non-fatal):', supabaseErr)
+  }
+
   // Sync to Resend Audience if configured and online
   const resend = getResendClient();
   const audienceId = process.env.RESEND_AUDIENCE_ID;
@@ -53,6 +82,29 @@ export async function subscribeToNewsletter(params: SubscribeParams): Promise<{
     } catch (err) {
       console.warn('[subscribeToNewsletter] Resend audience sync warning (non-fatal):', err);
     }
+  }
+
+  // Send welcome confirmation email
+  try {
+    const emailHtml = generateNewsletterEmailHtml({
+      subject: 'Welcome to JVican Vote Arena Updates',
+      headline: 'Welcome to JVican Vote Arena!',
+      contentHtml: `<p>Thank you for subscribing to the official JVican Vote Arena updates.</p><p>You will receive curated announcements about major award ceremonies, spotlight nominees, live leaderboards, and exclusive community events.</p>`,
+      subscriberEmail: email,
+      subscriberName: params.name || undefined,
+    });
+
+    await sendEmail({
+      type: 'NEWSLETTER_WELCOME',
+      to: email,
+      from: EMAIL_FROM_NEWSLETTER,
+      subject: 'Welcome to JVican Vote Arena Updates',
+      html: emailHtml,
+      relatedResourceType: 'newsletter',
+      relatedResourceId: result.subscriber.id,
+    });
+  } catch (emailErr) {
+    console.warn('[subscribeToNewsletter] Welcome email sending warning (non-fatal):', emailErr);
   }
 
   return {

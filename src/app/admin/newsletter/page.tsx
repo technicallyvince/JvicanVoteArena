@@ -42,10 +42,23 @@ export default function AdminNewsletterPage() {
   const [newEmail, setNewEmail] = useState('');
   const [newName, setNewName] = useState('');
   const [addError, setAddError] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
 
-  const loadSubscribers = () => {
-    const list = db.getNewsletterSubscribers();
-    setSubscribers([...list]);
+  const loadSubscribers = async () => {
+    try {
+      setIsLoading(true);
+      const res = await fetch('/api/admin/newsletter', { cache: 'no-store' });
+      const data = await res.json();
+      if (data.success && Array.isArray(data.subscribers)) {
+        setSubscribers(data.subscribers);
+      } else {
+        setSubscribers([...db.getNewsletterSubscribers()]);
+      }
+    } catch {
+      setSubscribers([...db.getNewsletterSubscribers()]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -90,7 +103,7 @@ export default function AdminNewsletterPage() {
     document.body.removeChild(link);
   };
 
-  const handleAddSubscriber = (e: React.FormEvent) => {
+  const handleAddSubscriber = async (e: React.FormEvent) => {
     e.preventDefault();
     setAddError('');
     if (!newEmail || !newEmail.includes('@')) {
@@ -98,15 +111,28 @@ export default function AdminNewsletterPage() {
       return;
     }
 
-    db.subscribeNewsletter({
-      email: newEmail.trim().toLowerCase(),
-      name: newName.trim() || undefined,
-      source: 'ADMIN',
-    });
-    setNewEmail('');
-    setNewName('');
-    setAddModalOpen(false);
-    loadSubscribers();
+    try {
+      const res = await fetch('/api/admin/newsletter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: newEmail.trim().toLowerCase(),
+          name: newName.trim() || undefined,
+          source: 'ADMIN',
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to add subscriber');
+      }
+
+      setNewEmail('');
+      setNewName('');
+      setAddModalOpen(false);
+      loadSubscribers();
+    } catch (err: any) {
+      setAddError(err.message || 'Failed to add subscriber');
+    }
   };
 
   const handleSendBroadcast = async (e: React.FormEvent) => {
