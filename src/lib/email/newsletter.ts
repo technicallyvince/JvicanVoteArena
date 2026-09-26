@@ -161,7 +161,47 @@ export async function sendNewsletterBroadcast(params: SendNewsletterBroadcastPar
   sentCount: number;
   failedCount: number;
 }> {
-  const activeSubscribers = db.getNewsletterSubscribers('SUBSCRIBED');
+  let activeSubscribers: { id: string; email: string; name?: string | null }[] = [];
+
+  // 1. Fetch active subscribers from Supabase if configured
+  try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const hasSupabase = supabaseUrl && !supabaseUrl.includes('placeholder');
+    if (hasSupabase) {
+      const { getSupabaseAdmin } = await import('@/lib/supabase/admin');
+      const { createClient } = await import('@/lib/supabase/server');
+      const admin = getSupabaseAdmin();
+      const supabase = await createClient();
+      const client = admin || supabase;
+
+      if (client) {
+        const { data, error } = await client
+          .from('newsletter_subscribers')
+          .select('id, email, name, status')
+          .eq('status', 'SUBSCRIBED');
+
+        if (!error && data && data.length > 0) {
+          activeSubscribers = data.map((d: any) => ({
+            id: d.id || `sub-${d.email}`,
+            email: d.email,
+            name: d.name,
+          }));
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('[sendNewsletterBroadcast] Supabase query warning, falling back to local DB:', err);
+  }
+
+  // 2. Merge/fallback with local DB subscribers
+  if (activeSubscribers.length === 0) {
+    const localSubs = db.getNewsletterSubscribers('SUBSCRIBED');
+    activeSubscribers = localSubs.map((s) => ({
+      id: s.id,
+      email: s.email,
+      name: s.name,
+    }));
+  }
   
   let sentCount = 0;
   let failedCount = 0;
@@ -201,3 +241,4 @@ export async function sendNewsletterBroadcast(params: SendNewsletterBroadcastPar
     failedCount,
   };
 }
+
