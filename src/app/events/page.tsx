@@ -21,10 +21,10 @@ export default function EventsDiscoveryPage() {
         if (data.success && Array.isArray(data.events)) {
           setEvents(data.events)
         } else {
-          setEvents(db.getEvents())
+          setEvents([])
         }
       })
-      .catch(() => setEvents(db.getEvents()))
+      .catch(() => setEvents([]))
       .finally(() => setIsLoading(false))
   }, [])
 

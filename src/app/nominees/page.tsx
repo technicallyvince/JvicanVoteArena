@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { db } from "@/lib/db"
 import { NomineeCard } from "@/components/public/NomineeCard"
 import { VoteModal } from "@/components/public/VoteModal"
@@ -13,9 +13,31 @@ export default function NomineesDiscoveryPage() {
   const [selectedEventFilter, setSelectedEventFilter] = useState("all")
   const [votingNominee, setVotingNominee] = useState<Nominee | null>(null)
 
-  const allEvents = db.getEvents().filter((e) => e.status !== "draft")
-  const allNominees = db.getNominees().filter((n) => n.status === "active")
-  const allCategories = db.getCategories()
+  const [allEvents, setAllEvents] = useState<any[]>([])
+  const [allNominees, setAllNominees] = useState<any[]>([])
+  const [allCategories, setAllCategories] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    fetch("/api/admin/events", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.events)) {
+          const publishedEvents = data.events.filter((e: any) => e.status === "published" || e.status === "approved")
+          setAllEvents(publishedEvents)
+          const noms: any[] = []
+          const cats: any[] = []
+          publishedEvents.forEach((e: any) => {
+            if (Array.isArray(e.nominees)) noms.push(...e.nominees)
+            if (Array.isArray(e.categories)) cats.push(...e.categories)
+          })
+          setAllNominees(noms)
+          setAllCategories(cats)
+        }
+      })
+      .catch((err) => console.error("Error fetching nominees:", err))
+      .finally(() => setIsLoading(false))
+  }, [])
 
   const filteredNominees = allNominees.filter((c) => {
     if (selectedEventFilter !== "all" && c.event_id !== selectedEventFilter) return false
@@ -24,11 +46,11 @@ export default function NomineesDiscoveryPage() {
       const category = allCategories.find((cat) => cat.id === c.category_id)
       const event = allEvents.find((e) => e.id === c.event_id)
 
-      const matchesName = c.name.toLowerCase().includes(q)
-      const matchesPublicId = c.public_id.toLowerCase().includes(q)
+      const matchesName = c.name?.toLowerCase().includes(q)
+      const matchesPublicId = c.public_id?.toLowerCase().includes(q)
       const matchesBio = c.description ? c.description.toLowerCase().includes(q) : false
-      const matchesCategory = category ? category.name.toLowerCase().includes(q) : false
-      const matchesEvent = event ? event.name.toLowerCase().includes(q) : false
+      const matchesCategory = category ? category.name?.toLowerCase().includes(q) : false
+      const matchesEvent = event ? event.name?.toLowerCase().includes(q) : false
 
       return matchesName || matchesPublicId || matchesBio || matchesCategory || matchesEvent
     }
@@ -36,12 +58,12 @@ export default function NomineesDiscoveryPage() {
   })
 
   const currentEvent = votingNominee
-    ? db.getEventById(votingNominee.event_id) || null
+    ? allEvents.find((e) => e.id === votingNominee.event_id) || db.getEventById(votingNominee.event_id) || null
     : null
   const currentCategory = votingNominee
-    ? db.getCategoryById(votingNominee.category_id) || null
+    ? allCategories.find((cat) => cat.id === votingNominee.category_id) || db.getCategoryById(votingNominee.category_id) || null
     : null
-  const currentPackages = currentEvent ? db.getVotePackages(currentEvent.id) : []
+  const currentPackages = currentEvent ? currentEvent.packages || db.getVotePackages(currentEvent.id) : []
 
   const handleClearSearch = () => {
     setSearchQuery("")

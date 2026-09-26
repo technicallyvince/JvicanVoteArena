@@ -19,20 +19,20 @@ import {
 } from "lucide-react"
 
 export default function DashboardOverviewPage() {
-  const [events, setEvents] = useState<any[]>(db.getEvents())
+  const [events, setEvents] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     fetch("/api/admin/events", { cache: "no-store" })
       .then((res) => res.json())
       .then((data) => {
-        if (data.success && Array.isArray(data.events) && data.events.length > 0) {
+        if (data.success && Array.isArray(data.events)) {
           setEvents(data.events)
         } else {
-          setEvents(db.getEvents())
+          setEvents([])
         }
       })
-      .catch(() => setEvents(db.getEvents()))
+      .catch(() => setEvents([]))
       .finally(() => setIsLoading(false))
   }, [])
 

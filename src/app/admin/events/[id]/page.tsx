@@ -53,30 +53,18 @@ export default function AdminEventDetailPage({
   const loadEventData = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/events/details?id=${encodeURIComponent(resolvedParams.id)}&slug=${encodeURIComponent(resolvedParams.id)}`);
+      const res = await fetch(`/api/events/details?id=${encodeURIComponent(resolvedParams.id)}&slug=${encodeURIComponent(resolvedParams.id)}`, { cache: 'no-store' });
       const data = await res.json();
       if (data.success && data.event) {
         setEvent(data.event);
         setCategories(data.categories || []);
         setNominees(data.nominees || []);
       } else {
-        const ev = db.getEventById(resolvedParams.id) || db.getEventBySlug(resolvedParams.id);
-        if (ev) {
-          setEvent(ev);
-          setCategories(db.getCategories(ev.id));
-          setNominees(db.getNominees(ev.id));
-        } else {
-          setEvent(null);
-        }
+        setEvent(null);
       }
     } catch (err) {
       console.error('Error fetching admin event details:', err);
-      const ev = db.getEventById(resolvedParams.id) || db.getEventBySlug(resolvedParams.id);
-      if (ev) {
-        setEvent(ev);
-        setCategories(db.getCategories(ev.id));
-        setNominees(db.getNominees(ev.id));
-      }
+      setEvent(null);
     } finally {
       setIsLoading(false);
     }

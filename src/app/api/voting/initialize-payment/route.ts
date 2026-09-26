@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { createClient } from '@/lib/supabase/server'
+import { getSupabaseAdmin } from '@/lib/supabase/admin'
 import { createTransactPayCheckout } from '@/lib/payments/transactpay/create-checkout'
 import { nanoid } from 'nanoid'
 
@@ -25,12 +27,35 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Authoritative database lookup
-    const event = db.getEventById(eventId)
+    let event: any = null
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const hasSupabase = supabaseUrl && !supabaseUrl.includes('placeholder')
+
+    if (hasSupabase) {
+      const admin = getSupabaseAdmin()
+      const supabase = await createClient()
+      for (const client of [admin, supabase].filter(Boolean)) {
+        const { data, error } = await client!
+          .from('events')
+          .select('*')
+          .or(`id.eq.${eventId},slug.eq.${eventId}`)
+          .maybeSingle()
+        if (!error && data) {
+          event = data
+          break
+        }
+      }
+    }
+
+    if (!event) {
+      event = db.getEventById(eventId) || db.getEventBySlug(eventId)
+    }
+
     if (!event) {
       return NextResponse.json({ success: false, error: 'Event not found.' }, { status: 404 })
     }
 
-    if (event.status !== 'published') {
+    if (event.status !== 'published' && event.status !== 'approved') {
       return NextResponse.json(
         { success: false, error: 'This event is not currently accepting votes.' },
         { status: 400 }

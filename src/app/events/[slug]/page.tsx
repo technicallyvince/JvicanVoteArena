@@ -39,15 +39,14 @@ export default function EventDetailPage() {
   const params = useParams()
   const slug = params?.slug as string
 
-  const localEvent = db.getEventBySlug(slug)
-  const [event, setEvent] = useState<any>(localEvent)
-  const [categories, setCategories] = useState<any[]>(localEvent ? db.getCategories(localEvent.id) : [])
-  const [nominees, setNominees] = useState<any[]>(localEvent ? db.getNominees(localEvent.id) : [])
-  const [packages, setPackages] = useState<any[]>(localEvent ? db.getVotePackages(localEvent.id) : [])
-  const [isLoadingEvent, setIsLoadingEvent] = useState(!localEvent)
+  const [event, setEvent] = useState<any>(null)
+  const [categories, setCategories] = useState<any[]>([])
+  const [nominees, setNominees] = useState<any[]>([])
+  const [packages, setPackages] = useState<any[]>([])
+  const [isLoadingEvent, setIsLoadingEvent] = useState(true)
 
   useEffect(() => {
-    fetch(`/api/events/details?slug=${encodeURIComponent(slug)}`)
+    fetch(`/api/events/details?slug=${encodeURIComponent(slug)}`, { cache: 'no-store' })
       .then((res) => res.json())
       .then((data) => {
         if (data.success && data.event) {
@@ -55,9 +54,14 @@ export default function EventDetailPage() {
           if (Array.isArray(data.categories)) setCategories(data.categories)
           if (Array.isArray(data.nominees)) setNominees(data.nominees)
           if (Array.isArray(data.packages)) setPackages(data.packages)
+        } else {
+          setEvent(null)
         }
       })
-      .catch((err) => console.error("Error loading event from database:", err))
+      .catch((err) => {
+        console.error("Error loading event from database:", err)
+        setEvent(null)
+      })
       .finally(() => setIsLoadingEvent(false))
   }, [slug])
 

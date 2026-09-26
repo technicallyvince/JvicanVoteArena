@@ -26,19 +26,19 @@ export default function SuperAdminOverviewPage() {
   const [events, setEvents] = useState<any[]>([])
 
   useEffect(() => {
-    fetch("/api/admin/events")
+    fetch("/api/admin/events", { cache: "no-store" })
       .then((res) => res.json())
       .then((data) => {
         if (data.success && Array.isArray(data.events)) {
           setEvents(data.events)
         } else {
-          setEvents(db.getEvents())
+          setEvents([])
         }
       })
-      .catch(() => setEvents(db.getEvents()))
+      .catch(() => setEvents([]))
   }, [])
 
-  const allEvents = events.length > 0 ? events : db.getEvents()
+  const allEvents = events
   const ledger = db.getLedger()
   const withdrawals = db.getWithdrawals()
   const auditLogs = db.getAuditLogs(10)

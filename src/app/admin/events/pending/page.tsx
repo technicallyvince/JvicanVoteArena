@@ -31,16 +31,16 @@ export default function PendingEventsPage() {
   const fetchPendingEvents = async () => {
     try {
       setIsLoading(true)
-      const res = await fetch("/api/admin/events?status=pending_approval")
+      const res = await fetch("/api/admin/events?status=pending_approval", { cache: "no-store" })
       const data = await res.json()
       if (data.success && Array.isArray(data.events)) {
         setEvents(data.events)
       } else {
-        setEvents(db.getEvents().filter((e) => e.status === "pending_approval"))
+        setEvents([])
       }
     } catch (err) {
       console.error("Failed to load pending events:", err)
-      setEvents(db.getEvents().filter((e) => e.status === "pending_approval"))
+      setEvents([])
     } finally {
       setIsLoading(false)
     }

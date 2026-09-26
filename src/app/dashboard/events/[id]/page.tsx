@@ -44,25 +44,31 @@ export default function EventStudioPage() {
   const params = useParams()
   const eventId = params?.id as string
 
-  const localEvent = db.getEventById(eventId) || db.getEventBySlug(eventId)
-  const [event, setEvent] = useState<any>(localEvent)
-  const [categories, setCategories] = useState<any[]>(localEvent ? db.getCategories(localEvent.id) : [])
-  const [nominees, setNominees] = useState<any[]>(localEvent ? db.getNominees(localEvent.id) : [])
-  const [votes, setVotes] = useState<any[]>(localEvent ? db.getVotes(localEvent.id) : [])
-  const [applications, setApplications] = useState<any[]>(localEvent ? db.getNomineeApplications(localEvent.id) : [])
-  const [isLoadingEvent, setIsLoadingEvent] = useState(!localEvent)
+  const [event, setEvent] = useState<any>(null)
+  const [categories, setCategories] = useState<any[]>([])
+  const [nominees, setNominees] = useState<any[]>([])
+  const [votes, setVotes] = useState<any[]>([])
+  const [applications, setApplications] = useState<any[]>([])
+  const [isLoadingEvent, setIsLoadingEvent] = useState(true)
 
   useEffect(() => {
-    fetch(`/api/events/details?id=${encodeURIComponent(eventId)}&slug=${encodeURIComponent(eventId)}`)
+    fetch(`/api/events/details?id=${encodeURIComponent(eventId)}&slug=${encodeURIComponent(eventId)}`, { cache: 'no-store' })
       .then((res) => res.json())
       .then((data) => {
         if (data.success && data.event) {
           setEvent(data.event)
           if (Array.isArray(data.categories)) setCategories(data.categories)
           if (Array.isArray(data.nominees)) setNominees(data.nominees)
+          if (Array.isArray(data.votes)) setVotes(data.votes)
+          if (Array.isArray(data.applications)) setApplications(data.applications)
+        } else {
+          setEvent(null)
         }
       })
-      .catch((err) => console.error("Error loading studio event from database:", err))
+      .catch((err) => {
+        console.error("Error loading studio event from database:", err)
+        setEvent(null)
+      })
       .finally(() => setIsLoadingEvent(false))
   }, [eventId])
 

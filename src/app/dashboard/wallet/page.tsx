@@ -57,18 +57,14 @@ export default function OrganizerWalletPage() {
     try {
       const res = await fetch("/api/admin/events", { cache: "no-store" });
       const data = await res.json();
-      if (data.success && Array.isArray(data.events) && data.events.length > 0) {
+      if (data.success && Array.isArray(data.events)) {
         const orgEvents = data.events.filter((e: any) => e.organizer_id === organizerId || !e.organizer_id);
         setEvents(orgEvents.length > 0 ? orgEvents : data.events);
       } else {
-        const allEvents = db.getEvents();
-        const orgEvents = allEvents.filter((e) => e.organizer_id === organizerId);
-        setEvents(orgEvents.length > 0 ? orgEvents : allEvents);
+        setEvents([]);
       }
     } catch {
-      const allEvents = db.getEvents();
-      const orgEvents = allEvents.filter((e) => e.organizer_id === organizerId);
-      setEvents(orgEvents.length > 0 ? orgEvents : allEvents);
+      setEvents([]);
     }
 
     const allLedger = db.getLedger();

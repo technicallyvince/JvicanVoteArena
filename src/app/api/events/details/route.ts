@@ -54,19 +54,21 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // Fallback to local store if not found in Supabase
-    let localEvent = null
-    if (slug) localEvent = db.getEventBySlug(slug)
-    else if (id) localEvent = db.getEventById(id)
+    // Fallback to local store ONLY if Supabase is not configured
+    if (!hasSupabase) {
+      let localEvent = null
+      if (slug) localEvent = db.getEventBySlug(slug)
+      else if (id) localEvent = db.getEventById(id)
 
-    if (localEvent) {
-      return NextResponse.json({
-        success: true,
-        event: localEvent,
-        categories: db.getCategories(localEvent.id),
-        nominees: db.getNominees(localEvent.id),
-        packages: db.getVotePackages(localEvent.id),
-      })
+      if (localEvent) {
+        return NextResponse.json({
+          success: true,
+          event: localEvent,
+          categories: db.getCategories(localEvent.id),
+          nominees: db.getNominees(localEvent.id),
+          packages: db.getVotePackages(localEvent.id),
+        })
+      }
     }
 
     return NextResponse.json({ error: 'Event not found' }, { status: 404 })

@@ -19,20 +19,20 @@ import { cn } from "@/lib/utils"
 
 export default function OrganizerEventsPortfolioPage() {
   const [filter, setFilter] = useState<"all" | "active" | "pending" | "upcoming" | "completed">("all")
-  const [events, setEvents] = useState<any[]>(db.getEvents())
+  const [events, setEvents] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     fetch("/api/admin/events", { cache: "no-store" })
       .then((res) => res.json())
       .then((data) => {
-        if (data.success && Array.isArray(data.events) && data.events.length > 0) {
+        if (data.success && Array.isArray(data.events)) {
           setEvents(data.events)
         } else {
-          setEvents(db.getEvents())
+          setEvents([])
         }
       })
-      .catch(() => setEvents(db.getEvents()))
+      .catch(() => setEvents([]))
       .finally(() => setIsLoading(false))
   }, [])
 
@@ -118,7 +118,12 @@ export default function OrganizerEventsPortfolioPage() {
         </div>
 
         {/* Events Grid / Portfolio */}
-        {filteredEvents.length === 0 ? (
+        {isLoading ? (
+          <div className="rounded-3xl border border-white/[0.07] p-16 text-center bg-[#0a0c14] flex flex-col items-center justify-center">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#C9A84C] border-t-transparent mb-3" />
+            <p className="text-xs text-slate-400">Loading your events...</p>
+          </div>
+        ) : filteredEvents.length === 0 ? (
           <div className="rounded-3xl border border-dashed border-white/10 p-12 text-center bg-[#0a0c14]">
             <Trophy className="mx-auto h-12 w-12 text-neutral-600 mb-3" />
             <h3 className="text-base font-bold text-white">No events found</h3>

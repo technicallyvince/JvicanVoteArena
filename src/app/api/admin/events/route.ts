@@ -50,8 +50,8 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // Fallback to local mock store only if Supabase returned nothing
-    if (events.length === 0) {
+    // Fallback to local mock store ONLY if Supabase is not configured at all
+    if (!hasSupabase && events.length === 0) {
       let localEvents = db.getEvents()
       if (status) {
         localEvents = localEvents.filter((e) => e.status === status)

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { notFound, useParams } from "next/navigation"
 import Link from "next/link"
 import { db } from "@/lib/db"
@@ -24,29 +24,60 @@ export default function CanonicalNomineeDetailPage() {
   const slug = params?.slug as string
   const nomineeId = params?.id as string
 
-  // Look up event by slug
-  const event = db.getEventBySlug(slug)
-  if (!event) {
-    notFound()
-  }
-
-  // Look up nominee by id or public_id within event
-  let nominee = db.getNomineeById(nomineeId)
-  if (!nominee) {
-    nominee = db.getNomineeByPublicId(nomineeId)
-  }
-  if (!nominee || nominee.event_id !== event.id) {
-    notFound()
-  }
-
-  const category = db.getCategoryById(nominee.category_id)
-  const packages = db.getVotePackages(event.id)
-  const voteCount = db.getNomineeVoteCount(nominee.id)
-  const leaderboard = db.getLeaderboard(event.id, nominee.category_id)
-  const rank = leaderboard.findIndex((item) => item.nominee_id === nominee.id) + 1
+  const [event, setEvent] = useState<any>(null)
+  const [nominee, setNominee] = useState<any>(null)
+  const [category, setCategory] = useState<any>(null)
+  const [packages, setPackages] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
   const [isVoteModalOpen, setIsVoteModalOpen] = useState(false)
   const [copied, setCopied] = useState(false)
+
+  useEffect(() => {
+    fetch(`/api/events/details?slug=${encodeURIComponent(slug)}`, { cache: 'no-store' })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.event) {
+          setEvent(data.event)
+          const foundNom = (data.nominees || []).find(
+            (n: any) => n.id === nomineeId || n.public_id === nomineeId || n.slug === nomineeId
+          )
+          setNominee(foundNom || null)
+          if (foundNom) {
+            const foundCat = (data.categories || []).find((c: any) => c.id === foundNom.category_id)
+            setCategory(foundCat || null)
+          }
+          if (Array.isArray(data.packages)) {
+            setPackages(data.packages)
+          }
+        } else {
+          setEvent(null)
+          setNominee(null)
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load nominee details:", err)
+        setEvent(null)
+        setNominee(null)
+      })
+      .finally(() => setIsLoading(false))
+  }, [slug, nomineeId])
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#06080e] text-white flex items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#C9A84C] border-t-transparent" />
+      </div>
+    )
+  }
+
+  if (!event || !nominee) {
+    notFound()
+  }
+
+  const voteCount = db.getNomineeVoteCount(nominee.id)
+  const leaderboard = db.getLeaderboard(event.id, nominee.category_id)
+  const rank = leaderboard.findIndex((item) => item.nominee_id === nominee.id) + 1
 
   const isClosed = event.status === "closed" || new Date(event.end_date) <= new Date()
 

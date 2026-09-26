@@ -29,16 +29,16 @@ export default function AdminAllEventsPage() {
   const fetchEvents = async () => {
     try {
       setIsLoading(true)
-      const res = await fetch("/api/admin/events")
+      const res = await fetch("/api/admin/events", { cache: "no-store" })
       const data = await res.json()
       if (data.success && Array.isArray(data.events)) {
         setEvents(data.events)
       } else {
-        setEvents(db.getEvents())
+        setEvents([])
       }
     } catch (err) {
       console.error("Failed to load events:", err)
-      setEvents(db.getEvents())
+      setEvents([])
     } finally {
       setIsLoading(false)
     }
