@@ -108,6 +108,7 @@ export function VoteModal({
         }).catch((err) => console.warn('Newsletter subscription during voting non-fatal error:', err))
       }
 
+      // 1. Authoritative server initialization: creates pending payment and generates safe checkout config
       const response = await fetch("/api/voting/initialize-payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -126,10 +127,75 @@ export function VoteModal({
         throw new Error(data.error || "Failed to initialize voting order.")
       }
 
-      if (data.checkoutUrl) {
-        window.location.href = data.checkoutUrl
+      const { checkoutConfig, useStandardKit, simulationUrl, reference } = data
+
+      // 2. If Standard Kit is configured and window.CheckoutNS is available
+      if (useStandardKit && typeof window !== "undefined") {
+        const checkoutNS = (window as any).CheckoutNS
+
+        if (!checkoutNS || !checkoutNS.PaymentCheckout) {
+          // If the script hasn't loaded yet, try dynamically loading it or fallback
+          console.warn("[TransactPay] CheckoutNS not found on window, attempting dynamic load...")
+          await new Promise<void>((resolve, reject) => {
+            const existingScript = document.querySelector('script[src="https://payment-web-sdk.transactpay.ai/v1/checkout"]')
+            if (existingScript) {
+              existingScript.addEventListener('load', () => resolve())
+              existingScript.addEventListener('error', () => reject(new Error('Failed to load TransactPay Checkout SDK.')))
+              // If already loaded
+              if ((window as any).CheckoutNS) return resolve()
+            } else {
+              const script = document.createElement('script')
+              script.src = 'https://payment-web-sdk.transactpay.ai/v1/checkout'
+              script.onload = () => resolve()
+              script.onerror = () => reject(new Error('Failed to load TransactPay Checkout SDK.'))
+              document.body.appendChild(script)
+            }
+          })
+        }
+
+        const ActiveCheckoutNS = (window as any).CheckoutNS
+        if (ActiveCheckoutNS && ActiveCheckoutNS.PaymentCheckout) {
+          const Checkout = new ActiveCheckoutNS.PaymentCheckout({
+            firstName: checkoutConfig.firstName || "Voter",
+            lastName: checkoutConfig.lastName || "Supporter",
+            mobile: checkoutConfig.mobile || "08000000000",
+            country: checkoutConfig.country || "NG",
+            email: checkoutConfig.email,
+            currency: checkoutConfig.currency || "NGN",
+            amount: checkoutConfig.amount,
+            reference: checkoutConfig.reference,
+            merchantReference: checkoutConfig.merchantReference,
+            description: checkoutConfig.description,
+            apiKey: checkoutConfig.apiKey,
+            encryptionKey: checkoutConfig.encryptionKey,
+            onCompleted: (paymentData: any) => {
+              console.log("[TransactPay] onCompleted event:", paymentData)
+              setIsLoading(false)
+              // Close modal and redirect to official server verification page
+              handleClose()
+              window.location.href = `/payment/callback?ref=${encodeURIComponent(reference)}`
+            },
+            onClose: () => {
+              console.log("[TransactPay] Checkout closed by user")
+              setIsLoading(false)
+            },
+            onError: (error: any) => {
+              console.error("[TransactPay] Checkout error:", error)
+              setIsLoading(false)
+              setErrorMsg(typeof error === 'string' ? error : error?.message || 'Payment gateway encountered an error.')
+            },
+          })
+
+          Checkout.init()
+          return
+        }
+      }
+
+      // Fallback: Sandbox simulation URL
+      if (simulationUrl) {
+        window.location.href = simulationUrl
       } else {
-        throw new Error("No checkout redirect URL returned from payment provider.")
+        throw new Error("Unable to open checkout. Please check gateway configuration.")
       }
     } catch (err: any) {
       setErrorMsg(err.message || "An unexpected error occurred. Please try again.")
@@ -141,6 +207,7 @@ export function VoteModal({
     setStep("select")
     setErrorMsg("")
     setEmailError("")
+    setIsLoading(false)
     onClose()
   }
 

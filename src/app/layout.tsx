@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
@@ -82,6 +83,11 @@ export default function RootLayout({
           <main className="flex-1">{children}</main>
           <Footer />
         </AuthProvider>
+        {/* Official TransactPay Standard Kit Web SDK */}
+        <Script
+          src="https://payment-web-sdk.transactpay.ai/v1/checkout"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );

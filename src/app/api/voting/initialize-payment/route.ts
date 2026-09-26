@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { createClient } from '@/lib/supabase/server'
 import { getSupabaseAdmin } from '@/lib/supabase/admin'
-import { createTransactPayCheckout } from '@/lib/payments/transactpay/create-checkout'
 import { nanoid } from 'nanoid'
 
 export async function POST(req: NextRequest) {
@@ -200,31 +199,48 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 5. Initialize hosted checkout session with TransactPay
-    const checkoutResult = await createTransactPayCheckout({
-      reference: paymentRef,
-      amount: totalAmount,
-      currency,
-      voterEmail: voterEmail.trim().toLowerCase(),
-      nomineeName: nominee.name,
-      eventName: event.name,
-      voteQuantity: voteQty,
-    })
+    // 5. Retrieve client-safe TransactPay keys
+    const publicKey = process.env.TRANSACTPAY_PUBLIC_KEY || ''
+    const encryptionKey = process.env.TRANSACTPAY_ENCRYPTION_KEY || ''
+    const isGatewayConfigured =
+      Boolean(publicKey) &&
+      !publicKey.includes('your_public_key') &&
+      !publicKey.includes('mock')
 
-    if (!checkoutResult.success || !checkoutResult.redirectUrl) {
-      db.updatePaymentStatus(paymentRef, 'failed')
-      db.updateVoteStatus(paymentRef, 'failed')
-      return NextResponse.json(
-        { success: false, error: checkoutResult.error || 'Payment initialization failed with gateway.' },
-        { status: 502 }
-      )
+    // Prepare Standard Kit checkout configuration
+    const nomineeFirstName = nominee.name ? nominee.name.split(' ')[0] : 'Nominee'
+    const nomineeLastName = nominee.name ? nominee.name.split(' ').slice(1).join(' ') || 'Candidate' : 'Candidate'
+
+    const checkoutConfig = {
+      isGatewayConfigured,
+      apiKey: publicKey,
+      encryptionKey: encryptionKey,
+      reference: paymentRef,
+      merchantReference: paymentRef,
+      amount: totalAmount, // Standard currency format (e.g. 1000 for ₦1,000)
+      currency,
+      email: voterEmail.trim().toLowerCase(),
+      firstName: 'Voter',
+      lastName: nomineeFirstName,
+      mobile: '08000000000',
+      country: 'NG',
+      description: `${voteQty} Vote(s) for ${nominee.name} - ${event.name}`,
     }
+
+    // Fallback simulation URL if gateway is not configured
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    const simulationUrl = `${baseUrl}/payment/simulate-checkout?ref=${encodeURIComponent(
+      paymentRef
+    )}&amount=${totalAmount}&email=${encodeURIComponent(
+      voterEmail.trim()
+    )}&redirectUrl=${encodeURIComponent(`${baseUrl}/payment/callback?ref=${encodeURIComponent(paymentRef)}`)}`
 
     return NextResponse.json({
       success: true,
       reference: paymentRef,
-      checkoutUrl: checkoutResult.redirectUrl,
-      orderId: checkoutResult.orderId,
+      useStandardKit: isGatewayConfigured,
+      checkoutConfig,
+      simulationUrl,
     })
   } catch (err: any) {
     console.error('Error in initialize-payment:', err)
