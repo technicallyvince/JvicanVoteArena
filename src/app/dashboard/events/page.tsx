@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import Link from "next/link"
 import { db } from "@/lib/db"
 import { formatCurrency, formatDate } from "@/lib/utils"
@@ -19,11 +19,26 @@ import { cn } from "@/lib/utils"
 
 export default function OrganizerEventsPortfolioPage() {
   const [filter, setFilter] = useState<"all" | "active" | "upcoming" | "completed">("all")
-  const events = db.getEvents()
+  const [events, setEvents] = useState<any[]>(db.getEvents())
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    fetch("/api/admin/events", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.events) && data.events.length > 0) {
+          setEvents(data.events)
+        } else {
+          setEvents(db.getEvents())
+        }
+      })
+      .catch(() => setEvents(db.getEvents()))
+      .finally(() => setIsLoading(false))
+  }, [])
 
   const filteredEvents = events.filter((e) => {
-    const isLive = e.status === "published" && new Date(e.end_date) > new Date()
-    const isUpcoming = e.status === "published" && new Date(e.start_date) > new Date()
+    const isLive = (e.status === "published" || e.status === "approved") && new Date(e.end_date) > new Date()
+    const isUpcoming = (e.status === "published" || e.status === "approved") && new Date(e.start_date) > new Date()
     const isCompleted = e.status === "closed" || new Date(e.end_date) <= new Date()
 
     if (filter === "active" && !isLive) return false
@@ -85,8 +100,8 @@ export default function OrganizerEventsPortfolioPage() {
             >
               {tab === "all" ? "All Events" : tab === "active" ? "Active Events" : tab === "upcoming" ? "Upcoming" : "Completed"} ({
                 events.filter((e) => {
-                  const isLive = e.status === "published" && new Date(e.end_date) > new Date()
-                  const isUpcoming = e.status === "published" && new Date(e.start_date) > new Date()
+                  const isLive = (e.status === "published" || e.status === "approved") && new Date(e.end_date) > new Date()
+                  const isUpcoming = (e.status === "published" || e.status === "approved") && new Date(e.start_date) > new Date()
                   const isCompleted = e.status === "closed" || new Date(e.end_date) <= new Date()
                   if (tab === "active") return isLive
                   if (tab === "upcoming") return isUpcoming
@@ -113,13 +128,13 @@ export default function OrganizerEventsPortfolioPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredEvents.map((evt) => {
-              const categories = db.getCategories(evt.id)
-              const nominees = db.getNominees(evt.id)
+              const categories = Array.isArray(evt.categories) ? evt.categories : db.getCategories(evt.id)
+              const nominees = Array.isArray(evt.nominees) ? evt.nominees : db.getNominees(evt.id)
               const evtVotes = db.getVotes(evt.id).filter((v) => v.status === "confirmed")
               const votesCount = evtVotes.reduce((sum, v) => sum + v.quantity, 0)
               const revenue = evtVotes.reduce((sum, v) => sum + Number(v.total_amount), 0)
 
-              const isLive = evt.status === "published" && new Date(evt.end_date) > new Date()
+              const isLive = (evt.status === "published" || evt.status === "approved") && new Date(evt.end_date) > new Date()
               const isClosed = evt.status === "closed" || new Date(evt.end_date) <= new Date()
 
               return (
@@ -142,10 +157,12 @@ export default function OrganizerEventsPortfolioPage() {
                               "rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase",
                               isLive
                                 ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                                : evt.status === "pending_approval"
+                                ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
                                 : "bg-neutral-800 text-slate-400"
                             )}
                           >
-                            {isLive ? "Active Live" : isClosed ? "Concluded" : evt.status}
+                            {isLive ? "Active Live" : isClosed ? "Concluded" : evt.status.replace('_', ' ')}
                           </span>
                         </div>
                         <h3 className="text-base font-extrabold text-white truncate mt-1">

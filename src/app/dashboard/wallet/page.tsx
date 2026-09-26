@@ -50,13 +50,26 @@ export default function OrganizerWalletPage() {
     loadWalletData();
   }, [organizerId]);
 
-  const loadWalletData = () => {
+  const loadWalletData = async () => {
     const b = db.getFinancialBreakdown(organizerId);
     setBreakdown(b);
 
-    const allEvents = db.getEvents();
-    const orgEvents = allEvents.filter((e) => e.organizer_id === organizerId);
-    setEvents(orgEvents);
+    try {
+      const res = await fetch("/api/admin/events", { cache: "no-store" });
+      const data = await res.json();
+      if (data.success && Array.isArray(data.events) && data.events.length > 0) {
+        const orgEvents = data.events.filter((e: any) => e.organizer_id === organizerId || !e.organizer_id);
+        setEvents(orgEvents.length > 0 ? orgEvents : data.events);
+      } else {
+        const allEvents = db.getEvents();
+        const orgEvents = allEvents.filter((e) => e.organizer_id === organizerId);
+        setEvents(orgEvents.length > 0 ? orgEvents : allEvents);
+      }
+    } catch {
+      const allEvents = db.getEvents();
+      const orgEvents = allEvents.filter((e) => e.organizer_id === organizerId);
+      setEvents(orgEvents.length > 0 ? orgEvents : allEvents);
+    }
 
     const allLedger = db.getLedger();
     const orgLedger = allLedger.filter((l) => l.organizer_id === organizerId);

@@ -237,7 +237,7 @@ export default function EventStudioPage() {
   const confirmedVotes = votes.filter((v) => v.status === "confirmed")
   const totalVotesCount = confirmedVotes.reduce((acc, v) => acc + v.quantity, 0)
   const totalRevenue = confirmedVotes.reduce((acc, v) => acc + Number(v.total_amount), 0)
-  const isLive = event.status === "published" && new Date(event.end_date) > new Date()
+  const isLive = (event.status === "published" || event.status === "approved") && new Date(event.end_date) > new Date()
 
   return (
     <div className="py-8 sm:py-12 bg-[#050608] min-h-screen text-white relative overflow-hidden pt-24 sm:pt-28 selection:bg-[#C9A84C] selection:text-[#0a0c14]">

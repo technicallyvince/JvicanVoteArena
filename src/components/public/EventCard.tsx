@@ -24,8 +24,8 @@ export function EventCard({
   variant = "default",
   className,
 }: EventCardProps) {
-  const isLive = event.status === "published" && new Date(event.end_date) > new Date()
-  const isUpcoming = event.status === "published" && new Date(event.start_date) > new Date()
+  const isLive = (event.status === "published" || event.status === "approved") && new Date(event.end_date) > new Date()
+  const isUpcoming = (event.status === "published" || event.status === "approved") && new Date(event.start_date) > new Date()
   const isClosed = event.status === "closed" || new Date(event.end_date) <= new Date()
 
   const daysLeft = Math.max(

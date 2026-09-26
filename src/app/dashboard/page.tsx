@@ -1,4 +1,6 @@
-import React from "react"
+"use client"
+
+import React, { useState, useEffect } from "react"
 import Link from "next/link"
 import { db } from "@/lib/db"
 import { formatCurrency, formatDate } from "@/lib/utils"
@@ -17,14 +19,35 @@ import {
 } from "lucide-react"
 
 export default function DashboardOverviewPage() {
-  const events = db.getEvents()
+  const [events, setEvents] = useState<any[]>(db.getEvents())
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    fetch("/api/admin/events", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.events) && data.events.length > 0) {
+          setEvents(data.events)
+        } else {
+          setEvents(db.getEvents())
+        }
+      })
+      .catch(() => setEvents(db.getEvents()))
+      .finally(() => setIsLoading(false))
+  }, [])
+
   const votes = db.getVotes().filter((v) => v.status === "confirmed")
   const payments = db.getPayments().filter((p) => p.status === "successful")
 
   const totalRevenue = payments.reduce((acc, p) => acc + Number(p.amount), 0)
   const totalVotesCast = votes.reduce((acc, v) => acc + Number(v.quantity), 0)
-  const activeEventsCount = events.filter((e) => e.status === "published" && new Date(e.end_date) > new Date()).length
-  const totalNominees = events.reduce((acc, e) => acc + db.getNominees(e.id).length, 0)
+  const activeEventsCount = events.filter(
+    (e) => (e.status === "published" || e.status === "approved") && new Date(e.end_date) > new Date()
+  ).length
+  const totalNominees = events.reduce((acc, e) => {
+    const nomCount = Array.isArray(e.nominees) ? e.nominees.length : db.getNominees(e.id).length
+    return acc + nomCount
+  }, 0)
 
   return (
     <div className="py-8 sm:py-12 bg-[#050608] min-h-screen text-white pt-24 sm:pt-28 selection:bg-[#C9A84C] selection:text-[#0a0c14]">
@@ -205,10 +228,15 @@ export default function DashboardOverviewPage() {
                         </div>
                       </td>
                       <td className="py-4 px-4">
-                        {evt.status === "published" ? (
+                        {evt.status === "published" || evt.status === "approved" ? (
                           <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-[10px] font-bold text-emerald-400 border border-emerald-500/30">
                             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
                             Live
+                          </span>
+                        ) : evt.status === "pending_approval" ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/20 px-2.5 py-0.5 text-[10px] font-bold text-amber-400 border border-amber-500/30">
+                            <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+                            Pending Approval
                           </span>
                         ) : (
                           <span className="rounded-full bg-neutral-800 px-2.5 py-0.5 text-[10px] font-bold text-slate-400">
