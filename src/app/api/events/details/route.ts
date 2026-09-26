@@ -29,10 +29,13 @@ export async function GET(req: NextRequest) {
             vote_packages:vote_packages(*)
           `)
 
-        if (slug) {
-          query = query.eq('slug', slug)
+        if (id && slug && id === slug) {
+          // Identifier could be either a UUID id or a slug
+          query = query.or(`id.eq.${id},slug.eq.${slug}`)
         } else if (id) {
           query = query.eq('id', id)
+        } else if (slug) {
+          query = query.eq('slug', slug)
         }
 
         const { data, error } = await query.maybeSingle()
