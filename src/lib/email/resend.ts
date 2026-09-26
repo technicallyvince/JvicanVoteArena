@@ -92,38 +92,20 @@ export interface SendEmailResult {
  * invalid email format, duplicate suppression, unverified domain, or bad request.
  */
 function isSafeToFallbackError(error: any): boolean {
-  if (!error) return false
+  if (!error) return true
 
   const message = (typeof error === 'string' ? error : error.message || JSON.stringify(error)).toLowerCase()
   const name = (error.name || '').toLowerCase()
-  const statusCode = error.statusCode || error.status
 
-  // Unsafe to fallback: invalid recipient data, unauthorized, forbidden, bad request
+  // Only reject fallback if the recipient email itself is fundamentally malformed or empty
   if (
     message.includes('invalid_email') ||
-    message.includes('validation_error') ||
-    message.includes('invalid parameter') ||
-    name.includes('validation') ||
-    statusCode === 400 ||
-    statusCode === 422
+    message.includes('missing_required_field')
   ) {
     return false
   }
 
-  // Safe fallback conditions: rate limits (429), server errors (5xx), service unavailable, timeouts
-  if (
-    statusCode === 429 ||
-    (statusCode >= 500 && statusCode <= 599) ||
-    message.includes('timeout') ||
-    message.includes('rate_limit') ||
-    message.includes('server_error') ||
-    message.includes('internal') ||
-    message.includes('service unavailable')
-  ) {
-    return true
-  }
-
-  // General server/network failure where retrying on secondary provider is beneficial
+  // Domain verification errors, rate limits, 403, 400, 422, timeouts, 5xx are all safe to route via Brevo
   return true
 }
 

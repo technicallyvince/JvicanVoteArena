@@ -160,6 +160,7 @@ export async function sendNewsletterBroadcast(params: SendNewsletterBroadcastPar
   totalSubscribers: number;
   sentCount: number;
   failedCount: number;
+  errors?: string[];
 }> {
   let activeSubscribers: { id: string; email: string; name?: string | null }[] = [];
 
@@ -205,6 +206,7 @@ export async function sendNewsletterBroadcast(params: SendNewsletterBroadcastPar
   
   let sentCount = 0;
   let failedCount = 0;
+  const dispatchErrors: string[] = [];
 
   for (const sub of activeSubscribers) {
     const html = generateNewsletterEmailHtml({
@@ -225,13 +227,16 @@ export async function sendNewsletterBroadcast(params: SendNewsletterBroadcastPar
       html,
       relatedResourceType: 'newsletter',
       relatedResourceId: sub.id,
-      idempotencyKey: `newsletter-broadcast-${encodeURIComponent(params.subject)}-${sub.id}-${Date.now().toString().slice(0, 7)}`,
+      idempotencyKey: `newsletter-broadcast-${encodeURIComponent(params.subject)}-${sub.id}-${Date.now().toString()}`,
     });
 
     if (result.success) {
       sentCount++;
     } else {
       failedCount++;
+      if (result.error) {
+        dispatchErrors.push(`${sub.email}: ${result.error}`);
+      }
     }
   }
 
@@ -239,6 +244,7 @@ export async function sendNewsletterBroadcast(params: SendNewsletterBroadcastPar
     totalSubscribers: activeSubscribers.length,
     sentCount,
     failedCount,
+    errors: dispatchErrors.length > 0 ? dispatchErrors : undefined,
   };
 }
 

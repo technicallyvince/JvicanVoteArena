@@ -397,16 +397,35 @@ export default function AdminNewsletterPage() {
 
             {broadcastStatus === 'success' ? (
               <div className="text-center py-6 space-y-3">
-                <div className="h-12 w-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto">
-                  <CheckCircle2 className="h-6 w-6" />
+                <div className={cn(
+                  "h-12 w-12 rounded-full flex items-center justify-center mx-auto",
+                  (broadcastResult?.sent || 0) > 0
+                    ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
+                    : "bg-amber-500/10 border border-amber-500/20 text-amber-400"
+                )}>
+                  {(broadcastResult?.sent || 0) > 0 ? (
+                    <CheckCircle2 className="h-6 w-6" />
+                  ) : (
+                    <AlertCircle className="h-6 w-6" />
+                  )}
                 </div>
-                <h4 className="text-base font-bold text-white">Broadcast Dispatched</h4>
+                <h4 className="text-base font-bold text-white">
+                  {(broadcastResult?.sent || 0) > 0 ? "Broadcast Dispatched" : "Broadcast Completed with Warnings"}
+                </h4>
                 <p className="text-xs text-neutral-400">
-                  Successfully delivered to {broadcastResult?.sent} of {broadcastResult?.total} active subscribers via Resend.
+                  Successfully delivered to <strong className="text-white">{broadcastResult?.sent || 0}</strong> of <strong className="text-white">{broadcastResult?.total || 0}</strong> active subscribers.
                 </p>
+                {broadcastResult?.errors && broadcastResult.errors.length > 0 && (
+                  <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-left text-[11px] text-rose-300 max-h-32 overflow-y-auto space-y-1">
+                    <div className="font-bold text-[10px] uppercase text-rose-400">Provider Feedback:</div>
+                    {broadcastResult.errors.map((err, i) => (
+                      <div key={i} className="font-mono">{err}</div>
+                    ))}
+                  </div>
+                )}
                 <button
                   onClick={() => setBroadcastOpen(false)}
-                  className="mt-4 px-6 py-2 bg-white/10 hover:bg-white/15 text-white text-xs font-bold rounded-xl transition"
+                  className="mt-4 px-6 py-2 bg-white/10 hover:bg-white/15 text-white text-xs font-bold rounded-xl transition cursor-pointer"
                 >
                   Done
                 </button>
