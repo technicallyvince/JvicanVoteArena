@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { db } from '@/lib/db';
+import { cn } from '@/lib/utils';
 import { NewsletterSubscriber, NewsletterStatus, NewsletterSource } from '@/types/database';
 import {
   Users,
@@ -35,7 +36,7 @@ export default function AdminNewsletterPage() {
   const [broadcastCtaText, setBroadcastCtaText] = useState('');
   const [broadcastCtaUrl, setBroadcastCtaUrl] = useState('');
   const [broadcastStatus, setBroadcastStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
-  const [broadcastResult, setBroadcastResult] = useState<{ total: number; sent: number; failed: number } | null>(null);
+  const [broadcastResult, setBroadcastResult] = useState<{ total: number; sent: number; failed: number; errors?: string[] } | null>(null);
 
   // Manual subscriber add modal state
   const [addModalOpen, setAddModalOpen] = useState(false);
@@ -163,6 +164,7 @@ export default function AdminNewsletterPage() {
           total: data.totalSubscribers,
           sent: data.sentCount,
           failed: data.failedCount,
+          errors: data.errors,
         });
       } else {
         setBroadcastStatus('error');
@@ -418,7 +420,7 @@ export default function AdminNewsletterPage() {
                 {broadcastResult?.errors && broadcastResult.errors.length > 0 && (
                   <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-left text-[11px] text-rose-300 max-h-32 overflow-y-auto space-y-1">
                     <div className="font-bold text-[10px] uppercase text-rose-400">Provider Feedback:</div>
-                    {broadcastResult.errors.map((err, i) => (
+                    {broadcastResult.errors.map((err: string, i: number) => (
                       <div key={i} className="font-mono">{err}</div>
                     ))}
                   </div>
