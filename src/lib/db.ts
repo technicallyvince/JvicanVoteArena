@@ -156,6 +156,15 @@ export const db = {
     }
     return null
   },
+  deleteEvent: (id: string) => {
+    loadStore()
+    const initialLen = mockStore.events.length
+    mockStore.events = mockStore.events.filter((e) => e.id !== id && e.slug !== id)
+    mockStore.categories = mockStore.categories.filter((c) => c.event_id !== id)
+    mockStore.nominees = mockStore.nominees.filter((n) => n.event_id !== id)
+    saveStore()
+    return mockStore.events.length < initialLen
+  },
   updateEventApprovalStatus: (
     id: string,
     status: 'approved' | 'published' | 'rejected',

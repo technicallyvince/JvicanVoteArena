@@ -137,3 +137,44 @@ export async function PATCH(req: NextRequest) {
     )
   }
 }
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url)
+    const eventId = searchParams.get('eventId')
+
+    if (!eventId) {
+      return NextResponse.json({ error: 'Event ID is required.' }, { status: 400 })
+    }
+
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const hasSupabase = supabaseUrl && !supabaseUrl.includes('placeholder')
+
+    if (hasSupabase) {
+      const admin = getSupabaseAdmin()
+      const supabase = await createClient()
+
+      for (const client of [admin, supabase].filter(Boolean)) {
+        const { error } = await client!
+          .from('events')
+          .delete()
+          .eq('id', eventId)
+
+        if (error) {
+          console.error('[Admin Events DELETE] Supabase delete error:', error.message)
+        }
+      }
+    }
+
+    // Also remove from local mock if present
+    db.deleteEvent(eventId)
+
+    return NextResponse.json({ success: true, eventId })
+  } catch (error: any) {
+    console.error('Error deleting event:', error)
+    return NextResponse.json(
+      { error: error?.message || 'Failed to delete event' },
+      { status: 500 }
+    )
+  }
+}

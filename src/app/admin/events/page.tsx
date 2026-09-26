@@ -18,6 +18,7 @@ import {
   Archive,
   Filter,
   Loader2,
+  Trash2,
 } from "lucide-react"
 
 export default function AdminAllEventsPage() {
@@ -47,6 +48,21 @@ export default function AdminAllEventsPage() {
   useEffect(() => {
     fetchEvents()
   }, [])
+
+  const handleDeleteEvent = async (id: string, name: string) => {
+    if (!confirm(`Are you sure you want to delete "${name}"? This action cannot be undone.`)) {
+      return
+    }
+    try {
+      const res = await fetch(`/api/admin/events?eventId=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      })
+      if (!res.ok) throw new Error("Failed to delete event.")
+      fetchEvents()
+    } catch (err: any) {
+      alert(err?.message || "Failed to delete event.")
+    }
+  }
 
   const allEvents = events
 
@@ -179,12 +195,21 @@ export default function AdminAllEventsPage() {
                         <p className="text-xs font-bold text-white">{formatCurrency(gross)}</p>
                       </td>
                       <td className="px-5 py-3.5 text-right">
-                        <Link href={`/admin/events/${event.id}`}>
-                          <button className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[10px] font-bold border border-white/[0.08] text-slate-300 hover:text-white hover:bg-white/[0.04] cursor-pointer transition-all">
-                            <Eye className="h-3 w-3" />
-                            View
+                        <div className="flex items-center justify-end gap-1.5">
+                          <Link href={`/admin/events/${event.id}`}>
+                            <button className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[10px] font-bold border border-white/[0.08] text-slate-300 hover:text-white hover:bg-white/[0.04] cursor-pointer transition-all">
+                              <Eye className="h-3 w-3" />
+                              View
+                            </button>
+                          </Link>
+                          <button
+                            onClick={() => handleDeleteEvent(event.id, event.name)}
+                            className="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg text-[10px] font-bold border border-rose-500/20 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 cursor-pointer transition-all"
+                            title="Delete event"
+                          >
+                            <Trash2 className="h-3 w-3" />
                           </button>
-                        </Link>
+                        </div>
                       </td>
                     </tr>
                   )

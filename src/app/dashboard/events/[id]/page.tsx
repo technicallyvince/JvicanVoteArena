@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
-import { notFound, useParams } from "next/navigation"
+import { notFound, useParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import { db } from "@/lib/db"
 import { formatCurrency, formatDateTime } from "@/lib/utils"
@@ -42,6 +42,7 @@ import { cn } from "@/lib/utils"
 
 export default function EventStudioPage() {
   const params = useParams()
+  const router = useRouter()
   const eventId = params?.id as string
 
   const [event, setEvent] = useState<any>(null)
@@ -50,6 +51,24 @@ export default function EventStudioPage() {
   const [votes, setVotes] = useState<any[]>([])
   const [applications, setApplications] = useState<any[]>([])
   const [isLoadingEvent, setIsLoadingEvent] = useState(true)
+  const [isDeleting, setIsDeleting] = useState(false)
+
+  const handleDeleteEvent = async () => {
+    if (!confirm(`Are you sure you want to delete "${event.name}"? This action is permanent and will remove all categories and nominees.`)) {
+      return
+    }
+    setIsDeleting(true)
+    try {
+      const res = await fetch(`/api/admin/events?eventId=${encodeURIComponent(event.id)}`, {
+        method: "DELETE",
+      })
+      if (!res.ok) throw new Error("Failed to delete event.")
+      router.push("/dashboard/events")
+    } catch (err: any) {
+      alert(err?.message || "Failed to delete event.")
+      setIsDeleting(false)
+    }
+  }
 
   useEffect(() => {
     fetch(`/api/events/details?id=${encodeURIComponent(eventId)}&slug=${encodeURIComponent(eventId)}`, { cache: 'no-store' })
@@ -998,6 +1017,30 @@ export default function EventStudioPage() {
                 </Button>
               </div>
             </form>
+
+            {/* Danger Zone: Delete Event */}
+            <div className="mt-8 rounded-3xl border border-rose-500/20 bg-rose-500/[0.03] p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h4 className="text-sm font-bold text-rose-400 flex items-center gap-2">
+                    <Trash2 className="h-4 w-4" />
+                    Danger Zone
+                  </h4>
+                  <p className="text-xs text-slate-400 mt-1 max-w-md">
+                    Permanently delete this event, its categories, and its nominees from the database.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleDeleteEvent}
+                  disabled={isDeleting}
+                  className="px-5 py-2.5 rounded-full border border-rose-500/40 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-xs font-bold transition-all cursor-pointer disabled:opacity-50 inline-flex items-center justify-center gap-2 shrink-0"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span>{isDeleting ? "Deleting..." : "Delete Event"}</span>
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>
