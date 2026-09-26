@@ -1,3 +1,4 @@
+import NodeRSA from 'node-rsa'
 import {
   CreateOrderRequest,
   CreateOrderResponse,
@@ -9,6 +10,7 @@ export class TransactPayClient {
   private apiUrl: string
   private publicKey: string
   private secretKey: string
+  private encryptionKey: string
   private webhookSecret: string
   private env: 'test' | 'live'
 
@@ -17,8 +19,41 @@ export class TransactPayClient {
       process.env.TRANSACTPAY_API_URL || 'https://payment-api-service.transactpay.ai'
     this.publicKey = process.env.TRANSACTPAY_PUBLIC_KEY || ''
     this.secretKey = process.env.TRANSACTPAY_SECRET_KEY || ''
+    this.encryptionKey = process.env.TRANSACTPAY_ENCRYPTION_KEY || ''
     this.webhookSecret = process.env.TRANSACTPAY_WEBHOOK_SECRET || ''
     this.env = (process.env.TRANSACTPAY_ENV as 'test' | 'live') || 'test'
+  }
+
+  /**
+   * Encrypts the payload with RSA PKCS#1 v1.5 using the provided public/encryption key
+   */
+  private encryptPayload(payload: any, keyString: string): string {
+    let formattedKey = keyString.trim()
+    // If not wrapped in PEM headers, format appropriately
+    if (!formattedKey.includes('-----BEGIN')) {
+      // If it looks like base64 or a key block, format as standard RSA public key
+      const cleanKey = formattedKey.replace(/\s+/g, '')
+      formattedKey = `-----BEGIN PUBLIC KEY-----\n${cleanKey}\n-----END PUBLIC KEY-----`
+    }
+
+    try {
+      const rsa = new NodeRSA(formattedKey, 'pkcs8-public-pem', {
+        encryptionScheme: 'pkcs1',
+      })
+      return rsa.encrypt(JSON.stringify(payload), 'base64')
+    } catch (err) {
+      try {
+        const rsa = new NodeRSA(formattedKey, 'pkcs1-public-pem', {
+          encryptionScheme: 'pkcs1',
+        })
+        return rsa.encrypt(JSON.stringify(payload), 'base64')
+      } catch (innerErr) {
+        // Fallback: pass raw string to NodeRSA auto-detect
+        const rsa = new NodeRSA(keyString.trim())
+        rsa.setOptions({ encryptionScheme: 'pkcs1' })
+        return rsa.encrypt(JSON.stringify(payload), 'base64')
+      }
+    }
   }
 
   /**
@@ -39,20 +74,54 @@ export class TransactPayClient {
   /**
    * Initializes standard hosted checkout order on TransactPay
    * Official Endpoint: POST /payment/order/create
+   * Supports both encrypted payload ({ data: ... }) and direct JSON with fallback
    */
   async createOrder(payload: CreateOrderRequest): Promise<CreateOrderResponse> {
     if (this.isConfigured()) {
+      const keyToUseForEncryption = this.encryptionKey || this.publicKey
+      let bodyData: any = JSON.stringify(payload)
+      let isEncrypted = false
+
+      if (keyToUseForEncryption) {
+        try {
+          const encrypted = this.encryptPayload(payload, keyToUseForEncryption)
+          bodyData = JSON.stringify({ data: encrypted })
+          isEncrypted = true
+        } catch (encErr) {
+          console.warn('TransactPay encryption attempt failed, falling back to raw payload:', encErr)
+        }
+      }
+
       try {
-        const response = await fetch(`${this.apiUrl}/payment/order/create`, {
+        let response = await fetch(`${this.apiUrl}/payment/order/create`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'api-key': this.publicKey,
           },
-          body: JSON.stringify(payload),
+          body: bodyData,
         })
 
-        if (!response.ok) {
+        // If encrypted request failed or returned 400/401 and was encrypted, retry with raw or vice versa
+        if (!response.ok && isEncrypted) {
+          const firstErrorText = await response.text()
+          console.warn(`Encrypted createOrder HTTP ${response.status}: ${firstErrorText}. Attempting unencrypted or direct key...`)
+          // Try unencrypted as fallback
+          const retryResponse = await fetch(`${this.apiUrl}/payment/order/create`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'api-key': this.publicKey,
+            },
+            body: JSON.stringify(payload),
+          })
+          if (retryResponse.ok) {
+            response = retryResponse
+          } else {
+            // Throw original or latest error
+            throw new Error(`TransactPay API error (${response.status}): ${firstErrorText}`)
+          }
+        } else if (!response.ok) {
           const errorText = await response.text()
           console.error(`TransactPay createOrder HTTP ${response.status}:`, errorText)
           throw new Error(`TransactPay API error (${response.status}): ${errorText}`)
