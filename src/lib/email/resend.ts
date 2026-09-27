@@ -84,6 +84,12 @@ export interface SendEmailResult {
   error?: string | null
   idempotentSkip?: boolean
   attemptCount?: number
+  /**
+   * True when the send was only logged to the server console because no email
+   * provider is configured. No message left the server, so callers that depend
+   * on real delivery (e.g. sending a login code) must not report success.
+   */
+  simulated?: boolean
 }
 
 /**
@@ -368,6 +374,8 @@ export async function sendEmail(options: SendEmailOptions): Promise<SendEmailRes
 
   // ==========================================
   // Development & Demo mode simulation (No live API keys configured)
+  // Nothing is actually delivered here. `simulated: true` lets callers that
+  // require real delivery refuse to claim success.
   // ==========================================
   attemptCount++
   const simulatedId = `sim_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`
@@ -394,5 +402,6 @@ export async function sendEmail(options: SendEmailOptions): Promise<SendEmailRes
     provider: 'system',
     messageId: simulatedId,
     attemptCount,
+    simulated: true,
   }
 }

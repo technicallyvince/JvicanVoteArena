@@ -48,10 +48,24 @@ export async function POST(req: Request) {
       expiresInMinutes: 10,
     })
 
+    // Do not claim the code was sent if it never left the server, and release
+    // the stored code so the user is not blocked by the resend cooldown.
+    if (!emailResult.success) {
+      userStorage.clearOtp(normalizedEmail)
+      return NextResponse.json(
+        {
+          success: false,
+          message: emailResult.error || 'Failed to send the verification code. Please try again.',
+          emailSent: false,
+        },
+        { status: 502 }
+      )
+    }
+
     return NextResponse.json({
       success: true,
       message: 'A 6-digit verification code has been sent to your email.',
-      emailSent: emailResult.success,
+      emailSent: true,
       devOtp: process.env.NODE_ENV === 'development' ? otp : undefined,
     })
   } catch (err: unknown) {

@@ -215,6 +215,11 @@ export const userStorage = {
     return remaining > 0 ? remaining : 0
   },
 
+  /** Discard any pending code for an address, e.g. when delivery failed. */
+  clearOtp: (email: string): void => {
+    OTP_STORE.delete(email.trim().toLowerCase())
+  },
+
   generateOtp: (email: string, expiresInMinutes: number = 10): string => {
     const normalized = email.trim().toLowerCase()
 
