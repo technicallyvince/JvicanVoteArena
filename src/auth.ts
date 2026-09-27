@@ -23,11 +23,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         const user = userStorage.findByEmail(email)
         if (!user) {
-          if (userStorage.getUsers().length === 0) {
-            throw new Error(
-              'No accounts are configured on this server. Contact an administrator.'
-            )
-          }
           throw new Error('No account found with this email.')
         }
 
