@@ -1,13 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getSupabaseAdmin } from '@/lib/supabase/admin'
+import { auth } from '@/auth'
 import { db } from '@/lib/db'
 
 export async function POST(req: NextRequest) {
   try {
     const admin = getSupabaseAdmin()
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+
+    // Identity comes from the NextAuth session, not Supabase Auth
+    const session = await auth()
+    if (!session?.user?.email || !session.user.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const sessionUserId = session.user.id
+    const organizerEmail = session.user.email
+    const organizerName = session.user.name || 'Organizer'
 
     const body = await req.json()
     const {
@@ -45,30 +55,15 @@ export async function POST(req: NextRequest) {
 
     if (process.env.NEXT_PUBLIC_SUPABASE_URL && (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)) {
 
-      // Ensure profile exists if user is authenticated
-      let organizerId: string | null = user?.id || null
-      let organizerEmail: string = user?.email || 'organizer@jvican.com'
-      let organizerName: string = user?.user_metadata?.full_name || 'Organizer'
-
-      if (organizerId && organizerEmail) {
-        // Upsert profile record
-        await client.from('profiles').upsert(
-          {
-            id: organizerId,
-            email: organizerEmail,
-            full_name: organizerName,
-            role: 'organizer',
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: 'id' }
-        )
-      }
-
-      // Insert Event into Supabase
+      // Insert Event into Supabase.
+      // `organizer_id` is left null on purpose: it is a uuid FK into
+      // public.profiles, whose rows are owned by Supabase Auth. Since auth is
+      // handled by NextAuth, no matching profile exists and the FK would fail.
+      // The denormalized organizer_name/organizer_email columns carry identity.
       const { data: eventData, error: eventErr } = await client
         .from('events')
         .insert({
-          organizer_id: organizerId,
+          organizer_id: null,
           organizer_name: organizerName,
           organizer_email: organizerEmail,
           name: name.trim(),
@@ -143,7 +138,7 @@ export async function POST(req: NextRequest) {
     // Always mirror to in-memory store for instant UI sync & local testing
     const localEvent = db.createEvent({
       id: supabaseEventId || slug,
-      organizer_id: user?.id || '11111111-1111-1111-1111-111111111111',
+      organizer_id: sessionUserId,
       name: name.trim(),
       slug: slug.trim(),
       description: description.trim(),

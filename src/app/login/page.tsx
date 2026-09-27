@@ -3,23 +3,20 @@
 import React, { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { ArrowRight, ShieldCheck, ShieldAlert, Eye, EyeOff, KeyRound, Mail, ArrowLeft, RefreshCw } from "lucide-react"
+import { ShieldCheck, ShieldAlert, Eye, EyeOff } from "lucide-react"
 import { Input } from "@/components/ui/Input"
 import { BrandLogo } from "@/components/ui/BrandLogo"
 import { useAuth } from "@/lib/auth"
 
 export default function LoginPage() {
   const router = useRouter()
-  const { requestOtp, loginWithOtp, isAuthenticated, isSuperAdmin } = useAuth()
-  
-  const [step, setStep] = useState<"credentials" | "otp">("credentials")
+  const { login, isAuthenticated, isSuperAdmin } = useAuth()
+
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [otp, setOtp] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [devOtpHint, setDevOtpHint] = useState<string | null>(null)
 
   // Redirect if already authenticated
   React.useEffect(() => {
@@ -28,7 +25,7 @@ export default function LoginPage() {
     }
   }, [isAuthenticated, isSuperAdmin, router])
 
-  const handleRequestOtp = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!email.trim() || !password.trim()) {
       setErrorMessage("Please enter your email and password.")
@@ -37,54 +34,17 @@ export default function LoginPage() {
 
     setIsLoading(true)
     setErrorMessage(null)
-    setDevOtpHint(null)
 
-    const result = await requestOtp(email, password, "login")
-
-    if (result.success) {
-      setStep("otp")
-      if (result.devOtp) {
-        setDevOtpHint(result.devOtp)
-      }
-    } else {
-      setErrorMessage(result.message)
-    }
-    setIsLoading(false)
-  }
-
-  const handleVerifyAndLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!otp.trim()) {
-      setErrorMessage("Please enter the 6-digit OTP sent to your email.")
-      return
-    }
-
-    setIsLoading(true)
-    setErrorMessage(null)
-
-    const result = await loginWithOtp(email, password, otp)
+    const result = await login(email, password)
 
     if (result.success) {
-      const isAdmin = email.toLowerCase() === "admin@jvican.com" || email.toLowerCase().startsWith("admin@")
+      const normalized = email.trim().toLowerCase()
+      const isAdmin = normalized === "admin@jvican.com" || normalized.startsWith("admin@")
       router.push(isAdmin ? "/admin" : "/dashboard")
     } else {
       setErrorMessage(result.message)
       setIsLoading(false)
     }
-  }
-
-  const handleResendOtp = async () => {
-    setIsLoading(true)
-    setErrorMessage(null)
-    const result = await requestOtp(email, password, "login")
-    if (result.success) {
-      if (result.devOtp) {
-        setDevOtpHint(result.devOtp)
-      }
-    } else {
-      setErrorMessage(result.message)
-    }
-    setIsLoading(false)
   }
 
   return (
@@ -99,12 +59,10 @@ export default function LoginPage() {
             JVican Vote Arena
           </h1>
           <p className="text-xs font-bold text-[#C9A84C] mt-1">
-            {step === "credentials" ? "Sign in with NextAuth" : "Two-Step Verification"}
+            Sign in to continue
           </p>
           <p className="text-[11px] text-slate-400 mt-0.5">
-            {step === "credentials"
-              ? "Access your Organizer Dashboard or Super Admin Console."
-              : `Enter the 6-digit code sent to ${email}`}
+            Access your Organizer Dashboard or Super Admin Console.
           </p>
         </div>
 
@@ -115,21 +73,7 @@ export default function LoginPage() {
           </div>
         )}
 
-        {devOtpHint && (
-          <div className="mb-4 p-3 rounded-xl bg-[#C9A84C]/10 border border-[#C9A84C]/30 text-[#C9A84C] text-xs flex items-center justify-between">
-            <span>Dev code hint: <strong>{devOtpHint}</strong></span>
-            <button
-              type="button"
-              onClick={() => setOtp(devOtpHint)}
-              className="text-[10px] uppercase font-bold underline cursor-pointer"
-            >
-              Fill OTP
-            </button>
-          </div>
-        )}
-
-        {step === "credentials" ? (
-          <form onSubmit={handleRequestOtp} className="space-y-4">
+        <form onSubmit={handleLogin} className="space-y-4">
             <Input
               label="Email Address"
               type="email"
@@ -149,9 +93,10 @@ export default function LoginPage() {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your password"
-                  required
-                  className="w-full rounded-2xl border border-white/[0.08] bg-[#121212] px-4 py-3 pr-12 text-sm text-white transition-all duration-150 placeholder:text-neutral-500 focus:border-[#C9A84C] focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/20"
+                placeholder="Enter your password"
+                required
+                autoFocus
+                className="w-full rounded-2xl border border-white/[0.08] bg-[#121212] px-4 py-3 pr-12 text-sm text-white transition-all duration-150 placeholder:text-neutral-500 focus:border-[#C9A84C] focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/20"
                 />
                 <button
                   type="button"
@@ -180,60 +125,9 @@ export default function LoginPage() {
               disabled={isLoading}
               className="w-full flex items-center justify-center gap-2 rounded-full bg-[#C9A84C] py-3.5 px-6 font-black text-xs sm:text-sm text-[#0a0c14] shadow-lg shadow-[#C9A84C]/20 hover:bg-[#D4B86A] transition-all cursor-pointer mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <span>{isLoading ? "Verifying..." : "Continue to OTP Verification"}</span>
-              <ArrowRight className="h-4 w-4" />
+              <span>{isLoading ? "Signing in..." : "Sign In"}</span>
             </button>
           </form>
-        ) : (
-          <form onSubmit={handleVerifyAndLogin} className="space-y-4">
-            <div className="w-full space-y-1.5">
-              <label className="block text-xs font-bold uppercase tracking-wider text-neutral-300">
-                6-Digit Verification Code (OTP)
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  maxLength={6}
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-                  placeholder="123456"
-                  required
-                  autoFocus
-                  className="w-full text-center tracking-[0.5em] font-mono text-lg rounded-2xl border border-[#C9A84C]/40 bg-[#121212] px-4 py-3 text-white transition-all duration-150 placeholder:text-neutral-600 focus:border-[#C9A84C] focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/20"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between text-xs pt-1">
-              <button
-                type="button"
-                onClick={() => setStep("credentials")}
-                className="flex items-center gap-1 text-slate-400 hover:text-white cursor-pointer"
-              >
-                <ArrowLeft className="w-3.5 h-3.5" />
-                <span>Back</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleResendOtp}
-                disabled={isLoading}
-                className="flex items-center gap-1 text-[#C9A84C] hover:underline cursor-pointer"
-              >
-                <RefreshCw className="w-3.5 h-3.5" />
-                <span>Resend Code</span>
-              </button>
-            </div>
-
-            <button
-              type="submit"
-              disabled={isLoading || otp.length < 6}
-              className="w-full flex items-center justify-center gap-2 rounded-full bg-[#C9A84C] py-3.5 px-6 font-black text-xs sm:text-sm text-[#0a0c14] shadow-lg shadow-[#C9A84C]/20 hover:bg-[#D4B86A] transition-all cursor-pointer mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <span>{isLoading ? "Signing in..." : "Verify & Sign In"}</span>
-              <ArrowRight className="h-4 w-4" />
-            </button>
-          </form>
-        )}
 
         <div className="mt-8 border-t border-white/10 pt-6 text-center text-xs text-slate-400">
           <p>

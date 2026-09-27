@@ -10,7 +10,7 @@ import { useAuth } from "@/lib/auth"
 
 export default function SignupPage() {
   const router = useRouter()
-  const { requestOtp, signupWithOtp, loginWithOtp, isAuthenticated } = useAuth()
+  const { requestSignupOtp, signupWithOtp, login, isAuthenticated } = useAuth()
   
   const [step, setStep] = useState<"details" | "otp">("details")
   const [name, setName] = useState("")
@@ -59,7 +59,7 @@ export default function SignupPage() {
 
     setIsLoading(true)
 
-    const result = await requestOtp(email, password, "signup", name)
+    const result = await requestSignupOtp(email, name)
 
     if (result.success) {
       setStep("otp")
@@ -87,7 +87,7 @@ export default function SignupPage() {
 
     if (result.success) {
       // Automatically log them in with NextAuth
-      const loginRes = await loginWithOtp(email, password, otp)
+      const loginRes = await login(email, password)
       if (loginRes.success) {
         router.push("/dashboard")
       } else {
@@ -103,7 +103,7 @@ export default function SignupPage() {
   const handleResendOtp = async () => {
     setIsLoading(true)
     setErrorMessage(null)
-    const result = await requestOtp(email, password, "signup", name)
+    const result = await requestSignupOtp(email, name)
     if (result.success) {
       if (result.devOtp) {
         setDevOtpHint(result.devOtp)

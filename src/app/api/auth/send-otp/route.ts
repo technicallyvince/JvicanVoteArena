@@ -2,10 +2,18 @@ import { NextResponse } from 'next/server'
 import { userStorage } from '@/lib/auth/user-storage'
 import { sendOtpEmail } from '@/lib/email/send-otp'
 
+/**
+ * Issues a verification code for a new account.
+ *
+ * Codes are generated and stored by this application (see `userStorage.generateOtp`),
+ * never delegated to an external identity provider. Their only purpose is to confirm
+ * that whoever is signing up can receive mail at that address — signing in does not
+ * use a code.
+ */
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { email, password, type = 'login' } = body
+    const { email } = body
 
     if (!email) {
       return NextResponse.json({ success: false, message: 'Email is required' }, { status: 400 })
@@ -13,68 +21,39 @@ export async function POST(req: Request) {
 
     const normalizedEmail = String(email).trim().toLowerCase()
 
-    if (type === 'login') {
-      const user = userStorage.findByEmail(normalizedEmail)
-      if (!user) {
-        return NextResponse.json(
-          { success: false, message: 'No account found with this email address.' },
-          { status: 404 }
-        )
-      }
-
-      if (password) {
-        const isPasswordValid = userStorage.verifyPassword(password, user.passwordHash)
-        if (!isPasswordValid) {
-          return NextResponse.json(
-            { success: false, message: 'Invalid password. Please check and try again.' },
-            { status: 401 }
-          )
-        }
-      }
-
-      const otp = userStorage.generateOtp(normalizedEmail, 10)
-      
-      // Dispatch OTP Email
-      const emailResult = await sendOtpEmail({
-        to: normalizedEmail,
-        otp,
-        name: user.name,
-        expiresInMinutes: 10,
-      })
-
-      return NextResponse.json({
-        success: true,
-        message: 'A 6-digit verification code has been sent to your email.',
-        emailSent: emailResult.success,
-        // In local development if email is mock, provide helpful hint
-        devOtp: process.env.NODE_ENV === 'development' ? otp : undefined,
-      })
-    } else if (type === 'signup') {
-      const userExists = userStorage.findByEmail(normalizedEmail)
-      if (userExists) {
-        return NextResponse.json(
-          { success: false, message: 'An account with this email already exists.' },
-          { status: 409 }
-        )
-      }
-
-      const otp = userStorage.generateOtp(normalizedEmail, 10)
-      const emailResult = await sendOtpEmail({
-        to: normalizedEmail,
-        otp,
-        name: body.name || 'User',
-        expiresInMinutes: 10,
-      })
-
-      return NextResponse.json({
-        success: true,
-        message: 'A 6-digit verification code has been sent to your email.',
-        emailSent: emailResult.success,
-        devOtp: process.env.NODE_ENV === 'development' ? otp : undefined,
-      })
+    const cooldown = userStorage.otpResendCooldown(normalizedEmail)
+    if (cooldown > 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: `Please wait ${cooldown} second${cooldown === 1 ? '' : 's'} before requesting another code.`,
+        },
+        { status: 429 }
+      )
     }
 
-    return NextResponse.json({ success: false, message: 'Invalid request type' }, { status: 400 })
+    const existing = userStorage.findByEmail(normalizedEmail)
+    if (existing) {
+      return NextResponse.json(
+        { success: false, message: 'An account with this email already exists.' },
+        { status: 409 }
+      )
+    }
+
+    const otp = userStorage.generateOtp(normalizedEmail, 10)
+    const emailResult = await sendOtpEmail({
+      to: normalizedEmail,
+      otp,
+      name: body.name || 'User',
+      expiresInMinutes: 10,
+    })
+
+    return NextResponse.json({
+      success: true,
+      message: 'A 6-digit verification code has been sent to your email.',
+      emailSent: emailResult.success,
+      devOtp: process.env.NODE_ENV === 'development' ? otp : undefined,
+    })
   } catch (err: unknown) {
     const errorMsg = err instanceof Error ? err.message : 'Failed to send OTP.'
     return NextResponse.json({ success: false, message: errorMsg }, { status: 500 })

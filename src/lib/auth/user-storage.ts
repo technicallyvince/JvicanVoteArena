@@ -1,5 +1,6 @@
 import fs from 'fs'
 import path from 'path'
+import { randomInt, randomBytes, timingSafeEqual } from 'crypto'
 import bcrypt from 'bcryptjs'
 
 export interface UserAccount {
@@ -16,6 +17,7 @@ export interface OtpRecord {
   email: string
   otp: string
   expiresAt: number
+  issuedAt: number
   attempts: number
 }
 
@@ -30,6 +32,9 @@ const SUPER_ADMIN_EMAILS = [
   'admin@voteflow.live',
   'jvicanadmin@gmail.com',
 ]
+
+// Minimum seconds between OTP sends for the same address
+const OTP_RESEND_COOLDOWN_SECONDS = 45
 
 function ensureDataDir() {
   if (!fs.existsSync(DATA_DIR)) {
@@ -140,6 +145,44 @@ export const userStorage = {
     return newUser
   },
 
+  /**
+   * Create a super admin, or reset the password/role of an existing account.
+   * Unlike `createUser` this always forces the `admin` role, so it can repair
+   * an account that was originally created as an organizer.
+   */
+  upsertAdmin: (params: { name: string; email: string; password: string }): UserAccount => {
+    const users = loadUsers()
+    const normalizedEmail = params.email.trim().toLowerCase()
+    const passwordHash = bcrypt.hashSync(params.password, 10)
+    const now = new Date().toISOString()
+
+    const existing = users.find((u) => u.email.toLowerCase() === normalizedEmail)
+    if (existing) {
+      existing.passwordHash = passwordHash
+      existing.role = 'admin'
+      if (params.name?.trim()) {
+        existing.name = params.name.trim()
+      }
+      existing.updatedAt = now
+      saveUsers(users)
+      return existing
+    }
+
+    const newUser: UserAccount = {
+      id: `usr_${Date.now()}_${randomBytes(4).toString('hex')}`,
+      name: params.name.trim(),
+      email: normalizedEmail,
+      passwordHash,
+      role: 'admin',
+      createdAt: now,
+      updatedAt: now,
+    }
+
+    users.push(newUser)
+    saveUsers(users)
+    return newUser
+  },
+
   updatePassword: (email: string, newPassword: string): boolean => {
     const users = loadUsers()
     const normalizedEmail = email.trim().toLowerCase()
@@ -161,17 +204,39 @@ export const userStorage = {
   },
 
   // OTP Management
+  /** Returns seconds remaining before another OTP may be issued, or 0 if allowed. */
+  otpResendCooldown: (email: string): number => {
+    const normalized = email.trim().toLowerCase()
+    const record = OTP_STORE.get(normalized)
+    if (!record) return 0
+
+    const elapsed = Math.floor((Date.now() - record.issuedAt) / 1000)
+    const remaining = OTP_RESEND_COOLDOWN_SECONDS - elapsed
+    return remaining > 0 ? remaining : 0
+  },
+
   generateOtp: (email: string, expiresInMinutes: number = 10): string => {
     const normalized = email.trim().toLowerCase()
-    // Generate 6 digit numeric code
-    const otp = Math.floor(100000 + Math.random() * 900000).toString()
-    const expiresAt = Date.now() + expiresInMinutes * 60 * 1000
+
+    // Cryptographically secure 6-digit numeric code (000000-999999, uniform)
+    const otp = randomInt(0, 1_000_000).toString().padStart(6, '0')
+
+    // Never reuse the previous code for the same address
+    const existing = OTP_STORE.get(normalized)
+    if (existing) {
+      existing.otp = otp
+      existing.expiresAt = Date.now() + expiresInMinutes * 60 * 1000
+      existing.attempts = 0
+      existing.issuedAt = Date.now()
+      return otp
+    }
 
     OTP_STORE.set(normalized, {
       email: normalized,
       otp,
-      expiresAt,
+      expiresAt: Date.now() + expiresInMinutes * 60 * 1000,
       attempts: 0,
+      issuedAt: Date.now(),
     })
 
     return otp
@@ -197,7 +262,11 @@ export const userStorage = {
 
     record.attempts += 1
 
-    if (record.otp !== inputOtp.trim()) {
+    // Constant-time comparison to avoid timing leaks
+    const candidate = inputOtp.trim()
+    const a = Buffer.from(candidate.padEnd(6, '\0').slice(0, 6))
+    const b = Buffer.from(record.otp.padEnd(6, '\0').slice(0, 6))
+    if (a.length !== b.length || !timingSafeEqual(a, b)) {
       return { valid: false, message: 'Invalid verification code.' }
     }
 

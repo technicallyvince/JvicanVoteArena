@@ -17,8 +17,8 @@ interface AuthContextType {
   isSuperAdmin: boolean
   isOrganizer: boolean
   isLoading: boolean
-  requestOtp: (email: string, password?: string, type?: "login" | "signup", name?: string) => Promise<{ success: boolean; message: string; devOtp?: string }>
-  loginWithOtp: (email: string, password: string, otp: string) => Promise<{ success: boolean; message: string }>
+  requestSignupOtp: (email: string, name?: string) => Promise<{ success: boolean; message: string; devOtp?: string }>
+  login: (email: string, password: string) => Promise<{ success: boolean; message: string }>
   signupWithOtp: (name: string, email: string, password: string, otp: string) => Promise<{ success: boolean; message: string }>
   changeAdminPassword: (oldPassword: string, newPassword: string) => Promise<{ success: boolean; message: string }>
   logout: () => Promise<void>
@@ -31,8 +31,8 @@ const AuthContext = createContext<AuthContextType>({
   isSuperAdmin: false,
   isOrganizer: false,
   isLoading: true,
-  requestOtp: async () => ({ success: false, message: "" }),
-  loginWithOtp: async () => ({ success: false, message: "" }),
+  requestSignupOtp: async () => ({ success: false, message: "" }),
+  login: async () => ({ success: false, message: "" }),
   signupWithOtp: async () => ({ success: false, message: "" }),
   changeAdminPassword: async () => ({ success: false, message: "" }),
   logout: async () => {},
@@ -55,17 +55,13 @@ function AuthContextProviderInner({ children }: { children: React.ReactNode }) {
   const isSuperAdmin = user?.role === "admin"
   const isOrganizer = user?.role === "organizer"
 
-  const requestOtp = async (
-    email: string,
-    password?: string,
-    type: "login" | "signup" = "login",
-    name?: string
-  ) => {
+  // OTP is only used to verify ownership of an email address at signup.
+  const requestSignupOtp = async (email: string, name?: string) => {
     try {
       const res = await fetch("/api/auth/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, type, name }),
+        body: JSON.stringify({ email, type: "signup", name }),
       })
       const data = await res.json()
       return data
@@ -74,13 +70,12 @@ function AuthContextProviderInner({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const loginWithOtp = async (email: string, password: string, otp: string) => {
+  const login = async (email: string, password: string) => {
     try {
       const res = await signIn("credentials", {
         redirect: false,
         email,
         password,
-        otp,
       })
 
       if (res?.error) {
@@ -134,8 +129,8 @@ function AuthContextProviderInner({ children }: { children: React.ReactNode }) {
         isSuperAdmin,
         isOrganizer,
         isLoading,
-        requestOtp,
-        loginWithOtp,
+        requestSignupOtp,
+        login,
         signupWithOtp,
         changeAdminPassword,
         logout,

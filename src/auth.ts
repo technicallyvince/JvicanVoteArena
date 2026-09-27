@@ -11,7 +11,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       credentials: {
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
-        otp: { label: 'OTP', type: 'text' },
       },
       async authorize(credentials) {
         if (!credentials?.email) {
@@ -20,27 +19,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         const email = String(credentials.email).trim().toLowerCase()
         const password = String(credentials.password || '')
-        const otp = credentials.otp ? String(credentials.otp).trim() : ''
 
         const user = userStorage.findByEmail(email)
         if (!user) {
           throw new Error('No account found with this email.')
         }
 
-        // Verify password
-        const isPasswordValid = userStorage.verifyPassword(password, user.passwordHash)
-        if (!isPasswordValid) {
+        if (!userStorage.verifyPassword(password, user.passwordHash)) {
           throw new Error('Invalid email or password.')
-        }
-
-        // Verify OTP
-        if (!otp) {
-          throw new Error('OTP_REQUIRED')
-        }
-
-        const otpCheck = userStorage.verifyOtp(email, otp)
-        if (!otpCheck.valid) {
-          throw new Error(otpCheck.message)
         }
 
         return {
