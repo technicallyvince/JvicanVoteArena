@@ -2,6 +2,7 @@ import NextAuth from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
 import { authConfig } from '@/auth.config'
 import { userStorage } from '@/lib/auth/user-storage'
+import { resolveAuthSecret } from '@/lib/auth/secret'
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   ...authConfig,
@@ -41,5 +42,5 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   session: {
     strategy: 'jwt',
   },
-  secret: process.env.NEXTAUTH_SECRET || 'jvican_votearena_auth_secret_production_key_2026_secure',
+  secret: resolveAuthSecret(),
 })

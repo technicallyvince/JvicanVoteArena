@@ -1,10 +1,14 @@
 import type { NextAuthConfig } from 'next-auth'
+import { resolveAuthSecret } from '@/lib/auth/secret'
 
 export const authConfig = {
   pages: {
     signIn: '/login',
     error: '/login',
   },
+  // The Edge middleware and the Node runtime must resolve the same secret,
+  // otherwise session JWTs issued by one cannot be verified by the other.
+  secret: resolveAuthSecret(),
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user
