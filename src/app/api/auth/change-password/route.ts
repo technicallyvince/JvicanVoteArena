@@ -17,22 +17,29 @@ export async function POST(req: Request) {
       )
     }
 
-    const user = userStorage.findByEmail(session.user.email)
+    const user = await userStorage.findByEmail(session.user.email)
     if (!user) {
       return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 })
     }
 
-    if (oldPassword) {
-      const isValid = userStorage.verifyPassword(oldPassword, user.passwordHash)
-      if (!isValid) {
-        return NextResponse.json(
-          { success: false, message: 'Current password is incorrect.' },
-          { status: 400 }
-        )
-      }
+    // The old password is mandatory. Without this check any live session could
+    // take the account over, including on a shared or borrowed device.
+    if (!oldPassword) {
+      return NextResponse.json(
+        { success: false, message: 'Current password is required.' },
+        { status: 400 }
+      )
     }
 
-    userStorage.updatePassword(session.user.email, newPassword)
+    const isValid = userStorage.verifyPassword(oldPassword, user.passwordHash)
+    if (!isValid) {
+      return NextResponse.json(
+        { success: false, message: 'Current password is incorrect.' },
+        { status: 400 }
+      )
+    }
+
+    await userStorage.updatePassword(session.user.email, newPassword)
 
     return NextResponse.json({
       success: true,

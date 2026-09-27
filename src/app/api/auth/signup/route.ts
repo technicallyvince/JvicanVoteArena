@@ -16,13 +16,13 @@ export async function POST(req: Request) {
     const normalizedEmail = String(email).trim().toLowerCase()
 
     // Verify OTP first
-    const otpResult = userStorage.verifyOtp(normalizedEmail, String(otp))
+    const otpResult = await userStorage.verifyOtp(normalizedEmail, String(otp))
     if (!otpResult.valid) {
       return NextResponse.json({ success: false, message: otpResult.message }, { status: 400 })
     }
 
-    // Create user in local storage
-    const newUser = userStorage.createUser({
+    // Create the account in Supabase
+    const newUser = await userStorage.createUser({
       name: String(name),
       email: normalizedEmail,
       password: String(password),

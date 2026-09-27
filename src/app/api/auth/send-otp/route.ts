@@ -21,7 +21,7 @@ export async function POST(req: Request) {
 
     const normalizedEmail = String(email).trim().toLowerCase()
 
-    const cooldown = userStorage.otpResendCooldown(normalizedEmail)
+    const cooldown = await userStorage.otpResendCooldown(normalizedEmail)
     if (cooldown > 0) {
       return NextResponse.json(
         {
@@ -32,7 +32,7 @@ export async function POST(req: Request) {
       )
     }
 
-    const existing = userStorage.findByEmail(normalizedEmail)
+    const existing = await userStorage.findByEmail(normalizedEmail)
     if (existing) {
       return NextResponse.json(
         { success: false, message: 'An account with this email already exists.' },
@@ -40,7 +40,7 @@ export async function POST(req: Request) {
       )
     }
 
-    const otp = userStorage.generateOtp(normalizedEmail, 10)
+    const otp = await userStorage.generateOtp(normalizedEmail, 10)
     const emailResult = await sendOtpEmail({
       to: normalizedEmail,
       otp,
@@ -51,7 +51,7 @@ export async function POST(req: Request) {
     // Do not claim the code was sent if it never left the server, and release
     // the stored code so the user is not blocked by the resend cooldown.
     if (!emailResult.success) {
-      userStorage.clearOtp(normalizedEmail)
+      await userStorage.clearOtp(normalizedEmail)
       return NextResponse.json(
         {
           success: false,

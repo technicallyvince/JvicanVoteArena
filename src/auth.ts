@@ -21,7 +21,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const email = String(credentials.email).trim().toLowerCase()
         const password = String(credentials.password || '')
 
-        const user = userStorage.findByEmail(email)
+        const user = await userStorage.findByEmail(email)
         if (!user) {
           throw new Error('No account found with this email.')
         }

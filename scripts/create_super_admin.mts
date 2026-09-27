@@ -1,8 +1,8 @@
 /**
- * Create or reset a super admin account in the local user store.
+ * Create or reset a super admin account in Supabase.
  *
  * Usage:
- *   node scripts/create_super_admin.ts [email]
+ *   node scripts/create_super_admin.mts [email]
  *
  * The password is never hardcoded. Resolution order:
  *   1. SUPER_ADMIN_PASSWORD env var
@@ -11,10 +11,27 @@
  *
  * Re-running for an existing address resets its password and forces role=admin,
  * so an account that was created as an organizer can be promoted.
+ *
+ * Accounts live in Supabase, so this reaches the same database as the deployed
+ * app. That also makes it the way to grant a password to an account that
+ * predates the migration and so has none.
  */
 
 import { randomBytes } from 'node:crypto'
-import { userStorage } from '../src/lib/auth/user-storage.ts'
+import { fileURLToPath } from 'node:url'
+import path from 'node:path'
+
+// Load .env.local before the store is imported, so getSupabaseAdmin() sees the
+// project URL and service role key. Absent is fine when the environment is
+// already populated, for example in CI.
+try {
+  const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
+  process.loadEnvFile(path.join(projectRoot, '.env.local'))
+} catch {
+  // No .env.local here; rely on the ambient environment.
+}
+
+const { userStorage } = await import('../src/lib/auth/user-storage.ts')
 
 const DEFAULT_EMAIL = 'admin@jvican.com'
 const DEFAULT_NAME = 'JVican Super Admin'
@@ -120,8 +137,8 @@ async function main() {
     process.exit(1)
   }
 
-  const existing = userStorage.findByEmail(email)
-  const user = userStorage.upsertAdmin({ name, email, password })
+  const existing = await userStorage.findByEmail(email)
+  const user = await userStorage.upsertAdmin({ name, email, password })
 
   console.log('')
   console.log(existing ? 'Super admin reset' : 'Super admin created')
