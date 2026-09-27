@@ -2,15 +2,18 @@
  * Create or reset a super admin account in Supabase.
  *
  * Usage:
- *   node scripts/create_super_admin.mts [email]
+ *   node scripts/create_super_admin.mts [email] [--role admin|organizer]
  *
  * The password is never hardcoded. Resolution order:
  *   1. SUPER_ADMIN_PASSWORD env var
  *   2. Interactive hidden prompt (when a TTY is attached)
  *   3. A strong random password, printed once
  *
- * Re-running for an existing address resets its password and forces role=admin,
- * so an account that was created as an organizer can be promoted.
+ * Re-running for an existing address resets its password. The role defaults to
+ * admin, so an account that was created as an organizer can be promoted.
+ * Pass --role organizer to grant a password to an existing organizer without
+ * also handing them admin rights, which is what granting a password to an
+ * account that predates the migration usually needs.
  *
  * Accounts live in Supabase, so this reaches the same database as the deployed
  * app. That also makes it the way to grant a password to an account that
@@ -36,6 +39,64 @@ const { userStorage } = await import('../src/lib/auth/user-storage.ts')
 const DEFAULT_EMAIL = 'admin@jvican.com'
 const DEFAULT_NAME = 'JVican Super Admin'
 const MIN_PASSWORD_LENGTH = 12
+const ROLES = ['admin', 'organizer'] as const
+type Role = (typeof ROLES)[number]
+
+/**
+ * Splits argv into the positional email and an optional --role flag.
+ * `--role` accepts both `--role admin` and `--role=admin`.
+ */
+function parseArgs(argv: string[]): { email?: string; role: Role } {
+  let email: string | undefined
+  let role: Role = 'admin'
+
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i]
+
+    if (arg === '--role' || arg === '-r') {
+      const value = argv[++i]
+      if (!value) throw new Error('--role needs a value: admin or organizer')
+      if (!ROLES.includes(value as Role)) {
+        throw new Error(`--role must be one of: ${ROLES.join(', ')} (got "${value}")`)
+      }
+      role = value as Role
+      continue
+    }
+
+    if (arg.startsWith('--role=')) {
+      const value = arg.slice('--role='.length)
+      if (!ROLES.includes(value as Role)) {
+        throw new Error(`--role must be one of: ${ROLES.join(', ')} (got "${value}")`)
+      }
+      role = value as Role
+      continue
+    }
+
+    if (arg === '--help' || arg === '-h') {
+      console.log(
+        [
+          'Usage:',
+          '  npm run superadmin -- [email] [--role admin|organizer]',
+          '',
+          'Grants or resets a password for an account.',
+          '',
+          '  --role admin       (default) create or promote to a super admin',
+          '  --role organizer   set the password but keep organizer rights',
+          '',
+          'Examples:',
+          '  npm run superadmin',
+          '  npm run superadmin someone@example.com',
+          '  npm run superadmin someone@example.com --role organizer',
+        ].join('\n')
+      )
+      process.exit(0)
+    }
+
+    if (email === undefined) email = arg
+  }
+
+  return { email, role }
+}
 
 /** Reads a line from stdin without echoing it. Requires a TTY. */
 function readHidden(question: string): Promise<string> {
@@ -108,7 +169,7 @@ function validatePassword(pw: string): string | null {
 }
 
 async function main() {
-  const argEmail = process.argv[2]
+  const { email: argEmail, role } = parseArgs(process.argv.slice(2))
   const email = (argEmail || process.env.SUPER_ADMIN_EMAIL || DEFAULT_EMAIL).trim().toLowerCase()
 
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -138,15 +199,28 @@ async function main() {
   }
 
   const existing = await userStorage.findByEmail(email)
-  const user = await userStorage.upsertAdmin({ name, email, password })
+  const user = await userStorage.upsertAdmin({ name, email, password, role })
 
   console.log('')
-  console.log(existing ? 'Super admin reset' : 'Super admin created')
+  console.log(
+    existing
+      ? role === 'admin'
+        ? 'Super admin reset'
+        : 'Password set'
+      : role === 'admin'
+        ? 'Super admin created'
+        : 'Organizer account created'
+  )
   console.log('-------------------------------')
   console.log(`  Email:  ${user.email}`)
   console.log(`  Name:   ${user.name}`)
   console.log(`  Role:   ${user.role}`)
   console.log(`  User ID: ${user.id}`)
+
+  if (existing && role === 'admin' && existing.role !== 'admin') {
+    console.log('')
+    console.log(`  ^ Promoted from ${existing.role} to admin.`)
+  }
 
   if (passwordSource === 'generated') {
     console.log(`  Password: ${password}`)

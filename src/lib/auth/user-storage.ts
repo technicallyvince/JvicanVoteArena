@@ -253,11 +253,15 @@ async function upsertAdmin(params: {
   name: string
   email: string
   password: string
+  role?: 'organizer' | 'admin'
 }): Promise<UserAccount> {
   const normalized = normalizeEmail(params.email)
   const client = supabase()
   const passwordHash = bcrypt.hashSync(params.password, 10)
   const name = params.name?.trim()
+  // Promotion is the point of the tool, so admin stays the default. The flag
+  // exists to grant a password to a legacy account without also promoting it.
+  const role = params.role ?? 'admin'
 
   const existing = await findByEmail(normalized)
 
@@ -266,7 +270,7 @@ async function upsertAdmin(params: {
       .from('profiles')
       .update({
         password_hash: passwordHash,
-        role: 'admin',
+        role,
         ...(name ? { full_name: name } : {}),
       })
       .eq('id', existing.id)
@@ -284,7 +288,7 @@ async function upsertAdmin(params: {
       full_name: name || normalized.split('@')[0] || 'Administrator',
       email: normalized,
       password_hash: passwordHash,
-      role: 'admin',
+      role,
     })
     .select(PROFILE_COLUMNS)
     .single()
