@@ -142,6 +142,8 @@ export interface Receipt {
 
 export type EmailType =
   | 'RECEIPT'
+  | 'OTP'
+  | 'AUTH_NOTIFICATION'
   | 'PAYMENT_SUCCESS'
   | 'PAYMENT_FAILED'
   | 'PAYMENT_PENDING'

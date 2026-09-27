@@ -1,8 +1,7 @@
 "use client"
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react"
-import { getSupabaseBrowserClient } from "@/lib/supabase/client"
-import type { User, Session } from "@supabase/supabase-js"
+import React, { createContext, useContext } from "react"
+import { useSession, signIn, signOut, SessionProvider } from "next-auth/react"
 
 export interface AuthUser {
   id: string
@@ -13,216 +12,145 @@ export interface AuthUser {
 
 interface AuthContextType {
   user: AuthUser | null
-  supabaseUser: User | null
-  session: Session | null
+  session: any | null
   isAuthenticated: boolean
   isSuperAdmin: boolean
   isOrganizer: boolean
   isLoading: boolean
-  login: (email: string, password: string) => Promise<{ success: boolean; message: string }>
-  signup: (email: string, password: string, name: string) => Promise<{ success: boolean; message: string }>
+  requestOtp: (email: string, password?: string, type?: "login" | "signup", name?: string) => Promise<{ success: boolean; message: string; devOtp?: string }>
+  loginWithOtp: (email: string, password: string, otp: string) => Promise<{ success: boolean; message: string }>
+  signupWithOtp: (name: string, email: string, password: string, otp: string) => Promise<{ success: boolean; message: string }>
   changeAdminPassword: (oldPassword: string, newPassword: string) => Promise<{ success: boolean; message: string }>
   logout: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
-  supabaseUser: null,
   session: null,
   isAuthenticated: false,
   isSuperAdmin: false,
   isOrganizer: false,
   isLoading: true,
-  login: async () => ({ success: false, message: "" }),
-  signup: async () => ({ success: false, message: "" }),
+  requestOtp: async () => ({ success: false, message: "" }),
+  loginWithOtp: async () => ({ success: false, message: "" }),
+  signupWithOtp: async () => ({ success: false, message: "" }),
   changeAdminPassword: async () => ({ success: false, message: "" }),
   logout: async () => {},
 })
 
-// Super Admin emails list
-const SUPER_ADMIN_EMAILS = [
-  "admin@jvican.com",
-  "admin@voteflow.live",
-  "jvicanadmin@gmail.com",
-]
+function AuthContextProviderInner({ children }: { children: React.ReactNode }) {
+  const { data: session, status } = useSession()
+  const isLoading = status === "loading"
 
-function mapSupabaseUser(supaUser: User): AuthUser {
-  const email = supaUser.email || ""
-  const isAdminByEmail = SUPER_ADMIN_EMAILS.some(
-    (e) => e.toLowerCase() === email.toLowerCase()
-  ) || email.toLowerCase().startsWith("admin@")
-  const isAdminByMetadata = supaUser.user_metadata?.role === "admin"
-  const isAdmin = isAdminByEmail || isAdminByMetadata
+  const user: AuthUser | null = session?.user
+    ? {
+        id: session.user.id || "",
+        email: session.user.email || "",
+        name: session.user.name || "",
+        role: ((session.user as any).role as "organizer" | "admin") || "organizer",
+      }
+    : null
 
-  return {
-    id: supaUser.id,
-    email,
-    name: supaUser.user_metadata?.full_name || supaUser.user_metadata?.name || email.split("@")[0] || "User",
-    role: isAdmin ? "admin" : "organizer",
-  }
-}
+  const isAuthenticated = !!user
+  const isSuperAdmin = user?.role === "admin"
+  const isOrganizer = user?.role === "organizer"
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(null)
-  const [supabaseUser, setSupabaseUser] = useState<User | null>(null)
-  const [session, setSession] = useState<Session | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-
-  const supabase = getSupabaseBrowserClient()
-
-  const handleSession = useCallback((sess: Session | null) => {
-    setSession(sess)
-    if (sess?.user) {
-      const mapped = mapSupabaseUser(sess.user)
-      setUser(mapped)
-      setSupabaseUser(sess.user)
-    } else {
-      setUser(null)
-      setSupabaseUser(null)
-    }
-  }, [])
-
-  useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
-      handleSession(initialSession)
-      setIsLoading(false)
-    })
-
-    // Listen for auth state changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      handleSession(newSession)
-      setIsLoading(false)
-    })
-
-    return () => {
-      subscription.unsubscribe()
-    }
-  }, [supabase, handleSession])
-
-  const login = async (
+  const requestOtp = async (
     email: string,
-    password: string
-  ): Promise<{ success: boolean; message: string }> => {
+    password?: string,
+    type: "login" | "signup" = "login",
+    name?: string
+  ) => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const res = await fetch("/api/auth/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, type, name }),
+      })
+      const data = await res.json()
+      return data
+    } catch (err) {
+      return { success: false, message: "Network error sending OTP code." }
+    }
+  }
+
+  const loginWithOtp = async (email: string, password: string, otp: string) => {
+    try {
+      const res = await signIn("credentials", {
+        redirect: false,
         email,
         password,
+        otp,
       })
 
-      if (error) {
-        return { success: false, message: error.message }
+      if (res?.error) {
+        return { success: false, message: res.error || "Authentication failed." }
       }
 
-      if (data.session) {
-        handleSession(data.session)
-        return { success: true, message: "Signed in successfully!" }
-      }
-
-      return { success: false, message: "No session returned. Please try again." }
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "An unexpected error occurred."
-      return { success: false, message }
+      return { success: true, message: "Signed in successfully!" }
+    } catch (err: any) {
+      return { success: false, message: err?.message || "Login failed." }
     }
   }
 
-  const signup = async (
-    email: string,
-    password: string,
-    name: string
-  ): Promise<{ success: boolean; message: string }> => {
+  const signupWithOtp = async (name: string, email: string, password: string, otp: string) => {
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: name,
-          },
-        },
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password, otp }),
       })
-
-      if (error) {
-        return { success: false, message: error.message }
-      }
-
-      // If email confirmation is required
-      if (data.user && !data.session) {
-        return {
-          success: true,
-          message: "Account created! Please check your email to confirm your registration.",
-        }
-      }
-
-      // If auto-confirmed
-      if (data.session) {
-        handleSession(data.session)
-        return { success: true, message: "Account created and signed in!" }
-      }
-
-      return { success: true, message: "Account created successfully." }
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "An unexpected error occurred."
-      return { success: false, message }
+      const data = await res.json()
+      return data
+    } catch (err) {
+      return { success: false, message: "Network error during registration." }
     }
   }
 
-  const changeAdminPassword = async (
-    _oldPassword: string,
-    newPassword: string
-  ): Promise<{ success: boolean; message: string }> => {
-    if (!newPassword || newPassword.length < 6) {
-      return {
-        success: false,
-        message: "New password must be at least 6 characters long.",
-      }
-    }
-
+  const changeAdminPassword = async (oldPassword: string, newPassword: string) => {
     try {
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword,
+      const res = await fetch("/api/auth/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ oldPassword, newPassword }),
       })
-
-      if (error) {
-        return { success: false, message: error.message }
-      }
-
-      return { success: true, message: "Password updated successfully!" }
-    } catch {
-      return { success: false, message: "Failed to update password." }
+      const data = await res.json()
+      return data
+    } catch (err) {
+      return { success: false, message: "Network error updating password." }
     }
   }
 
   const logout = async () => {
-    await supabase.auth.signOut()
-    setUser(null)
-    setSupabaseUser(null)
-    setSession(null)
+    await signOut({ callbackUrl: "/login" })
   }
-
-  const isSuperAdmin = user?.role === "admin"
-  const isOrganizer = user?.role === "organizer"
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        supabaseUser,
         session,
-        isAuthenticated: !!user,
+        isAuthenticated,
         isSuperAdmin,
         isOrganizer,
         isLoading,
-        login,
-        signup,
+        requestOtp,
+        loginWithOtp,
+        signupWithOtp,
         changeAdminPassword,
         logout,
       }}
     >
       {children}
     </AuthContext.Provider>
+  )
+}
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  return (
+    <SessionProvider>
+      <AuthContextProviderInner>{children}</AuthContextProviderInner>
+    </SessionProvider>
   )
 }
 
