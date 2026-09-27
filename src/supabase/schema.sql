@@ -22,18 +22,9 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   updated_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
--- 1b. VERIFICATION CODES (Sign-up OTP)
--- Held here rather than in process memory so that requesting a code and
--- redeeming it can land on different serverless instances.
-CREATE TABLE IF NOT EXISTS public.auth_otps (
-  email TEXT PRIMARY KEY,
-  otp_hash TEXT NOT NULL,
-  expires_at TIMESTAMPTZ NOT NULL,
-  issued_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
-  attempts INT DEFAULT 0 NOT NULL
-);
-
-CREATE INDEX IF NOT EXISTS idx_auth_otps_expires_at ON public.auth_otps (expires_at);
+-- Verification codes are deliberately not stored. They are derived from a
+-- keyed digest of the address and the current time window, so nothing needs to
+-- be written for a code to be minted and later redeemed.
 
 -- 2. EVENTS TABLE (Contests)
 CREATE TABLE IF NOT EXISTS public.events (
@@ -304,7 +295,6 @@ CREATE INDEX IF NOT EXISTS idx_newsletter_status ON public.newsletter_subscriber
 -- ROW LEVEL SECURITY (RLS) POLICIES
 -- -----------------------------------------------------------------------------
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.auth_otps ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.nominees ENABLE ROW LEVEL SECURITY;
@@ -338,8 +328,6 @@ CREATE POLICY "Public can subscribe to newsletter" ON public.newsletter_subscrib
 -- were inert, because auth.uid() is always NULL without Supabase Auth, while
 -- implying that users could read their own row.
 CREATE POLICY "Service role manages profiles" ON public.profiles FOR ALL
-  USING (auth.role() = 'service_role') WITH CHECK (auth.role() = 'service_role');
-CREATE POLICY "Service role manages auth otps" ON public.auth_otps FOR ALL
   USING (auth.role() = 'service_role') WITH CHECK (auth.role() = 'service_role');
 
 -- Organizers & Admin Policies

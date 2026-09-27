@@ -40,7 +40,7 @@ export async function POST(req: Request) {
       )
     }
 
-    const otp = await userStorage.generateOtp(normalizedEmail, 10)
+    const otp = await userStorage.generateOtp(normalizedEmail)
     const emailResult = await sendOtpEmail({
       to: normalizedEmail,
       otp,

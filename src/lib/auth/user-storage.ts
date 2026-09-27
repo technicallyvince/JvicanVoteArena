@@ -1,6 +1,7 @@
-import { createHash, randomInt, randomUUID, timingSafeEqual } from 'crypto'
+import { createHmac, randomUUID, timingSafeEqual } from 'crypto'
 import bcrypt from 'bcryptjs'
 import { getSupabaseAdmin } from '../supabase/admin.ts'
+import { resolveAuthSecret } from './secret.ts'
 
 export interface UserAccount {
   id: string
@@ -25,14 +26,6 @@ interface ProfileRow {
   updated_at: string
 }
 
-interface OtpRow {
-  email: string
-  otp_hash: string
-  expires_at: string
-  issued_at: string
-  attempts: number
-}
-
 // Emails that are granted the admin role at sign up.
 const SUPER_ADMIN_EMAILS = [
   'admin@jvican.com',
@@ -40,14 +33,18 @@ const SUPER_ADMIN_EMAILS = [
   'jvicanadmin@gmail.com',
 ]
 
-// Minimum seconds between OTP sends for the same address
+// Minimum seconds between OTP sends for the same address, enforced per
+// instance. Losing this on a cold start is acceptable; it stops button
+// mashing, it is not a security control.
 const OTP_RESEND_COOLDOWN_SECONDS = 45
 
-// Wrong guesses allowed before the code is discarded and a new one is required.
-const MAX_OTP_ATTEMPTS = 5
+// Length of one code window. A code is valid for the window it was derived in
+// and the one before it, so a code mailed near a boundary still works.
+const OTP_WINDOW_SECONDS = 300
 
-// Minutes a code stays usable
-const OTP_TTL_MINUTES = 10
+// When a code was last requested, per instance. Deliberately not persisted:
+// Supabase holds accounts and profile rows only.
+const otpSentAt = new Map<string, number>()
 
 /**
  * Bootstrap accounts.
@@ -118,9 +115,45 @@ function isUniqueViolation(error: { code?: string } | null): boolean {
   return error?.code === '23505'
 }
 
-/** Codes are stored as a digest so the table never holds a usable code. */
-function hashOtp(otp: string): string {
-  return createHash('sha256').update(otp).digest('hex')
+/**
+ * Turns a PostgREST error into a real Error.
+ *
+ * supabase-js resolves with the failure rather than throwing, and the object it
+ * hands back is a plain object, not an Error instance. Throwing it directly
+ * meant callers using `err instanceof Error` saw nothing useful and reported a
+ * generic message, hiding the code and text that identify the actual fault.
+ */
+function fail(error: { code?: string; message?: string; details?: string } | null): never {
+  const detail = [error?.code, error?.message, error?.details].filter(Boolean).join(': ')
+  throw new Error(`Supabase request failed: ${detail || 'no detail returned'}`)
+}
+
+/**
+ * Derives the code for an address in a given window.
+ *
+ * The code is a keyed digest of the address and the window index rather than a
+ * stored random value, which is what makes verification self-reliant: nothing
+ * is written anywhere, so the request that mints a code and the request that
+ * redeems it can land on different serverless instances and still agree.
+ *
+ * The same inputs always give the same code, so requesting another code inside
+ * the same window does not invalidate the one already sitting in the inbox.
+ */
+function deriveOtp(email: string, window: number): string {
+  const digest = createHmac('sha256', resolveAuthSecret())
+    .update(`${email}:${window}`)
+    .digest()
+  return String(digest.readUInt32BE(0) % 1_000_000).padStart(6, '0')
+}
+
+function currentWindow(): number {
+  return Math.floor(Date.now() / (OTP_WINDOW_SECONDS * 1000))
+}
+
+function codesMatch(expected: string, provided: string): boolean {
+  const a = Buffer.from(expected, 'utf-8')
+  const b = Buffer.from(provided, 'utf-8')
+  return a.length === b.length && timingSafeEqual(a, b)
 }
 
 async function getUsers(): Promise<UserAccount[]> {
@@ -129,7 +162,7 @@ async function getUsers(): Promise<UserAccount[]> {
     .select(PROFILE_COLUMNS)
     .order('created_at', { ascending: true })
 
-  if (error) throw error
+  if (error) fail(error)
   return ((data || []) as ProfileRow[]).map(toAccount)
 }
 
@@ -149,7 +182,7 @@ async function findByEmail(email: string): Promise<UserAccount | null> {
     .eq('email', normalized)
     .maybeSingle()
 
-  if (error) throw error
+  if (error) fail(error)
   if (!data) return null
 
   const account = toAccount(data as ProfileRow)
@@ -177,7 +210,7 @@ async function findById(id: string): Promise<UserAccount | null> {
     .eq('id', id)
     .maybeSingle()
 
-  if (error) throw error
+  if (error) fail(error)
   return data ? toAccount(data as ProfileRow) : null
 }
 
@@ -211,7 +244,7 @@ async function createUser(params: {
   if (isUniqueViolation(error)) {
     throw new Error('An account with this email address already exists.')
   }
-  if (error) throw error
+  if (error) fail(error)
 
   return toAccount(data as ProfileRow)
 }
@@ -240,7 +273,7 @@ async function upsertAdmin(params: {
       .select(PROFILE_COLUMNS)
       .single()
 
-    if (error) throw error
+    if (error) fail(error)
     return toAccount(data as ProfileRow)
   }
 
@@ -259,7 +292,7 @@ async function upsertAdmin(params: {
   if (isUniqueViolation(error)) {
     throw new Error('An account with this email address already exists.')
   }
-  if (error) throw error
+  if (error) fail(error)
 
   return toAccount(data as ProfileRow)
 }
@@ -272,7 +305,7 @@ async function updatePassword(email: string, newPassword: string): Promise<boole
     .eq('email', normalized)
     .select('id')
 
-  if (error) throw error
+  if (error) fail(error)
   return (data || []).length > 0
 }
 
@@ -290,45 +323,26 @@ function verifyPassword(password: string, hash: string): boolean {
 }
 
 async function otpResendCooldown(email: string): Promise<number> {
-  const normalized = normalizeEmail(email)
+  const sentAt = otpSentAt.get(normalizeEmail(email))
+  if (!sentAt) return 0
 
-  const { data, error } = await supabase()
-    .from('auth_otps')
-    .select('issued_at, expires_at')
-    .eq('email', normalized)
-    .maybeSingle()
-
-  if (error) throw error
-  if (!data) return 0
-  if (new Date(data.expires_at).getTime() <= Date.now()) return 0
-
-  const elapsed = Math.floor((Date.now() - new Date(data.issued_at).getTime()) / 1000)
+  const elapsed = Math.floor((Date.now() - sentAt) / 1000)
   return Math.max(0, OTP_RESEND_COOLDOWN_SECONDS - elapsed)
 }
 
+/**
+ * Releases the resend cooldown. There is no code to delete, since the code is
+ * derived rather than stored; this exists so a send that failed downstream
+ * does not leave the address locked out for the rest of the cooldown.
+ */
 async function clearOtp(email: string): Promise<void> {
-  const { error } = await supabase().from('auth_otps').delete().eq('email', normalizeEmail(email))
-  if (error) throw error
+  otpSentAt.delete(normalizeEmail(email))
 }
 
-async function generateOtp(email: string, expiresInMinutes: number = OTP_TTL_MINUTES): Promise<string> {
-  const normalized = normalizeEmail(email)
-  const otp = String(randomInt(0, 1_000_000)).padStart(6, '0')
-  const now = Date.now()
-
-  const { error } = await supabase().from('auth_otps').upsert(
-    {
-      email: normalized,
-      otp_hash: hashOtp(otp),
-      expires_at: new Date(now + expiresInMinutes * 60_000).toISOString(),
-      issued_at: new Date(now).toISOString(),
-      attempts: 0,
-    },
-    { onConflict: 'email' }
-  )
-
-  if (error) throw error
-  return otp
+async function generateOtp(_email: string): Promise<string> {
+  const normalized = normalizeEmail(_email)
+  otpSentAt.set(normalized, Date.now())
+  return deriveOtp(normalized, currentWindow())
 }
 
 async function verifyOtp(
@@ -336,44 +350,24 @@ async function verifyOtp(
   inputOtp: string
 ): Promise<{ valid: boolean; message: string }> {
   const normalized = normalizeEmail(email)
+  const provided = String(inputOtp || '').trim()
 
-  const { data, error } = await supabase()
-    .from('auth_otps')
-    .select('*')
-    .eq('email', normalized)
-    .maybeSingle()
-
-  if (error) throw error
-  if (!data) {
-    return { valid: false, message: 'No active OTP found. Please request a new code.' }
+  if (!/^\d{6}$/.test(provided)) {
+    return { valid: false, message: 'Enter the 6-digit code from the email.' }
   }
 
-  const record = data as OtpRow
+  const window = currentWindow()
 
-  if (new Date(record.expires_at).getTime() <= Date.now()) {
-    await clearOtp(normalized)
-    return { valid: false, message: 'This code has expired. Please request a new one.' }
+  // Accept the previous window as well, so a code emailed moments before a
+  // boundary is still usable for the rest of its intended life.
+  if (codesMatch(deriveOtp(normalized, window), provided)) {
+    return { valid: true, message: 'Code verified.' }
+  }
+  if (codesMatch(deriveOtp(normalized, window - 1), provided)) {
+    return { valid: true, message: 'Code verified.' }
   }
 
-  if (record.attempts >= MAX_OTP_ATTEMPTS) {
-    await clearOtp(normalized)
-    return { valid: false, message: 'Too many attempts. Please request a new code.' }
-  }
-
-  const expected = Buffer.from(record.otp_hash, 'utf-8')
-  const actual = Buffer.from(hashOtp(inputOtp), 'utf-8')
-  const matches = expected.length === actual.length && timingSafeEqual(expected, actual)
-
-  if (!matches) {
-    await supabase()
-      .from('auth_otps')
-      .update({ attempts: record.attempts + 1 })
-      .eq('email', normalized)
-    return { valid: false, message: 'Incorrect code. Please try again.' }
-  }
-
-  await clearOtp(normalized)
-  return { valid: true, message: 'Code verified.' }
+  return { valid: false, message: 'That code is not correct. Please check and try again.' }
 }
 
 export const userStorage = {
