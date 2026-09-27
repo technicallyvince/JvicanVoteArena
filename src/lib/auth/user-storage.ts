@@ -36,6 +36,28 @@ const SUPER_ADMIN_EMAILS = [
 // Minimum seconds between OTP sends for the same address
 const OTP_RESEND_COOLDOWN_SECONDS = 45
 
+const IS_PRODUCTION = process.env.NODE_ENV === 'production'
+
+// Passwords used only when running `next dev` on a developer's machine, so
+// that a fresh clone is usable without extra setup. They are never accepted by
+// a production build.
+const LOCAL_DEV_ADMIN_PASSWORD = 'Admin@123456'
+const LOCAL_DEV_ORGANIZER_PASSWORD = 'Organizer@123456'
+
+/**
+ * Password for the initial super admin.
+ *
+ * Returns null in production unless SUPER_ADMIN_PASSWORD is set. A production
+ * deployment must never fall back to a password that is also written in this
+ * repository, otherwise anyone who can read the source can sign in as the
+ * super admin.
+ */
+function initialAdminPassword(): string | null {
+  const configured = process.env.SUPER_ADMIN_PASSWORD
+  if (configured && configured.trim()) return configured
+  return IS_PRODUCTION ? null : LOCAL_DEV_ADMIN_PASSWORD
+}
+
 function ensureDataDir() {
   if (!fs.existsSync(DATA_DIR)) {
     try {
@@ -49,30 +71,48 @@ function ensureDataDir() {
 function loadUsers(): UserAccount[] {
   ensureDataDir()
   if (!fs.existsSync(USERS_FILE)) {
+    const adminPassword = initialAdminPassword()
+
+    if (!adminPassword) {
+      // The filesystem on Vercel is read-only, so users.json can never be
+      // written there and this branch runs on every cold start. Seeding here
+      // would silently recreate the same well-known credentials each time.
+      console.error(
+        '[auth] No users.json found and SUPER_ADMIN_PASSWORD is not set, so no ' +
+          'accounts were seeded. Set SUPER_ADMIN_PASSWORD (and optionally ' +
+          'SUPER_ADMIN_EMAIL / SUPER_ADMIN_NAME) in the deployment environment ' +
+          'to provision the initial super admin, or move auth storage to a ' +
+          'writable database.'
+      )
+      return []
+    }
+
     // Seed default users if file does not exist
-    const defaultPasswordHash = bcrypt.hashSync('Admin@123456', 10)
-    const organizerPasswordHash = bcrypt.hashSync('Organizer@123456', 10)
+    const defaultPasswordHash = bcrypt.hashSync(adminPassword, 10)
 
     const defaultUsers: UserAccount[] = [
       {
         id: 'usr-admin-1',
-        name: 'JVican Super Admin',
-        email: 'admin@jvican.com',
+        name: process.env.SUPER_ADMIN_NAME?.trim() || 'JVican Super Admin',
+        email: (process.env.SUPER_ADMIN_EMAIL?.trim() || 'admin@jvican.com').toLowerCase(),
         passwordHash: defaultPasswordHash,
         role: 'admin',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
-      {
+    ]
+
+    if (!IS_PRODUCTION) {
+      defaultUsers.push({
         id: 'usr-organizer-1',
         name: 'Apex Events Organizer',
         email: 'organizer@jvican.com',
-        passwordHash: organizerPasswordHash,
+        passwordHash: bcrypt.hashSync(LOCAL_DEV_ORGANIZER_PASSWORD, 10),
         role: 'organizer',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-      },
-    ]
+      })
+    }
 
     try {
       fs.writeFileSync(USERS_FILE, JSON.stringify(defaultUsers, null, 2), 'utf-8')
