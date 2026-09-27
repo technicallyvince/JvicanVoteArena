@@ -41,20 +41,27 @@ export function getAppUrl(): string {
 }
 
 /**
- * Sender addresses configured through environment variables with clean defaults.
+ * Sender addresses configured through environment variables.
+ *
+ * The defaults use jvicanvotes.com.ng because that is the domain verified in
+ * Resend. Resend rejects any sender on an unverified domain, so falling back to
+ * a bare jvican.com address made every send fail with
+ * "The jvican.com domain is not verified" whenever the environment variables
+ * were absent, for example on Vercel. Add jvican.com to Resend and update these
+ * defaults if that domain becomes the sending domain.
  */
 export const EMAIL_FROM_RECEIPTS =
   process.env.EMAIL_FROM_RECEIPTS ||
   process.env.EMAIL_FROM ||
-  'JVican Receipts <receipts@jvican.com>'
+  'JVican Receipts <receipts@jvicanvotes.com.ng>'
 export const EMAIL_FROM_NOTIFICATIONS =
   process.env.EMAIL_FROM_NOTIFICATIONS ||
   process.env.EMAIL_FROM ||
-  'JVican Notifications <notifications@jvican.com>'
+  'JVican Notifications <notifications@jvicanvotes.com.ng>'
 export const EMAIL_FROM_NEWSLETTER =
   process.env.EMAIL_FROM_NEWSLETTER ||
   process.env.EMAIL_FROM ||
-  'JVican Newsletter <newsletter@jvican.com>'
+  'JVican Newsletter <newsletter@jvicanvotes.com.ng>'
 
 export const EMAIL_FROM = {
   RECEIPTS: EMAIL_FROM_RECEIPTS,

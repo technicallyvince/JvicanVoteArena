@@ -90,7 +90,8 @@ export interface BrevoSendResult {
  */
 export function parseEmailSender(senderStr: string): BrevoSenderPayload {
   if (!senderStr) {
-    return { email: 'notifications@jvican.com', name: 'JVican Arena' };
+    // Matches the domain verified for sending, see lib/email/resend.ts
+    return { email: 'notifications@jvicanvotes.com.ng', name: 'JVican Arena' };
   }
 
   const match = senderStr.match(/^(.*?)\s*<([^>]+)>$/);
