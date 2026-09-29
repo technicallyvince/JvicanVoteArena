@@ -1,6 +1,17 @@
 import React from "react"
+import type { Metadata } from "next"
 import Link from "next/link"
 import { Users, Trophy, ArrowUpRight, Sparkles, ShieldCheck, CheckCircle2, Lock } from "lucide-react"
+
+export const metadata: Metadata = {
+  title: "How It Works — Frictionless Voting & Event Studio",
+  description:
+    "Learn how JVican Vote Arena empowers voters with 10-second instant checkout and certified receipts, while offering organizers real-time analytics and automated settlement.",
+  openGraph: {
+    title: "How JVican Vote Arena Works | Transparent Voting Architecture",
+    description: "Zero voter registration, verified receipts, and bank-grade event management.",
+  },
+}
 
 export default function HowItWorksPage() {
   return (

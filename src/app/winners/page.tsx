@@ -1,8 +1,19 @@
 import React from "react"
+import type { Metadata } from "next"
 import Link from "next/link"
 import { db } from "@/lib/db"
 import { Trophy, ArrowRight, Sparkles } from "lucide-react"
 import { formatDate } from "@/lib/utils"
+
+export const metadata: Metadata = {
+  title: "Official Winners & Certified Champions",
+  description:
+    "Honoring crowned winners and champions from concluded voting events on JVican Vote Arena. Transparent, tamper-proof certified results.",
+  openGraph: {
+    title: "Official Winners & Certified Champions | JVican Vote Arena",
+    description: "Certified champions from concluded pageants, awards, and recognitions.",
+  },
+}
 
 export default function WinnersPage() {
   const allEvents = db.getEvents()

@@ -1,7 +1,18 @@
 import React from "react"
+import type { Metadata } from "next"
 import Link from "next/link"
 import { ShieldCheck, Lock, ArrowRight, ArrowUpRight, Sparkles } from "lucide-react"
 import { BrandLogo } from "@/components/ui/BrandLogo"
+
+export const metadata: Metadata = {
+  title: "About JVican Vote Arena — Philosophy & Trust Architecture",
+  description:
+    "Discover the engineering, security principles, and transparency standards behind JVican Vote Arena's verified multi-contest voting ecosystem.",
+  openGraph: {
+    title: "About JVican Vote Arena — Verified Voting Ecosystem",
+    description: "Built for trust, cryptographic verification, and instant voter participation.",
+  },
+}
 
 export default function AboutPage() {
   return (
