@@ -5,7 +5,6 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { AuthModal } from "@/components/auth/AuthModal"
 import { useAuth } from "@/lib/auth"
-import { ObsidianDomeWave } from "@/components/obsidian/ObsidianDomeWave"
 import { ArrowUpRight, ArrowRight, CheckCircle2, ShieldCheck, Trophy, Crown } from "lucide-react"
 
 export default function HomePage() {
@@ -29,7 +28,7 @@ export default function HomePage() {
       {/* ─────────────────────────────────────────────────────────────
           1. HERO SECTION (Clean, Solid High-Contrast Typography)
          ───────────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden bg-[#040404] pt-28 sm:pt-36 md:pt-40 pb-0 flex flex-col items-center text-center">
+      <section className="relative overflow-hidden bg-[#040404] pt-28 sm:pt-36 md:pt-40 pb-16 sm:pb-24 flex flex-col items-center text-center">
         <div className="relative z-10 mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 flex flex-col items-center">
           {/* Subtle Verified Indicator */}
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-[#0c0c0c] px-3.5 py-1 text-xs font-semibold text-neutral-300">
@@ -77,11 +76,6 @@ export default function HomePage() {
               </button>
             </Link>
           </div>
-        </div>
-
-        {/* Dome Matrix Canvas Graphic */}
-        <div className="relative mt-8 sm:mt-10 w-full max-w-6xl h-[190px] min-[480px]:h-[240px] sm:h-[340px] pointer-events-none">
-          <ObsidianDomeWave className="h-full w-full" glowColor="#C9A84C" />
         </div>
       </section>
 
