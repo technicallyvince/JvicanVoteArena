@@ -12,6 +12,8 @@ import {
   ShieldCheck,
 } from "lucide-react"
 import { BrandLogo } from "@/components/ui/BrandLogo"
+import { createClient } from "@/lib/supabase/server"
+import { getSupabaseAdmin } from "@/lib/supabase/admin"
 
 interface ReceiptVerificationPageProps {
   params: Promise<{ id: string }>
@@ -20,15 +22,58 @@ interface ReceiptVerificationPageProps {
 export default async function ReceiptVerificationPage({ params }: ReceiptVerificationPageProps) {
   const { id: publicId } = await params
 
-  const receipt = db.getReceiptByPublicId(publicId)
+  let receipt: any = db.getReceiptByPublicId(publicId)
+  let vote: any = receipt ? db.getVotes().find((v) => v.id === receipt.vote_id) : null
+  let event: any = vote ? db.getEventById(vote.event_id) : null
+  let nominee: any = vote ? db.getNomineeById(vote.nominee_id) : null
+  let category: any = vote ? db.getCategoryById(vote.category_id) : null
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const hasSupabase = supabaseUrl && !supabaseUrl.includes('placeholder')
+
+  if (!receipt && hasSupabase) {
+    try {
+      const admin = getSupabaseAdmin()
+      const supabase = await createClient()
+      const dbClient = admin || supabase
+      if (dbClient) {
+        const { data: rData } = await dbClient
+          .from('receipts')
+          .select('*')
+          .eq('public_id', publicId)
+          .maybeSingle()
+        if (rData) {
+          receipt = rData
+          const { data: vData } = await dbClient
+            .from('votes')
+            .select('*')
+            .eq('id', rData.vote_id)
+            .maybeSingle()
+          if (vData) {
+            vote = vData
+            const [eRes, nRes, cRes] = await Promise.all([
+              dbClient.from('events').select('*').eq('id', vData.event_id).maybeSingle(),
+              dbClient.from('nominees').select('*').eq('id', vData.nominee_id).maybeSingle(),
+              dbClient.from('categories').select('*').eq('id', vData.category_id).maybeSingle(),
+            ])
+            event = eRes.data || db.getEventById(vData.event_id)
+            nominee = nRes.data || db.getNomineeById(vData.nominee_id)
+            category = cRes.data || db.getCategoryById(vData.category_id)
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('Error retrieving receipt from Supabase:', err)
+    }
+  }
+
   if (!receipt) {
     notFound()
   }
 
-  const vote = db.getVotes().find((v) => v.id === receipt.vote_id)
-  const event = vote ? db.getEventById(vote.event_id) : null
-  const nominee = vote ? db.getNomineeById(vote.nominee_id) : null
-  const category = vote ? db.getCategoryById(vote.category_id) : null
+  if (vote && !event) event = db.getEventById(vote.event_id)
+  if (vote && !nominee) nominee = db.getNomineeById(vote.nominee_id)
+  if (vote && !category) category = db.getCategoryById(vote.category_id)
 
   return (
     <div className="py-8 sm:py-20 min-h-screen bg-[#06080e] relative overflow-hidden pt-20 sm:pt-28 selection:bg-[#C9A84C] selection:text-[#06080e]">

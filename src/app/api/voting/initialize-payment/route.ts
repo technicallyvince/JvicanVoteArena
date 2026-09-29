@@ -126,8 +126,8 @@ export async function POST(req: NextRequest) {
 
     // Unique payment reference
     const paymentRef = `JVA-${Date.now()}-${nanoid(6).toUpperCase()}`
-    const paymentId = nanoid()
-    const voteId = nanoid()
+    const paymentId = crypto.randomUUID()
+    const voteId = crypto.randomUUID()
 
     // 4. Create pending Payment & Vote records in database
     const payment = db.createPayment({

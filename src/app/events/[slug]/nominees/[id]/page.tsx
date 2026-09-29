@@ -19,6 +19,8 @@ import {
   Sparkles,
 } from "lucide-react"
 
+import { getSupabaseBrowserClient } from "@/lib/supabase/client"
+
 export default function CanonicalNomineeDetailPage() {
   const params = useParams()
   const slug = params?.slug as string
@@ -33,34 +35,80 @@ export default function CanonicalNomineeDetailPage() {
   const [isVoteModalOpen, setIsVoteModalOpen] = useState(false)
   const [copied, setCopied] = useState(false)
 
-  useEffect(() => {
-    fetch(`/api/events/details?slug=${encodeURIComponent(slug)}`, { cache: 'no-store' })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success && data.event) {
-          setEvent(data.event)
-          const foundNom = (data.nominees || []).find(
-            (n: any) => n.id === nomineeId || n.public_id === nomineeId || n.slug === nomineeId
-          )
-          setNominee(foundNom || null)
-          if (foundNom) {
-            const foundCat = (data.categories || []).find((c: any) => c.id === foundNom.category_id)
-            setCategory(foundCat || null)
-          }
-          if (Array.isArray(data.packages)) {
-            setPackages(data.packages)
-          }
-        } else {
-          setEvent(null)
-          setNominee(null)
+  const loadData = async (silent = true) => {
+    if (!slug) return
+    if (!silent) setIsLoading(true)
+    try {
+      const res = await fetch(`/api/events/details?slug=${encodeURIComponent(slug)}`, { cache: 'no-store' })
+      const data = await res.json()
+      if (data.success && data.event) {
+        setEvent(data.event)
+        const foundNom = (data.nominees || []).find(
+          (n: any) => n.id === nomineeId || n.public_id === nomineeId || n.slug === nomineeId
+        )
+        setNominee(foundNom || null)
+        if (foundNom) {
+          const foundCat = (data.categories || []).find((c: any) => c.id === foundNom.category_id)
+          setCategory(foundCat || null)
         }
-      })
-      .catch((err) => {
-        console.error("Failed to load nominee details:", err)
+        if (Array.isArray(data.packages)) {
+          setPackages(data.packages)
+        }
+      } else {
         setEvent(null)
         setNominee(null)
-      })
-      .finally(() => setIsLoading(false))
+      }
+    } catch (err) {
+      console.error("Failed to load nominee details:", err)
+      if (!silent) {
+        setEvent(null)
+        setNominee(null)
+      }
+    } finally {
+      if (!silent) setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    loadData(false)
+  }, [slug, nomineeId])
+
+  // Realtime Supabase updates for nominee votes
+  useEffect(() => {
+    if (!event?.id) return
+
+    const supabase = getSupabaseBrowserClient()
+    const channel = supabase
+      .channel(`realtime-nominee-${event.id}-${nomineeId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'votes',
+          filter: `event_id=eq.${event.id}`,
+        },
+        () => {
+          console.log('[Realtime] Vote updated, syncing candidate tally...')
+          loadData(true)
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [event?.id, nomineeId])
+
+  // Polling heartbeat every 6 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        loadData(true)
+      }
+    }, 6000)
+
+    return () => clearInterval(interval)
   }, [slug, nomineeId])
 
   if (isLoading) {
@@ -75,9 +123,8 @@ export default function CanonicalNomineeDetailPage() {
     notFound()
   }
 
-  const voteCount = db.getNomineeVoteCount(nominee.id)
-  const leaderboard = db.getLeaderboard(event.id, nominee.category_id)
-  const rank = leaderboard.findIndex((item) => item.nominee_id === nominee.id) + 1
+  const voteCount = nominee.vote_count !== undefined ? nominee.vote_count : db.getNomineeVoteCount(nominee.id)
+  const rank = nominee.rank || 1
 
   const isClosed = event.status === "closed" || new Date(event.end_date) <= new Date()
 

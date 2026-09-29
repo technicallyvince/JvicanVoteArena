@@ -46,12 +46,48 @@ export async function GET(req: NextRequest) {
         }
 
         if (data) {
+          // Fetch confirmed votes for this event to calculate live leaderboard and nominee vote counts
+          const { data: voteRecords } = await client!
+            .from('votes')
+            .select('nominee_id, quantity, category_id, status')
+            .eq('event_id', data.id)
+            .eq('status', 'confirmed')
+
+          const voteCountsMap: Record<string, number> = {}
+          let totalEventVotes = 0
+
+          if (Array.isArray(voteRecords)) {
+            for (const v of voteRecords) {
+              const qty = Number(v.quantity) || 0
+              voteCountsMap[v.nominee_id] = (voteCountsMap[v.nominee_id] || 0) + qty
+              totalEventVotes += qty
+            }
+          }
+
+          // Fallback check in local memory store if votes exist there
+          const localVotes = db.getVotes(data.id).filter((v) => v.status === 'confirmed')
+          for (const lv of localVotes) {
+            if (!voteRecords?.some((vr: any) => vr.nominee_id === lv.nominee_id && vr.quantity === lv.quantity)) {
+              voteCountsMap[lv.nominee_id] = (voteCountsMap[lv.nominee_id] || 0) + lv.quantity
+              totalEventVotes += lv.quantity
+            }
+          }
+
+          const nomineesWithVotes = (data.nominees || []).map((nom: any) => ({
+            ...nom,
+            vote_count: voteCountsMap[nom.id] || voteCountsMap[nom.public_id] || 0,
+          }))
+
           return NextResponse.json({
             success: true,
-            event: data,
+            event: {
+              ...data,
+              total_votes: totalEventVotes,
+            },
             categories: data.categories || [],
-            nominees: data.nominees || [],
+            nominees: nomineesWithVotes,
             packages: data.vote_packages || [],
+            votes: voteRecords || [],
           })
         }
       }
@@ -64,12 +100,25 @@ export async function GET(req: NextRequest) {
       else if (id) localEvent = db.getEventById(id)
 
       if (localEvent) {
+        const localNominees = db.getNominees(localEvent.id).map((n) => ({
+          ...n,
+          vote_count: db.getNomineeVoteCount(n.id),
+        }))
+        const totalVotes = db
+          .getVotes(localEvent.id)
+          .filter((v) => v.status === 'confirmed')
+          .reduce((sum, v) => sum + v.quantity, 0)
+
         return NextResponse.json({
           success: true,
-          event: localEvent,
+          event: {
+            ...localEvent,
+            total_votes: totalVotes,
+          },
           categories: db.getCategories(localEvent.id),
-          nominees: db.getNominees(localEvent.id),
+          nominees: localNominees,
           packages: db.getVotePackages(localEvent.id),
+          votes: db.getVotes(localEvent.id).filter((v) => v.status === 'confirmed'),
         })
       }
     }

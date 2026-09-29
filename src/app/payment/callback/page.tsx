@@ -25,52 +25,56 @@ function CallbackContent() {
   const [status, setStatus] = useState<"verifying" | "success" | "failed">("verifying")
   const [data, setData] = useState<any>(null)
   const [errorMsg, setErrorMsg] = useState<string>("")
+  const [retryCount, setRetryCount] = useState(0)
 
-  useEffect(() => {
+  const verify = async () => {
     if (!reference) {
       setStatus("failed")
       setErrorMsg("No transaction reference provided.")
       return
     }
 
-    const verify = async () => {
-      try {
-        const res = await fetch(`/api/voting/verify-payment?ref=${encodeURIComponent(reference)}`)
-        const json = await res.json()
+    setStatus("verifying")
+    setErrorMsg("")
 
-        if (json.success) {
-          setData(json)
-          setStatus("success")
-          // Fire celebration confetti
-          confetti({
-            particleCount: 120,
-            spread: 70,
-            origin: { y: 0.6 },
-          })
-        } else {
-          setStatus("failed")
-          setErrorMsg(json.error || "Payment verification failed.")
-        }
-      } catch (err: any) {
+    try {
+      const res = await fetch(`/api/voting/verify-payment?ref=${encodeURIComponent(reference)}`)
+      const json = await res.json()
+
+      if (json.success) {
+        setData(json)
+        setStatus("success")
+        // Fire celebration confetti
+        confetti({
+          particleCount: 120,
+          spread: 70,
+          origin: { y: 0.6 },
+        })
+      } else {
         setStatus("failed")
-        setErrorMsg(err.message || "Network error occurred during verification.")
+        setErrorMsg(json.error || "Payment verification could not be confirmed.")
       }
+    } catch (err: any) {
+      setStatus("failed")
+      setErrorMsg(err.message || "Network error occurred during verification.")
     }
+  }
 
+  useEffect(() => {
     verify()
-  }, [reference])
+  }, [reference, retryCount])
 
   if (status === "verifying") {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center p-6 text-center">
-        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 dark:bg-slate-800 animate-pulse">
+        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-500 border border-amber-500/20 animate-pulse">
           <Clock className="h-8 w-8 animate-spin" />
         </div>
-        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mt-6">
+        <h2 className="text-2xl font-bold text-white mt-6">
           Verifying Payment with TransactPay...
         </h2>
-        <p className="text-sm text-slate-500 mt-2 max-w-sm">
-          Please do not close this window. We are confirming your transaction and recording your votes on the official ledger.
+        <p className="text-sm text-slate-400 mt-2 max-w-sm">
+          Please do not close this window. We are confirming your transaction with the payment gateway and recording your votes on the official ledger.
         </p>
       </div>
     )
@@ -79,16 +83,30 @@ function CallbackContent() {
   if (status === "failed") {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center p-6 text-center">
-        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-red-50 text-red-600 dark:bg-red-950/40">
+        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-red-500/10 text-red-500 border border-red-500/20">
           <XCircle className="h-8 w-8" />
         </div>
-        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mt-6">
-          Payment Verification Failed
+        <h2 className="text-2xl font-bold text-white mt-6">
+          Payment Verification Status
         </h2>
-        <p className="text-sm text-red-600 mt-2 max-w-sm font-medium">{errorMsg}</p>
-        <div className="mt-8 flex gap-3">
+        <p className="text-sm text-red-400 mt-2 max-w-md font-medium">{errorMsg}</p>
+        {reference && (
+          <p className="text-xs font-mono text-slate-400 mt-2">
+            Reference: <span className="text-slate-200">{reference}</span>
+          </p>
+        )}
+        <div className="mt-8 flex flex-wrap gap-3 justify-center">
+          <Button
+            variant="primary"
+            onClick={() => setRetryCount((c) => c + 1)}
+            className="font-bold"
+          >
+            Re-check Payment Status
+          </Button>
           <Link href="/events">
-            <Button variant="primary">Return to Events</Button>
+            <Button variant="outline" className="border-white/20 text-slate-300 hover:text-white">
+              Return to Events
+            </Button>
           </Link>
         </div>
       </div>

@@ -4,8 +4,9 @@ import { generateReceiptNumber } from '@/lib/utils'
 import { sendReceiptEmail } from '@/lib/email/sender'
 import { sendPaymentStatusEmail } from '@/lib/email/send-payment-status'
 import { nanoid } from 'nanoid'
-import { transactPay } from '@/lib/payments/transactpay/client'
 import { TransactPayWebhookPayload } from '@/lib/payments/transactpay/types'
+import { createClient } from '@/lib/supabase/server'
+import { getSupabaseAdmin } from '@/lib/supabase/admin'
 
 export interface WebhookProcessingResult {
   success: boolean
@@ -54,11 +55,11 @@ export async function processTransactPayPayment(
   payload: TransactPayWebhookPayload,
   source: 'webhook' | 'server_verification' = 'webhook'
 ): Promise<WebhookProcessingResult> {
-  // Extract reference matching TransactPay payload variations:
-  // - data.orderReference / data.paymentReference
-  // - orderReference / paymentReference
-  // - order.reference / reference
+  // Extract reference matching TransactPay payload variations
   const d = (payload as any).data || (payload as any).Data || {}
+  const orderObj = d.order || payload.order || {}
+  const paymentObj = d.payment || {}
+
   const reference =
     d.orderReference ||
     d.OrderReference ||
@@ -66,7 +67,7 @@ export async function processTransactPayPayment(
     (payload as any).orderReference ||
     (payload as any).OrderReference ||
     payload.reference ||
-    payload.order?.reference ||
+    orderObj.reference ||
     (payload as any).order_reference ||
     d.paymentReference ||
     (payload as any).paymentReference
@@ -79,8 +80,46 @@ export async function processTransactPayPayment(
     }
   }
 
-  const vote = db.getVoteByRef(reference)
-  const payment = db.getPayments().find((p) => p.payment_reference === reference)
+  let vote = db.getVoteByRef(reference)
+  let payment = db.getPayments().find((p) => p.payment_reference === reference)
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const hasSupabase = supabaseUrl && !supabaseUrl.includes('placeholder')
+
+  // Supabase fallback lookup
+  if ((!vote || !payment) && hasSupabase) {
+    try {
+      const admin = getSupabaseAdmin()
+      const supabase = await createClient()
+      const dbClient = admin || supabase
+      if (dbClient) {
+        if (!vote) {
+          const { data: vData } = await dbClient
+            .from('votes')
+            .select('*')
+            .eq('payment_reference', reference)
+            .maybeSingle()
+          if (vData) {
+            vote = vData
+            db.createVote(vData)
+          }
+        }
+        if (!payment) {
+          const { data: pData } = await dbClient
+            .from('payments')
+            .select('*')
+            .eq('payment_reference', reference)
+            .maybeSingle()
+          if (pData) {
+            payment = pData
+            db.createPayment(pData)
+          }
+        }
+      }
+    } catch (dbErr) {
+      console.warn('[processTransactPayPayment] Supabase lookup error:', dbErr)
+    }
+  }
 
   if (!vote || !payment) {
     console.warn(`[TransactPay] Transaction reference not found in database: ${reference}`)
@@ -104,29 +143,39 @@ export async function processTransactPayPayment(
   }
 
   // Determine final gateway status based on StatusID (5 = Successful) and status strings
-  const statusId = d.statusId || d.StatusId || (payload as any).statusId || (payload as any).StatusId
+  const statusId =
+    d.statusId ??
+    d.StatusId ??
+    orderObj.statusId ??
+    orderObj.StatusId ??
+    paymentObj.statusId ??
+    (payload as any).statusId
+
   const statusString = String(
     d.status ||
     d.Status ||
+    d.paymentStatus ||
+    orderObj.status ||
+    orderObj.paymentStatus ||
+    paymentObj.status ||
     payload.status ||
-    payload.order?.status ||
     ''
-  ).toLowerCase()
+  ).toLowerCase().trim()
 
   const eventName = (payload.event || '').toLowerCase()
 
   const isSuccess =
     statusId === 5 ||
     statusId === '5' ||
-    statusString === 'successful' ||
-    statusString === 'success' ||
-    statusString === 'paid' ||
+    ['successful', 'success', 'paid', 'approved', 'completed', 'settled'].includes(statusString) ||
     eventName === 'payment.success' ||
     eventName === 'order.paid'
 
   const gatewayRef =
     d.paymentReference ||
     d.PaymentReference ||
+    orderObj.processorReference ||
+    orderObj.reference ||
     (payload as any).paymentReference ||
     payload.gateway_reference ||
     payload.id ||
@@ -140,9 +189,10 @@ export async function processTransactPayPayment(
     // 2. Generate cryptographically unique public receipt
     const receiptPublicId = `rc_${nanoid(12)}`
     const receiptNumber = generateReceiptNumber()
+    const receiptId = crypto.randomUUID()
 
     const receipt = db.createReceipt({
-      id: nanoid(),
+      id: receiptId,
       vote_id: vote.id,
       receipt_number: receiptNumber,
       public_id: receiptPublicId,
@@ -154,12 +204,54 @@ export async function processTransactPayPayment(
       created_at: new Date().toISOString(),
     })
 
-    // 3. Look up related entities for email formatting
+    // 3. Update Supabase if configured
+    if (hasSupabase) {
+      try {
+        const admin = getSupabaseAdmin()
+        const supabase = await createClient()
+        const dbClient = admin || supabase
+        if (dbClient) {
+          await dbClient
+            .from('payments')
+            .update({
+              status: 'successful',
+              gateway_reference: gatewayRef,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('payment_reference', reference)
+
+          await dbClient
+            .from('votes')
+            .update({
+              status: 'confirmed',
+              payment_id: payment.id,
+            })
+            .eq('payment_reference', reference)
+
+          await dbClient.from('receipts').upsert({
+            id: receiptId,
+            vote_id: vote.id,
+            receipt_number: receiptNumber,
+            public_id: receiptPublicId,
+            voter_email: vote.voter_email,
+            amount: vote.total_amount,
+            currency: vote.currency,
+            issued_at: receipt.issued_at,
+            email_status: 'queued',
+            created_at: receipt.created_at,
+          })
+        }
+      } catch (sbErr) {
+        console.warn('[processTransactPayPayment] Supabase sync error:', sbErr)
+      }
+    }
+
+    // 4. Look up related entities for email formatting
     const event = db.getEventById(vote.event_id)
     const nominee = db.getNomineeById(vote.nominee_id)
     const category = db.getCategoryById(vote.category_id)
 
-    // 4. Send official transactional receipt email asynchronously
+    // 5. Send official transactional receipt email asynchronously
     sendReceiptEmail({
       to: vote.voter_email,
       subject: `Official Voting Receipt [${receiptNumber}] - ${event?.name || 'JVican Vote Arena'}`,
@@ -202,9 +294,36 @@ export async function processTransactPayPayment(
     db.updatePaymentStatus(reference, 'failed', gatewayRef)
     db.updateVoteStatus(reference, 'failed', payment.id)
 
+    if (hasSupabase) {
+      try {
+        const admin = getSupabaseAdmin()
+        const supabase = await createClient()
+        const dbClient = admin || supabase
+        if (dbClient) {
+          await dbClient
+            .from('payments')
+            .update({
+              status: 'failed',
+              gateway_reference: gatewayRef,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('payment_reference', reference)
+
+          await dbClient
+            .from('votes')
+            .update({
+              status: 'failed',
+            })
+            .eq('payment_reference', reference)
+        }
+      } catch (sbErr) {
+        console.warn('[processTransactPayPayment] Supabase sync error:', sbErr)
+      }
+    }
+
     const event = db.getEventById(vote.event_id)
     const nominee = db.getNomineeById(vote.nominee_id)
-    
+
     sendPaymentStatusEmail({
       payment,
       status: 'failed',
@@ -221,3 +340,4 @@ export async function processTransactPayPayment(
     }
   }
 }
+

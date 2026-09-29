@@ -45,7 +45,30 @@ export async function GET(req: NextRequest) {
         }
 
         if (data && data.length > 0) {
-          events = data
+          const { data: allConfirmedVotes } = await client!
+            .from('votes')
+            .select('event_id, nominee_id, quantity')
+            .eq('status', 'confirmed')
+
+          const votesByNominee: Record<string, number> = {}
+          const votesByEvent: Record<string, number> = {}
+
+          if (Array.isArray(allConfirmedVotes)) {
+            for (const v of allConfirmedVotes) {
+              const qty = Number(v.quantity) || 0
+              votesByNominee[v.nominee_id] = (votesByNominee[v.nominee_id] || 0) + qty
+              votesByEvent[v.event_id] = (votesByEvent[v.event_id] || 0) + qty
+            }
+          }
+
+          events = data.map((ev: any) => ({
+            ...ev,
+            total_votes: votesByEvent[ev.id] || 0,
+            nominees: (ev.nominees || []).map((nom: any) => ({
+              ...nom,
+              vote_count: votesByNominee[nom.id] || votesByNominee[nom.public_id] || 0,
+            })),
+          }))
         }
       }
     }
@@ -58,8 +81,15 @@ export async function GET(req: NextRequest) {
       }
       events = localEvents.map((e) => ({
         ...e,
+        total_votes: db
+          .getVotes(e.id)
+          .filter((v) => v.status === 'confirmed')
+          .reduce((sum, v) => sum + v.quantity, 0),
         categories: db.getCategories(e.id),
-        nominees: db.getNominees(e.id),
+        nominees: db.getNominees(e.id).map((n) => ({
+          ...n,
+          vote_count: db.getNomineeVoteCount(n.id),
+        })),
       }))
     }
 

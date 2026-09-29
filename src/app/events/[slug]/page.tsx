@@ -34,6 +34,7 @@ import {
   UserPlus,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { getSupabaseBrowserClient } from "@/lib/supabase/client"
 
 export default function EventDetailPage() {
   const params = useParams()
@@ -44,25 +45,69 @@ export default function EventDetailPage() {
   const [nominees, setNominees] = useState<any[]>([])
   const [packages, setPackages] = useState<any[]>([])
   const [isLoadingEvent, setIsLoadingEvent] = useState(true)
+  const [lastUpdatedTime, setLastUpdatedTime] = useState<Date>(new Date())
 
+  const refreshEventData = async (silent = true) => {
+    if (!slug) return
+    if (!silent) setIsLoadingEvent(true)
+    try {
+      const res = await fetch(`/api/events/details?slug=${encodeURIComponent(slug)}`, { cache: 'no-store' })
+      const data = await res.json()
+      if (data.success && data.event) {
+        setEvent(data.event)
+        if (Array.isArray(data.categories)) setCategories(data.categories)
+        if (Array.isArray(data.nominees)) setNominees(data.nominees)
+        if (Array.isArray(data.packages)) setPackages(data.packages)
+        setLastUpdatedTime(new Date())
+      }
+    } catch (err) {
+      console.error("Error refreshing live event data:", err)
+    } finally {
+      if (!silent) setIsLoadingEvent(false)
+    }
+  }
+
+  // Initial fetch
   useEffect(() => {
-    fetch(`/api/events/details?slug=${encodeURIComponent(slug)}`, { cache: 'no-store' })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success && data.event) {
-          setEvent(data.event)
-          if (Array.isArray(data.categories)) setCategories(data.categories)
-          if (Array.isArray(data.nominees)) setNominees(data.nominees)
-          if (Array.isArray(data.packages)) setPackages(data.packages)
-        } else {
-          setEvent(null)
+    refreshEventData(false)
+  }, [slug])
+
+  // Real-time Supabase postgres_changes channel
+  useEffect(() => {
+    if (!event?.id) return
+
+    const supabase = getSupabaseBrowserClient()
+    const channel = supabase
+      .channel(`realtime-votes-event-${event.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'votes',
+          filter: `event_id=eq.${event.id}`,
+        },
+        (payload) => {
+          console.log('[Realtime] Vote update received:', payload)
+          refreshEventData(true)
         }
-      })
-      .catch((err) => {
-        console.error("Error loading event from database:", err)
-        setEvent(null)
-      })
-      .finally(() => setIsLoadingEvent(false))
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [event?.id])
+
+  // Background polling heartbeat every 6 seconds for continuous resilience
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        refreshEventData(true)
+      }
+    }, 6000)
+
+    return () => clearInterval(interval)
   }, [slug])
 
   if (!event && !isLoadingEvent) {
@@ -95,10 +140,14 @@ export default function EventDetailPage() {
     Math.ceil((new Date(event.end_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
   )
 
-  const totalVotesCast = db
-    .getVotes(event.id)
-    .filter((v) => v.status === "confirmed")
-    .reduce((sum, v) => sum + v.quantity, 0)
+  const totalVotesCast =
+    event.total_votes !== undefined
+      ? event.total_votes
+      : nominees.reduce((sum: number, n: any) => sum + (n.vote_count || 0), 0) ||
+        db
+          .getVotes(event.id)
+          .filter((v) => v.status === "confirmed")
+          .reduce((sum, v) => sum + v.quantity, 0)
 
   const handleShare = async () => {
     const shareUrl = window.location.href
@@ -124,11 +173,25 @@ export default function EventDetailPage() {
 
   const activeCategoryObj = categories.find((cat) => cat.id === selectedCategory)
 
-  // Leaderboard data
-  const leaderboard = db.getLeaderboard(
-    event.id,
-    selectedCategory && selectedCategory !== "all" ? selectedCategory : undefined
-  )
+  // Dynamic Leaderboard data using authoritative vote counts
+  const categoriesMap = new Map(categories.map((c) => [c.id, c.name]))
+  const candidatesForLeaderboard = (
+    selectedCategory && selectedCategory !== "all"
+      ? nominees.filter((n) => n.category_id === selectedCategory)
+      : nominees
+  ).map((n) => ({
+    nominee_id: n.id,
+    nominee_name: n.name,
+    nominee_slug: n.slug,
+    nominee_image: n.image_url,
+    public_id: n.public_id,
+    category_id: n.category_id,
+    category_name: categoriesMap.get(n.category_id) || "General Category",
+    vote_count: n.vote_count ?? db.getNomineeVoteCount(n.id) ?? 0,
+    rank: 0,
+  }))
+  candidatesForLeaderboard.sort((a, b) => b.vote_count - a.vote_count)
+  const leaderboard = candidatesForLeaderboard.map((item, idx) => ({ ...item, rank: idx + 1 }))
 
   // Top 3 Podium for Leaderboard
   const top1 = leaderboard[0]
@@ -525,7 +588,7 @@ export default function EventDetailPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                     {filteredNominees.map((c) => {
                       const category = categories.find((cat) => cat.id === c.category_id)
-                      const voteCount = db.getNomineeVoteCount(c.id)
+                      const voteCount = c.vote_count !== undefined ? c.vote_count : db.getNomineeVoteCount(c.id)
 
                       return (
                         <NomineeCard
@@ -665,10 +728,16 @@ export default function EventDetailPage() {
 
             {/* Complete Ranked Standings List / Leaderboard */}
             <div className="rounded-3xl border border-white/[0.08] bg-[#0a0a0a]/90 p-4 sm:p-6 shadow-xl backdrop-blur-xl">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm sm:text-base font-extrabold text-white">
-                  Event Standings &amp; Full Leaderboard
-                </h3>
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                <div className="flex items-center gap-2.5">
+                  <h3 className="text-sm sm:text-base font-extrabold text-white">
+                    Event Standings &amp; Full Leaderboard
+                  </h3>
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-0.5 text-[10px] font-bold text-emerald-400">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping" />
+                    Live Standings
+                  </span>
+                </div>
                 <span className="text-[11px] sm:text-xs text-neutral-400 font-semibold">
                   {leaderboard.length} Nominees Ranked
                 </span>
