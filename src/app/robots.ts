@@ -17,6 +17,9 @@ export default function robots(): MetadataRoute.Robots {
           '/winners',
           '/how-it-works',
           '/about',
+          '/terms',
+          '/privacy',
+          '/refund-policy',
           '/receipt/*',
         ],
         disallow: [
