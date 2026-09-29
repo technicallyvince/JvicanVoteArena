@@ -73,72 +73,12 @@
 }
 
 /* ═══════════════════════════════════════════════
-   PREMIUM ANIMATIONS
+   PREMIUM MOTION & HOVER TOKENS (150-200ms ease)
 ═══════════════════════════════════════════════ */
 
-/* Gold shimmer sweep — use on CTA buttons */
-@keyframes shimmer-gold {
-  0%   { background-position: -200% center; }
-  100% { background-position:  200% center; }
-}
-
-/* Gentle float for hero badge */
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50%       { transform: translateY(-4px); }
-}
-
-/* Soft gold pulse ring */
-@keyframes pulse-gold {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(201, 168, 76, 0.35); }
-  50%       { box-shadow: 0 0 0 8px rgba(201, 168, 76, 0); }
-}
-
-/* Subtle glow breathe for premium surfaces */
-@keyframes glow-breathe {
-  0%, 100% { opacity: 0.6; }
-  50%       { opacity: 1; }
-}
-
-/* ═══════════════════════════════════════════════
-   ANIMATION UTILITY CLASSES
-═══════════════════════════════════════════════ */
-
-.animate-float {
-  animation: float 4s ease-in-out infinite;
-}
-
-.animate-pulse-gold {
-  animation: pulse-gold 2.5s ease-in-out infinite;
-}
-
-.animate-glow-breathe {
-  animation: glow-breathe 3s ease-in-out infinite;
-}
-
-/* Gold shimmer button overlay — uses ::before so it never fights
-   the element's own background-image (e.g. Tailwind gradients) */
-.btn-shimmer {
-  position: relative;
-  overflow: hidden;
-}
-.btn-shimmer::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: linear-gradient(
-    105deg,
-    transparent 35%,
-    rgba(255, 255, 255, 0.18) 50%,
-    transparent 65%
-  );
-  background-size: 200% 100%;
-  background-position: -200% center;
-  pointer-events: none;
-  transition: background-position 0s;
-}
-.btn-shimmer:hover::before {
-  animation: shimmer-gold 1.2s linear infinite;
+/* Standard smooth transition helper */
+.transition-smooth {
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, opacity 150ms ease;
 }
 
 /* ═══════════════════════════════════════════════
@@ -149,7 +89,7 @@
   font-size: clamp(2.5rem, 6vw, 4.75rem);
   line-height: 1.05;
   letter-spacing: -0.04em;
-  font-weight: 900;
+  font-weight: 800;
 }
 
 .text-fluid-hero {
@@ -160,48 +100,30 @@
 }
 
 /* ═══════════════════════════════════════════════
-   GOLD GRADIENT TEXT UTILITY
-═══════════════════════════════════════════════ */
-
-.text-gold-gradient {
-  background: linear-gradient(135deg, #D4B86A 0%, #C9A84C 40%, #A07828 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* ═══════════════════════════════════════════════
    CARD FOUNDATIONS
 ═══════════════════════════════════════════════ */
 
 .card-base {
   background-color: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-2xl);
-  transition: background-color 0.2s ease-out, border-color 0.2s ease-out,
-    transform 0.2s ease-out;
+  border-radius: var(--radius-lg);
+  transition: background-color 180ms ease, border-color 180ms ease;
 }
 
 .card-hover {
-  transition: background-color 0.25s ease-out, border-color 0.25s ease-out,
-    transform 0.28s ease-out, box-shadow 0.28s ease-out;
+  transition: background-color 180ms ease, border-color 180ms ease;
 }
 
 .card-hover:hover {
-  border-color: rgba(201, 168, 76, 0.30);
-  box-shadow:
-    0 12px 40px -12px rgba(0, 0, 0, 0.9),
-    0 0 30px -6px rgba(201, 168, 76, 0.12);
-  transform: translateY(-3px);
+  border-color: rgba(201, 168, 76, 0.35);
 }
 
 /* ═══════════════════════════════════════════════
-   GOLD ACCENT GLOW SURFACE
+   GOLD ACCENT SURFACE
 ═══════════════════════════════════════════════ */
 
 .surface-gold-border {
   border: 1px solid rgba(201, 168, 76, 0.20);
-  box-shadow: inset 0 1px 0 rgba(212, 184, 106, 0.06);
 }
 
 /* ═══════════════════════════════════════════════

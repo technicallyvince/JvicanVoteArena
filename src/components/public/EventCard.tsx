@@ -38,7 +38,7 @@ export function EventCard({
   return (
     <div
       className={cn(
-        "group relative flex flex-col overflow-hidden rounded-3xl border border-white/[0.07] bg-[#0a0a0a] transition-all duration-300 hover:border-[#C9A84C]/30 hover:shadow-[0_12px_40px_-12px_rgba(0,0,0,0.95),0_0_30px_-6px_rgba(201,168,76,0.12)] hover:-translate-y-1 text-white shadow-2xl shadow-black/70",
+        "group relative flex flex-col overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0a0a0a] transition-colors duration-180 hover:border-[#C9A84C]/40 text-white",
         isFeatured && "md:col-span-2 md:row-span-2",
         className
       )}
@@ -56,58 +56,56 @@ export function EventCard({
             "https://images.unsplash.com/photo-1511578314322-379afb476865?w=1600&auto=format&fit=crop&q=80"
           }
           alt={event.name}
-          className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out brightness-[0.80] group-hover:brightness-95"
+          className="h-full w-full object-cover transition-opacity duration-300 brightness-[0.80] group-hover:brightness-90"
         />
         {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/20 to-black/20" />
-        {/* Top gold shimmer line on hover */}
-        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-[#C9A84C]/0 to-transparent group-hover:via-[#C9A84C]/40 transition-all duration-500" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/20 to-transparent" />
 
         {/* Top Status & Price Badges */}
         <div className="absolute top-3.5 left-3.5 right-3.5 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             {isLive && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/90 px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-white shadow-md backdrop-blur-md">
-                <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-black">
+                <span className="h-1.5 w-1.5 rounded-full bg-black" />
                 Live Now
               </span>
             )}
             {isUpcoming && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-sky-500/90 px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-white shadow-md backdrop-blur-md">
+              <span className="inline-flex items-center gap-1 rounded-full bg-neutral-800 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-neutral-300 border border-white/10">
                 <Clock className="h-3 w-3" />
                 Upcoming
               </span>
             )}
             {isClosed && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-neutral-900/90 px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-neutral-300 shadow-md backdrop-blur-md border border-white/10">
+              <span className="inline-flex items-center gap-1 rounded-full bg-neutral-900 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-neutral-400 border border-white/10">
                 <CheckCircle2 className="h-3 w-3 text-[#C9A84C]" />
                 Concluded
               </span>
             )}
             {event.is_featured && !isFeatured && (
-              <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-[#C9A84C]/15 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#C9A84C] backdrop-blur-md border border-[#C9A84C]/25">
+              <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-[#C9A84C]/15 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#C9A84C] border border-[#C9A84C]/25">
                 <Crown className="h-3 w-3 text-[#C9A84C]" />
                 Featured
               </span>
             )}
           </div>
 
-          <div className="rounded-full bg-black/75 backdrop-blur-md px-3 py-1 text-xs font-bold text-[#C9A84C] border border-[#C9A84C]/20 shadow-sm">
+          <div className="rounded-full bg-black/80 px-3 py-1 text-xs font-bold text-[#C9A84C] border border-white/10">
             {formatCurrency(event.vote_price, event.currency)}
             <span className="text-[10px] text-neutral-400 font-normal"> / vote</span>
           </div>
         </div>
 
-        {/* Floating title overlay on image */}
+        {/* Title overlay on image */}
         <div className="absolute bottom-3 left-4 right-4 text-white">
-          <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-[#C9A84C] mb-1">
+          <div className="flex items-center gap-2 text-[11px] font-semibold text-[#C9A84C] mb-1">
             <span>{categoriesCount} {categoriesCount === 1 ? "Category" : "Categories"}</span>
             <span className="text-white/20">•</span>
             <span>{nomineesCount} Nominees</span>
           </div>
           <h3
             className={cn(
-              "font-extrabold tracking-tight text-white line-clamp-1 group-hover:text-[#D4B86A] transition-colors duration-300",
+              "font-bold tracking-tight text-white line-clamp-1 group-hover:text-[#D4B86A] transition-colors duration-180",
               isFeatured ? "text-2xl sm:text-3xl" : "text-xl"
             )}
           >

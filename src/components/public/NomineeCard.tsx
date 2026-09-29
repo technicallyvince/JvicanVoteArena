@@ -30,7 +30,7 @@ export function NomineeCard({
   showRank = false,
 }: NomineeCardProps) {
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-3xl border border-white/[0.07] bg-[#0a0c14] transition-all duration-300 hover:border-[#C9A84C]/30 hover:shadow-[0_12px_40px_-12px_rgba(0,0,0,0.95),0_0_30px_-6px_rgba(201,168,76,0.12)] hover:-translate-y-1 text-white shadow-2xl shadow-black/70">
+    <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0a0a0a] transition-colors duration-180 hover:border-[#C9A84C]/40 text-white">
       {/* Nominee Image Container */}
       <div className="relative aspect-3/4 w-full overflow-hidden bg-neutral-950">
         <img
@@ -39,29 +39,27 @@ export function NomineeCard({
             "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80"
           }
           alt={nominee.name}
-          className="h-full w-full object-cover object-top group-hover:scale-105 transition-transform duration-700 ease-out brightness-[0.82] group-hover:brightness-95"
+          className="h-full w-full object-cover object-top brightness-[0.85] transition-opacity duration-300 group-hover:brightness-95"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0c14] via-[#0a0c14]/10 to-black/20" />
-        {/* Top gold shimmer line on hover */}
-        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-[#C9A84C]/0 to-transparent group-hover:via-[#C9A84C]/40 transition-all duration-500" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/10 to-transparent" />
 
         {/* Top Badges */}
         <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
-          <div className="rounded-full bg-black/75 backdrop-blur-md px-3 py-1 text-[11px] font-mono font-bold text-[#C9A84C] border border-[#C9A84C]/15 shadow-xs">
+          <div className="rounded-full bg-black/80 px-3 py-1 text-[11px] font-mono font-bold text-[#C9A84C] border border-white/10">
             #{nominee.public_id}
           </div>
 
           {showRank && rank !== undefined && (
             <div
               className={cn(
-                "flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-extrabold shadow-sm backdrop-blur-md",
+                "flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold border",
                 rank === 1
-                  ? "bg-[#C9A84C] text-[#0a0c14] font-black ring-2 ring-[#C9A84C]/30"
+                  ? "bg-[#C9A84C] text-[#040404] border-[#C9A84C]"
                   : rank === 2
-                  ? "bg-slate-200 text-slate-950"
+                  ? "bg-slate-200 text-slate-950 border-white/20"
                   : rank === 3
-                  ? "bg-[#7A5C1E] text-white"
-                  : "bg-black/70 text-neutral-200 border border-white/10"
+                  ? "bg-[#7A5C1E] text-white border-white/20"
+                  : "bg-black/80 text-neutral-300 border-white/10"
               )}
             >
               {rank === 1 ? <Crown className="h-3 w-3" /> : <Trophy className="h-3 w-3" />}
@@ -72,10 +70,10 @@ export function NomineeCard({
 
         {/* Bottom image overlay details */}
         <div className="absolute bottom-3 left-3 right-3 text-white">
-          <span className="block text-[10px] font-bold uppercase tracking-wider text-[#C9A84C] truncate mb-0.5">
+          <span className="block text-[10px] font-semibold text-[#C9A84C] truncate mb-0.5">
             {categoryName}
           </span>
-          <h3 className="text-lg sm:text-xl font-extrabold tracking-tight text-white line-clamp-1 group-hover:text-[#D4B86A] transition-colors duration-300">
+          <h3 className="text-lg font-bold tracking-tight text-white line-clamp-1 group-hover:text-[#D4B86A] transition-colors duration-180">
             {nominee.name}
           </h3>
         </div>
@@ -85,15 +83,12 @@ export function NomineeCard({
       <div className="flex flex-1 flex-col justify-between p-4">
         <div>
           {/* Vote Count */}
-          <div className="flex items-center justify-between rounded-2xl bg-[#0e1018] px-3.5 py-2.5 border border-white/[0.05]">
-            <span className="text-xs font-semibold text-slate-500">
+          <div className="flex items-center justify-between rounded-xl bg-[#111111] px-3.5 py-2.5 border border-white/[0.06]">
+            <span className="text-xs font-medium text-neutral-400">
               Verified Votes
             </span>
-            <div className="flex items-center gap-1.5 font-extrabold text-sm text-white">
+            <div className="flex items-center gap-1.5 font-bold text-sm text-white">
               <span>{voteCount.toLocaleString()}</span>
-              <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">
-                Tallied
-              </span>
             </div>
           </div>
 
