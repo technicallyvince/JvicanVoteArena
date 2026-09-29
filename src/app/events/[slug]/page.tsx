@@ -233,31 +233,31 @@ export default function EventDetailPage() {
             <div className="space-y-3">
               {/* Badges Bar */}
               <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1 rounded-full bg-[#C9A84C]/15 px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider text-[#D4B86A] border border-[#C9A84C]/30 backdrop-blur-md">
+                <span className="inline-flex items-center gap-1 rounded-full bg-white/[0.04] border border-white/[0.08] px-3 py-1 text-[11px] font-bold text-neutral-300">
                   JVican Vote Arena
                 </span>
                 {isPending && (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/20 px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider text-amber-400 border border-amber-500/30 backdrop-blur-md">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/15 px-3 py-1 text-[11px] font-bold text-amber-400 border border-amber-500/25">
                     <Clock className="h-3.5 w-3.5 text-amber-400" />
-                    PENDING REVIEW
+                    Pending Review
                   </span>
                 )}
                 {isLive && !isPending && (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/90 px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider text-white shadow-md backdrop-blur-md">
-                    <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
-                    LIVE VOTING
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/25 px-3 py-1 text-[11px] font-bold text-emerald-400">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                    Live Voting
                   </span>
                 )}
                 {isClosed && (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-neutral-800/90 px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider text-neutral-300 border border-white/10 backdrop-blur-md">
-                    <CheckCircle2 className="h-3.5 w-3.5 text-[#C9A84C]" />
-                    CONCLUDED
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-white/[0.04] px-3 py-1 text-[11px] font-bold text-neutral-400 border border-white/[0.08]">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-neutral-400" />
+                    Concluded
                   </span>
                 )}
-                <span className="rounded-full bg-white/10 px-3 py-1 text-[11px] font-bold text-neutral-200 backdrop-blur-md border border-white/5">
+                <span className="rounded-full bg-white/[0.04] px-3 py-1 text-[11px] font-medium text-neutral-300 border border-white/[0.08]">
                   {categories.length} {categories.length === 1 ? "Category" : "Categories"}
                 </span>
-                <span className="rounded-full bg-white/10 px-3 py-1 text-[11px] font-bold text-neutral-200 backdrop-blur-md border border-white/5">
+                <span className="rounded-full bg-white/[0.04] px-3 py-1 text-[11px] font-medium text-neutral-300 border border-white/[0.08]">
                   {nominees.length} Nominees
                 </span>
               </div>
@@ -442,11 +442,8 @@ export default function EventDetailPage() {
                       <div
                         key={cat.id}
                         onClick={() => setSelectedCategory(cat.id)}
-                        className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-white/[0.08] bg-[#0a0a0a] p-6 sm:p-7 text-white transition-all duration-300 hover:-translate-y-1 hover:border-[#C9A84C]/35 hover:shadow-[0_12px_40px_-12px_rgba(0,0,0,0.95),0_0_30px_-6px_rgba(201,168,76,0.12)] cursor-pointer shadow-2xl shadow-black/80"
+                        className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0a0a0a] p-6 sm:p-7 text-white transition-colors duration-200 hover:border-[#C9A84C]/40 cursor-pointer"
                       >
-                        {/* Top corner subtle glow */}
-                        <div className="absolute top-0 right-0 h-32 w-32 bg-gradient-to-bl from-[#C9A84C]/10 via-transparent to-transparent pointer-events-none rounded-bl-full" />
-
                         <div>
                           {/* Category Badge & Contenders Count */}
                           <div className="flex items-center justify-between gap-2 mb-4">
@@ -727,14 +724,14 @@ export default function EventDetailPage() {
             )}
 
             {/* Complete Ranked Standings List / Leaderboard */}
-            <div className="rounded-3xl border border-white/[0.08] bg-[#0a0a0a]/90 p-4 sm:p-6 shadow-xl backdrop-blur-xl">
+            <div className="rounded-2xl border border-white/[0.08] bg-[#0a0a0a] p-4 sm:p-6">
               <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
                 <div className="flex items-center gap-2.5">
-                  <h3 className="text-sm sm:text-base font-extrabold text-white">
+                  <h3 className="text-sm sm:text-base font-bold text-white">
                     Event Standings &amp; Full Leaderboard
                   </h3>
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-0.5 text-[10px] font-bold text-emerald-400">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping" />
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/25 px-2.5 py-0.5 text-[10px] font-bold text-emerald-400">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
                     Live Standings
                   </span>
                 </div>

@@ -64,27 +64,24 @@ export default function WinnersPage() {
   })
 
   return (
-    <div className="py-10 sm:py-16 min-h-screen bg-[#050608] relative overflow-hidden pt-24 sm:pt-28 selection:bg-[#C9A84C] selection:text-[#0a0c14]">
-      {/* Background glow flares */}
-      <div className="absolute top-1/4 left-1/3 w-[320px] sm:w-[600px] h-[220px] sm:h-[350px] bg-[#C9A84C]/5 rounded-full blur-[140px] pointer-events-none" />
-
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
+    <div className="py-10 sm:py-16 min-h-screen bg-[#040404] text-white pt-24 sm:pt-28 selection:bg-[#C9A84C] selection:text-[#040404]">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Page Header */}
-        <div className="max-w-3xl">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#C9A84C]/25 bg-[#C9A84C]/10 px-3.5 py-1 text-xs font-bold uppercase tracking-widest text-[#C9A84C] mb-3 backdrop-blur-md">
-            <Sparkles className="h-3.5 w-3.5 text-[#C9A84C]" />
+        <div className="max-w-3xl border-b border-white/[0.08] pb-6 sm:pb-8 mb-8">
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-[#0c0c0c] px-3.5 py-1 text-xs font-semibold text-neutral-300 mb-3">
+            <Trophy className="h-3.5 w-3.5 text-[#C9A84C]" />
             <span>Certified Champions</span>
           </div>
-          <h1 className="text-3xl min-[420px]:text-4xl sm:text-5xl font-black text-white tracking-tight">
+          <h1 className="text-3xl min-[420px]:text-4xl sm:text-5xl font-extrabold text-white tracking-tight">
             Official Event Winners
           </h1>
-          <p className="mt-3 text-xs sm:text-base text-slate-400 leading-relaxed">
+          <p className="mt-3 text-xs sm:text-base text-neutral-400 leading-relaxed">
             Honoring crowned champions from concluded voting events. Results become official only after voting deadlines close, 1,000+ vote qualification thresholds are met, and tallies are certified.
           </p>
         </div>
 
         {/* Management Qualification Rules Banner */}
-        <div className="mt-8 rounded-2xl border border-[#C9A84C]/30 bg-[#C9A84C]/5 p-5 sm:p-6 backdrop-blur-md">
+        <div className="rounded-2xl border border-white/[0.08] bg-[#0a0a0a] p-5 sm:p-6 mb-10">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="space-y-1">
               <h3 className="text-xs font-bold uppercase tracking-wider text-[#D4B86A]">
@@ -101,11 +98,11 @@ export default function WinnersPage() {
         </div>
 
         {/* Winners Grid */}
-        <div className="mt-10 sm:mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           {winnersList.map(({ event, category, winner, isQualified, isTwoContestantVoid, contestantCount, year }) => (
             <div
               key={`${event.id}-${category.id}`}
-              className="group overflow-hidden rounded-3xl border border-white/[0.07] bg-[#0a0c14] transition-all duration-300 hover:border-[#C9A84C]/35 hover:shadow-[0_12px_40px_-12px_rgba(0,0,0,0.95),0_0_30px_-6px_rgba(201,168,76,0.12)] flex flex-col shadow-2xl shadow-black/80"
+              className="group overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0a0a0a] transition-colors duration-200 hover:border-[#C9A84C]/40 flex flex-col"
             >
               {/* Winner Header Photo */}
               <div className="relative aspect-4/3 w-full overflow-hidden bg-neutral-950">
