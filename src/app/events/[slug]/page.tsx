@@ -839,7 +839,7 @@ export default function EventDetailPage() {
                 <ul className="space-y-2 text-xs text-neutral-400 list-disc list-inside leading-relaxed">
                   <li>Each vote is priced authoritatively at {formatCurrency(event.vote_price, event.currency)}.</li>
                   <li>Supporters can vote multiple times across any category to back their favorite nominees.</li>
-                  <li>All payments are processed securely through TransactPay with immediate cryptographically signed receipts.</li>
+                  <li>All payments are processed securely with immediate cryptographically signed receipts.</li>
                   <li>Live standings update in real-time until the official closing date.</li>
                 </ul>
               </div>

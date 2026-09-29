@@ -71,7 +71,7 @@ function CallbackContent() {
           <Clock className="h-8 w-8 animate-spin" />
         </div>
         <h2 className="text-2xl font-bold text-white mt-6">
-          Verifying Payment with TransactPay...
+          Verifying Payment...
         </h2>
         <p className="text-sm text-slate-400 mt-2 max-w-sm">
           Please do not close this window. We are confirming your transaction with the payment gateway and recording your votes on the official ledger.

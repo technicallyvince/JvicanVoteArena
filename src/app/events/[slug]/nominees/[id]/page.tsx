@@ -316,7 +316,7 @@ export default function CanonicalNomineeDetailPage() {
                 {isClosed ? "Voting Closed" : `Vote for ${nominee.name}`}
               </Button>
               <p className="text-[11px] text-center text-slate-400 mt-2">
-                Processed securely with TransactPay • Cryptographic public receipt generated instantly
+                Processed securely with 256-bit encryption • Cryptographic public receipt generated instantly
               </p>
             </div>
           </div>

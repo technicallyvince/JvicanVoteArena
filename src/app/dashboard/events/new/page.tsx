@@ -80,7 +80,7 @@ export default function EventCreationWizardPage() {
   const [votingConfig, setVotingConfig] = useState({
     votePrice: "100",
     currency: "NGN",
-    payoutBank: "TransactPay Automated Settlement",
+    payoutBank: "Automated Settlement",
     showLiveResults: true,
   })
 
@@ -401,7 +401,7 @@ export default function EventCreationWizardPage() {
             Create an Event
           </h1>
           <p className="mt-2 text-xs sm:text-sm text-slate-400">
-            Set up your categories, enroll nominees, and launch authoritative voting with TransactPay in minutes.
+            Set up your categories, enroll nominees, and launch authoritative voting in minutes.
           </p>
         </div>
 

@@ -76,7 +76,7 @@ function SimulateCheckoutContent() {
             </div>
             <div className="flex justify-between text-slate-400">
               <span>Gateway Engine:</span>
-              <span className="font-semibold text-emerald-400">TransactPay Direct Hosted</span>
+              <span className="font-semibold text-emerald-400">Secure Direct Hosted</span>
             </div>
           </div>
         </div>
@@ -105,7 +105,7 @@ function SimulateCheckoutContent() {
         </div>
 
         <div className="mt-6 text-center text-[11px] text-slate-500">
-          TransactPay Payment Engine • Official Checkout Simulation
+          Secure Payment Engine • Official Checkout Simulation
         </div>
       </div>
     </div>

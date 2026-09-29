@@ -44,7 +44,7 @@ export function generatePaymentStatusEmailHtml(data: PaymentStatusEmailData): st
       badgeBg: 'rgba(245, 158, 11, 0.15)',
       badgeBorder: 'rgba(245, 158, 11, 0.35)',
       title: 'Payment Verification In Progress',
-      message: `We received your payment order of <strong>${formatCurrency(data.amount, data.currency)}</strong> for <strong>${data.eventName}</strong>. TransactPay is verifying the bank settlement. Once confirmed, your votes will automatically be added and a verified receipt will be delivered.`,
+      message: `We received your payment order of <strong>${formatCurrency(data.amount, data.currency)}</strong> for <strong>${data.eventName}</strong>. We are verifying the bank settlement. Once confirmed, your votes will automatically be added and a verified receipt will be delivered.`,
       btnText: 'Check Event Standings',
       btnUrl: `${appUrl}/events`,
     },

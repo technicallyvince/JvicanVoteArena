@@ -51,7 +51,7 @@ export default function HomePage() {
 
           {/* Key Guarantees */}
           <div className="mt-6 flex flex-wrap items-center justify-center gap-x-5 sm:gap-x-7 gap-y-2 text-xs text-neutral-400">
-            {["TransactPay Verified", "Immutable Receipts", "Live Tallies", "Zero Duplicate Votes"].map((t) => (
+            {["Securely Encrypted", "Immutable Receipts", "Live Tallies", "Zero Duplicate Votes"].map((t) => (
               <span key={t} className="flex items-center gap-1.5 whitespace-nowrap">
                 <CheckCircle2 className="h-3.5 w-3.5 text-[#C9A84C] shrink-0" />
                 {t}
@@ -131,7 +131,7 @@ export default function HomePage() {
                 </h3>
               </div>
               <p className="mt-6 text-xs text-neutral-400 leading-relaxed">
-                Direct payments via cards, USSD, and bank transfers powered by TransactPay.
+                Direct payments via cards, USSD, and bank transfers with instant verification.
               </p>
             </div>
 
@@ -186,7 +186,7 @@ export default function HomePage() {
                   Host beauty pageants, talent recognitions, school awards, and cultural competitions. Set up categories, add nominees, and collect verified votes in minutes.
                 </p>
                 <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-xs text-neutral-400">
-                  {["Free setup", "TransactPay Verified", "Live Standings", "Instant Receipts"].map((f) => (
+                  {["Free setup", "Instant Verification", "Live Standings", "Certified Receipts"].map((f) => (
                     <span key={f} className="flex items-center gap-1.5 whitespace-nowrap">
                       <CheckCircle2 className="h-3.5 w-3.5 text-[#C9A84C] shrink-0" />
                       {f}

@@ -36,7 +36,7 @@ export const metadata: Metadata = {
     "paid voting portal",
     "beauty pageant voting",
     "award voting system",
-    "TransactPay verified voting",
+    "instant verified voting",
     "live leaderboards",
     "instant voter receipts",
     "contest organizer portal",
@@ -163,7 +163,7 @@ export default function RootLayout({
           <main className="flex-1">{children}</main>
           <Footer />
         </AuthProvider>
-        {/* Official TransactPay Standard Kit Web SDK */}
+        {/* Payment Gateway Checkout SDK */}
         <Script
           src="https://payment-web-sdk.transactpay.ai/v1/checkout"
           strategy="afterInteractive"

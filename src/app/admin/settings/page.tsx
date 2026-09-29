@@ -40,7 +40,7 @@ export default function AdminSettingsPage() {
   const [minWithdrawal, setMinWithdrawal] = useState<number>(1000);
   const [maintenanceMode, setMaintenanceMode] = useState<boolean>(false);
   const [manualApproval, setManualApproval] = useState<boolean>(true);
-  const [gateway, setGateway] = useState<string>('TransactPay AI / Standard Kit Escrow');
+  const [gateway, setGateway] = useState<string>('Standard Escrow Engine');
 
   // Password change states
   const [currentPassword, setCurrentPassword] = useState('');

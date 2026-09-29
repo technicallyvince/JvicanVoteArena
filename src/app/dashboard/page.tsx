@@ -63,7 +63,7 @@ export default function DashboardOverviewPage() {
               Dashboard Overview
             </h1>
             <p className="text-xs sm:text-sm text-slate-400 mt-1">
-              Real-time monitor for voting events, verified receipts, and TransactPay settlement.
+              Real-time monitor for voting events, verified receipts, and automated settlement.
             </p>
           </div>
 
@@ -118,7 +118,7 @@ export default function DashboardOverviewPage() {
               {formatCurrency(totalRevenue, "NGN")}
             </p>
             <span className="text-[11px] text-emerald-400 font-bold mt-1.5 inline-flex items-center gap-1">
-              <TrendingUp className="h-3 w-3" /> TransactPay Authoritative
+              <TrendingUp className="h-3 w-3" /> Fully Verified
             </span>
           </div>
 
@@ -289,7 +289,7 @@ export default function DashboardOverviewPage() {
               <h2 className="text-lg font-bold text-white">
                 Recent Activity
               </h2>
-              <p className="text-xs text-slate-400">Live feed of verified vote transactions processed through TransactPay.</p>
+              <p className="text-xs text-slate-400">Live feed of verified vote transactions recorded in the ledger.</p>
             </div>
             <span className="rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-bold text-emerald-400 border border-emerald-500/30">
               Live Stream Active

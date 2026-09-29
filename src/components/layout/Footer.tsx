@@ -33,7 +33,7 @@ export function Footer() {
             <div className="flex flex-wrap items-center gap-2 sm:gap-3 pt-1 text-xs font-semibold">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-white/[0.04] border border-white/[0.08] px-3 py-1.5 text-neutral-300">
                 <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
-                TransactPay Encrypted
+                256-Bit Encrypted
               </span>
               <span className="inline-flex items-center gap-1.5 rounded-full bg-[#C9A84C]/06 border border-[#C9A84C]/15 px-3 py-1.5 text-[#C9A84C]">
                 <Mail className="h-3.5 w-3.5 text-[#C9A84C]" />
@@ -110,7 +110,7 @@ export function Footer() {
         <div className="mt-10 sm:mt-14 border-t border-white/[0.05] pt-6 sm:pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-neutral-500 text-center sm:text-left">
           <p>© {new Date().getFullYear()} JVican Vote Arena. All rights reserved.</p>
           <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 font-medium">
-            <span>Powered by TransactPay &amp; Supabase</span>
+            <span>Authoritative Voting Engine &amp; Supabase</span>
             <span>•</span>
             <Link href="/about" className="hover:text-[#C9A84C] transition-colors">Privacy &amp; Terms</Link>
           </div>

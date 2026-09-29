@@ -376,7 +376,7 @@ export function VoteModal({
             </Button>
             <div className="flex items-center justify-center gap-1.5 text-[10px] sm:text-[11px] text-neutral-400 text-center">
               <ShieldCheck className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
-              <span>TransactPay Authoritative Pricing • Instant Verified Proof</span>
+              <span>Server-Authoritative Pricing • Instant Verified Proof</span>
             </div>
           </div>
         </form>

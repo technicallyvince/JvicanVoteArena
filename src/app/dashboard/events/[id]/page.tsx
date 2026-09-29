@@ -477,8 +477,8 @@ export default function EventStudioPage() {
                   Status &amp; Integrity
                 </span>
                 <div className="flex items-center gap-2 mt-2">
-                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse" />
-                  <span className="text-sm font-bold text-white">TransactPay Authoritative</span>
+                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
+                  <span className="text-sm font-bold text-white">Authoritative Ledger</span>
                 </div>
                 <p className="text-xs text-slate-400 mt-2">
                   Votes are cryptographically anchored and audited for zero duplicates.

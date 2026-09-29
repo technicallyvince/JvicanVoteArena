@@ -65,7 +65,7 @@ export default function HowItWorksPage() {
               <span className="text-xs font-bold text-[#C9A84C] block mb-2">Step 3</span>
               <h3 className="text-base font-bold text-white mb-1.5">Review &amp; Checkout</h3>
               <p className="text-xs text-neutral-400 leading-relaxed">
-                Review your event, nominee, and price breakdown before completing payment via TransactPay.
+                Review your event, nominee, and price breakdown before completing payment securely.
               </p>
             </div>
 
@@ -127,7 +127,7 @@ export default function HowItWorksPage() {
             </button>
           </Link>
           <p className="text-xs text-neutral-500">
-            Free setup • TransactPay verified • Automated settlement
+            Free setup • Instant verification • Automated settlement
           </p>
         </div>
       </div>

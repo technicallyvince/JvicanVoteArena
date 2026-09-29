@@ -71,7 +71,7 @@ export default function AboutPage() {
                 Idempotent Webhook Security
               </h3>
               <p className="text-xs text-neutral-400 leading-relaxed">
-                Integrated with TransactPay, our processing engine guarantees that duplicate webhooks, network retries, or browser refreshes never double-count votes or distort revenues.
+                Our cryptographic processing engine guarantees that duplicate webhooks, network retries, or browser refreshes never double-count votes or distort revenues.
               </p>
             </div>
           </div>
