@@ -834,7 +834,7 @@ export default function EventDetailPage() {
                 </p>
 
                 <h4 className="text-xs sm:text-sm font-extrabold text-white mt-6 mb-2">
-                  Voting Integrity &amp; Rules
+                  Voting Integrity &amp; General Rules
                 </h4>
                 <ul className="space-y-2 text-xs text-neutral-400 list-disc list-inside leading-relaxed">
                   <li>Each vote is priced authoritatively at {formatCurrency(event.vote_price, event.currency)}.</li>
@@ -842,6 +842,33 @@ export default function EventDetailPage() {
                   <li>All payments are processed securely with immediate cryptographically signed receipts.</li>
                   <li>Live standings update in real-time until the official closing date.</li>
                 </ul>
+
+                {/* Official Rules Notice Box */}
+                <div className="mt-6 rounded-2xl border border-[#C9A84C]/30 bg-[#C9A84C]/5 p-4 sm:p-5">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Award className="h-4 w-4 text-[#C9A84C]" />
+                    <h5 className="text-xs font-bold uppercase tracking-wider text-[#D4B86A]">
+                      All Contestants to Note the Official Rules
+                    </h5>
+                  </div>
+                  <ul className="space-y-2 text-xs text-neutral-300">
+                    <li className="flex items-start gap-2">
+                      <span className="text-[#C9A84C] font-bold">•</span>
+                      <span>
+                        Contestants must pull up to a thousand (<strong>1,000 Votes or above</strong>) to be able to qualify for the above AWARDS.
+                      </span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-[#C9A84C] font-bold">•</span>
+                      <span>
+                        If in a Category there are two contestants, then they have to pull up <strong>1,000 votes and above</strong> to avoid void votes.
+                      </span>
+                    </li>
+                  </ul>
+                  <div className="mt-3 pt-2.5 border-t border-[#C9A84C]/20 text-[11px] text-neutral-400">
+                    By the Management: <strong className="text-white">JVICAN MASCOT INFLATABLE ENTERTAINMENT</strong>
+                  </div>
+                </div>
               </div>
             </div>
 

@@ -110,9 +110,11 @@ export function Footer() {
         <div className="mt-10 sm:mt-14 border-t border-white/[0.05] pt-6 sm:pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-neutral-500 text-center sm:text-left">
           <p>© {new Date().getFullYear()} JVican Vote Arena. All rights reserved.</p>
           <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 font-medium">
-            <span>Authoritative Voting Engine &amp; Supabase</span>
+            <Link href="/terms" className="hover:text-[#C9A84C] transition-colors">Terms of Service</Link>
             <span>•</span>
-            <Link href="/about" className="hover:text-[#C9A84C] transition-colors">Privacy &amp; Terms</Link>
+            <Link href="/privacy" className="hover:text-[#C9A84C] transition-colors">Privacy Policy</Link>
+            <span>•</span>
+            <Link href="/refund-policy" className="hover:text-[#C9A84C] transition-colors">Refund Policy</Link>
           </div>
         </div>
       </div>

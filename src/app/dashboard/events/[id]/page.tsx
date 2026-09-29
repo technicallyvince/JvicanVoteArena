@@ -235,9 +235,24 @@ export default function EventStudioPage() {
     document.body.removeChild(link)
   }
 
+  // Sync settings form when event is loaded
+  useEffect(() => {
+    if (event) {
+      setSettingsData({
+        name: event.name || "",
+        description: event.description || "",
+        votePrice: (event.vote_price || 100).toString(),
+        startDate: event.start_date ? event.start_date.split("T")[0] : "",
+        endDate: event.end_date ? event.end_date.split("T")[0] : "",
+        bannerUrl: event.cover_image_url || "",
+      })
+    }
+  }, [event?.id, event?.name, event?.description, event?.vote_price, event?.start_date, event?.end_date, event?.cover_image_url])
+
+  const [isSavingSettings, setIsSavingSettings] = useState(false)
   const [settingsError, setSettingsError] = useState("")
 
-  const handleSaveSettings = (e: React.FormEvent) => {
+  const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault()
     setSettingsError("")
 
@@ -247,16 +262,42 @@ export default function EventStudioPage() {
       return
     }
 
-    db.updateEvent(event.id, {
+    const payload = {
       name: settingsData.name.trim(),
       description: settingsData.description.trim(),
       vote_price: parsedPrice,
       start_date: settingsData.startDate ? new Date(settingsData.startDate).toISOString() : event.start_date,
       end_date: settingsData.endDate ? new Date(settingsData.endDate).toISOString() : event.end_date,
-    })
+    }
 
-    setSettingsSaved(true)
-    setTimeout(() => setSettingsSaved(false), 2500)
+    setIsSavingSettings(true)
+    try {
+      // 1. Call API to persist to Supabase
+      const res = await fetch("/api/events/update", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          eventId: event.id,
+          ...payload,
+        }),
+      })
+
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || "Failed to update event.")
+      }
+
+      // 2. Update local state
+      db.updateEvent(event.id, payload)
+      setEvent((prev: any) => ({ ...prev, ...payload }))
+
+      setSettingsSaved(true)
+      setTimeout(() => setSettingsSaved(false), 2500)
+    } catch (err: any) {
+      setSettingsError(err.message || "Failed to save settings.")
+    } finally {
+      setIsSavingSettings(false)
+    }
   }
 
   const confirmedVotes = votes.filter((v) => v.status === "confirmed")
@@ -1012,8 +1053,14 @@ export default function EventStudioPage() {
                   </span>
                 ) : <div />}
 
-                <Button type="submit" variant="primary" size="md" className="rounded-full font-bold">
-                  Save Changes
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="md"
+                  disabled={isSavingSettings}
+                  className="rounded-full font-bold"
+                >
+                  {isSavingSettings ? "Saving..." : "Save Changes"}
                 </Button>
               </div>
             </form>
