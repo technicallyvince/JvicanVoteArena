@@ -30,16 +30,6 @@ export function Footer() {
             <p className="text-xs sm:text-sm leading-relaxed text-neutral-400 max-w-sm">
               JVican Vote Arena is the premier event voting platform for pageants, cultural recognitions, academic awards, and talent showcases. Frictionless voter checkout with cryptographic instant receipts.
             </p>
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3 pt-1 text-xs font-semibold">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/[0.04] border border-white/[0.08] px-3 py-1.5 text-neutral-300">
-                <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
-                256-Bit Encrypted
-              </span>
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#C9A84C]/06 border border-[#C9A84C]/15 px-3 py-1.5 text-[#C9A84C]">
-                <Mail className="h-3.5 w-3.5 text-[#C9A84C]" />
-                Instant Email Receipts
-              </span>
-            </div>
           </div>
 
           {/* Quick Links */}
