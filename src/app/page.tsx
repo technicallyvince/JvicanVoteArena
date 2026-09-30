@@ -162,9 +162,7 @@ export default function HomePage() {
     }
   }, [isAuthenticated, router])
 
-  /* Show skeleton until client hydration is confirmed */
-  if (!hydrated) return <HeroSkeleton />
-
+  // Full content rendered immediately on server and hydrated seamlessly
   return (
     <div className="flex flex-col min-h-screen bg-[#040404] text-white selection:bg-[#C9A84C] selection:text-[#040404]">
 
