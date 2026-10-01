@@ -32,7 +32,6 @@ export async function POST(req: NextRequest) {
     }
 
     const newApp = {
-      id: nanoid(),
       event_id: eventId,
       category_id: categoryId,
       full_name: fullName.trim(),
@@ -43,8 +42,6 @@ export async function POST(req: NextRequest) {
       instagram_handle: instagramHandle?.trim() || null,
       reason_to_win: reasonToWin?.trim() || null,
       status: 'pending',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
     }
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -204,22 +201,31 @@ export async function PATCH(req: NextRequest) {
                 publicId = nextNumber < 10 ? `00${nextNumber}` : nextNumber < 100 ? `0${nextNumber}` : `${nextNumber}`
               }
 
+              const nomineeSlug = `${app.full_name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}-${nanoid(4).toLowerCase()}`
+
               const newNominee = {
-                id: nanoid(),
                 event_id: app.event_id,
                 category_id: app.category_id,
                 name: app.full_name,
-                slug: app.full_name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
+                slug: nomineeSlug,
                 description: app.bio || app.reason_to_win || 'Contestant approved by event organizers.',
                 image_url: app.image_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80',
                 public_id: publicId,
                 display_order: (eventNominees || []).length + 1,
                 status: 'active',
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
               }
 
-              await client.from('nominees').insert(newNominee)
+              const { data: insertedNom, error: nomInsertErr } = await client
+                .from('nominees')
+                .insert(newNominee)
+                .select()
+                .single()
+
+              if (nomInsertErr) {
+                console.error('[Application Approval Nominee Insert Error]:', nomInsertErr)
+              } else {
+                console.log('[Application Approval] Nominee created in DB:', insertedNom?.name, insertedNom?.public_id)
+              }
             }
           }
         }
