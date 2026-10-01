@@ -94,25 +94,15 @@ export default function EventStudioPage() {
 
   const [activeTab, setActiveTab] = useState<"overview" | "nominees" | "applications" | "categories" | "votes" | "settings">("overview")
 
-  if (!event && !isLoadingEvent) {
-    notFound()
-  }
-
-  if (!event) {
-    return (
-      <div className="min-h-screen bg-[#050608] text-white flex items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#C9A84C] border-t-transparent" />
-      </div>
-    )
-  }
-
   const handleApproveApplication = (appId: string) => {
+    if (!event) return
     db.updateNomineeApplicationStatus(appId, "approved")
     setApplications([...db.getNomineeApplications(event.id)])
     setNominees([...db.getNominees(event.id)])
   }
 
   const handleRejectApplication = (appId: string) => {
+    if (!event) return
     db.updateNomineeApplicationStatus(appId, "rejected")
     setApplications([...db.getNomineeApplications(event.id)])
   }
@@ -132,12 +122,12 @@ export default function EventStudioPage() {
 
   // Settings State
   const [settingsData, setSettingsData] = useState({
-    name: event.name || "",
-    description: event.description || "",
-    votePrice: (event.vote_price || 100).toString(),
-    startDate: event.start_date ? event.start_date.split("T")[0] : "",
-    endDate: event.end_date ? event.end_date.split("T")[0] : "",
-    bannerUrl: event.cover_image_url || "",
+    name: event?.name || "",
+    description: event?.description || "",
+    votePrice: (event?.vote_price || 100).toString(),
+    startDate: event?.start_date ? event.start_date.split("T")[0] : "",
+    endDate: event?.end_date ? event.end_date.split("T")[0] : "",
+    bannerUrl: event?.cover_image_url || "",
   })
   const [settingsSaved, setSettingsSaved] = useState(false)
 
@@ -301,10 +291,40 @@ export default function EventStudioPage() {
     }
   }
 
-  const confirmedVotes = votes.filter((v) => v.status === "confirmed")
-  const totalVotesCount = confirmedVotes.reduce((acc, v) => acc + v.quantity, 0)
-  const totalRevenue = confirmedVotes.reduce((acc, v) => acc + Number(v.total_amount), 0)
-  const isLive = (event.status === "published" || event.status === "approved") && new Date(event.end_date) > new Date()
+  const confirmedVotes = Array.isArray(votes) ? votes.filter((v) => v.status === "confirmed") : []
+  const totalVotesCount = confirmedVotes.reduce((acc, v) => acc + (Number(v.quantity) || 0), 0)
+  const totalRevenue = confirmedVotes.reduce((acc, v) => acc + (Number(v.total_amount) || 0), 0)
+  const isLive = event && (event.status === "published" || event.status === "approved") && new Date(event.end_date) > new Date()
+
+  if (isLoadingEvent) {
+    return (
+      <div className="min-h-screen bg-[#050608] text-white flex flex-col items-center justify-center gap-4 pt-24">
+        <div className="h-10 w-10 animate-spin rounded-full border-3 border-[#C9A84C] border-t-transparent shadow-lg shadow-[#C9A84C]/20" />
+        <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Loading Event Studio...</p>
+      </div>
+    )
+  }
+
+  if (!event) {
+    return (
+      <div className="min-h-screen bg-[#050608] text-white flex flex-col items-center justify-center px-4 pt-24">
+        <div className="max-w-md w-full rounded-3xl border border-white/[0.08] bg-[#0a0c14] p-8 text-center shadow-2xl">
+          <div className="h-12 w-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center mx-auto mb-4">
+            <Trophy className="h-6 w-6" />
+          </div>
+          <h2 className="text-xl font-black text-white">Event Not Found</h2>
+          <p className="text-xs text-slate-400 mt-2 mb-6">
+            The event you are looking for does not exist or may have been removed.
+          </p>
+          <Link href="/dashboard/events">
+            <Button variant="primary" size="md" className="rounded-full w-full font-bold">
+              Return to Events Portfolio
+            </Button>
+          </Link>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="py-8 sm:py-12 bg-[#050608] min-h-screen text-white relative overflow-hidden pt-24 sm:pt-28 selection:bg-[#C9A84C] selection:text-[#0a0c14]">
