@@ -139,9 +139,8 @@ export default function OrganizerEventsPortfolioPage() {
             {filteredEvents.map((evt) => {
               const categories = Array.isArray(evt.categories) ? evt.categories : db.getCategories(evt.id)
               const nominees = Array.isArray(evt.nominees) ? evt.nominees : db.getNominees(evt.id)
-              const evtVotes = db.getVotes(evt.id).filter((v) => v.status === "confirmed")
-              const votesCount = evtVotes.reduce((sum, v) => sum + v.quantity, 0)
-              const revenue = evtVotes.reduce((sum, v) => sum + Number(v.total_amount), 0)
+              const votesCount = Number(evt.total_votes) || 0
+              const revenue = Number(evt.total_revenue) || 0
 
               const isLive = (evt.status === "published" || evt.status === "approved") && new Date(evt.end_date) > new Date()
               const isClosed = evt.status === "closed" || new Date(evt.end_date) <= new Date()

@@ -37,10 +37,9 @@ export default function DashboardOverviewPage() {
   }, [])
 
   const votes = db.getVotes().filter((v) => v.status === "confirmed")
-  const payments = db.getPayments().filter((p) => p.status === "successful")
 
-  const totalRevenue = payments.reduce((acc, p) => acc + Number(p.amount), 0)
-  const totalVotesCast = votes.reduce((acc, v) => acc + Number(v.quantity), 0)
+  const totalRevenue = events.reduce((acc, e) => acc + (Number(e.total_revenue) || 0), 0)
+  const totalVotesCast = events.reduce((acc, e) => acc + (Number(e.total_votes) || 0), 0)
   const activeEventsCount = events.filter(
     (e) => (e.status === "published" || e.status === "approved") && new Date(e.end_date) > new Date()
   ).length
@@ -203,9 +202,8 @@ export default function DashboardOverviewPage() {
               </thead>
               <tbody className="divide-y divide-white/[0.06]">
                 {events.map((evt) => {
-                  const evtVotes = db.getVotes(evt.id).filter((v) => v.status === "confirmed")
-                  const count = evtVotes.reduce((acc, v) => acc + v.quantity, 0)
-                  const revenue = evtVotes.reduce((acc, v) => acc + Number(v.total_amount), 0)
+                  const count = Number(evt.total_votes) || 0
+                  const revenue = Number(evt.total_revenue) || 0
                   const nomineeCount = db.getNominees(evt.id).length
 
                   return (

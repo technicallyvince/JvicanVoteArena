@@ -47,23 +47,27 @@ export async function GET(req: NextRequest) {
         if (data && data.length > 0) {
           const { data: allConfirmedVotes } = await client!
             .from('votes')
-            .select('event_id, nominee_id, quantity')
+            .select('event_id, nominee_id, quantity, total_amount')
             .eq('status', 'confirmed')
 
           const votesByNominee: Record<string, number> = {}
           const votesByEvent: Record<string, number> = {}
+          const revenueByEvent: Record<string, number> = {}
 
           if (Array.isArray(allConfirmedVotes)) {
             for (const v of allConfirmedVotes) {
               const qty = Number(v.quantity) || 0
+              const amount = Number(v.total_amount) || 0
               votesByNominee[v.nominee_id] = (votesByNominee[v.nominee_id] || 0) + qty
               votesByEvent[v.event_id] = (votesByEvent[v.event_id] || 0) + qty
+              revenueByEvent[v.event_id] = (revenueByEvent[v.event_id] || 0) + amount
             }
           }
 
           events = data.map((ev: any) => ({
             ...ev,
             total_votes: votesByEvent[ev.id] || 0,
+            total_revenue: revenueByEvent[ev.id] || 0,
             nominees: (ev.nominees || []).map((nom: any) => ({
               ...nom,
               vote_count: votesByNominee[nom.id] || votesByNominee[nom.public_id] || 0,
@@ -85,6 +89,10 @@ export async function GET(req: NextRequest) {
           .getVotes(e.id)
           .filter((v) => v.status === 'confirmed')
           .reduce((sum, v) => sum + v.quantity, 0),
+        total_revenue: db
+          .getVotes(e.id)
+          .filter((v) => v.status === 'confirmed')
+          .reduce((sum, v) => sum + Number(v.total_amount), 0),
         categories: db.getCategories(e.id),
         nominees: db.getNominees(e.id).map((n) => ({
           ...n,
