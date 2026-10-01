@@ -1,0 +1,9 @@
+# Unrelated sub-projects — exclude from Vercel builds
+kill-ai-slop-main/
+ui-ux-pro-max-skill-main/
+
+# Misc
+.data/
+scripts/
+transitions/
+CLAUDE.md
