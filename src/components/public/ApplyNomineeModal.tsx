@@ -78,26 +78,29 @@ export function ApplyNomineeModal({
     setIsLoading(true)
 
     try {
-      // Create nominee application in database
-      const newApp: NomineeApplication = {
-        id: `app-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-        event_id: event.id,
-        category_id: categoryId,
-        full_name: fullName.trim(),
-        email: email.trim().toLowerCase(),
-        phone: phone.trim(),
-        bio: bio.trim() || null,
-        image_url:
-          imageUrl.trim() ||
-          "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80",
-        instagram_handle: instagramHandle.trim() || null,
-        reason_to_win: reasonToWin.trim() || null,
-        status: "pending",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      }
+      // Persist nominee application via API
+      const res = await fetch("/api/events/applications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          eventId: event.id,
+          categoryId,
+          fullName: fullName.trim(),
+          email: email.trim().toLowerCase(),
+          phone: phone.trim(),
+          bio: bio.trim() || null,
+          imageUrl:
+            imageUrl.trim() ||
+            "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80",
+          instagramHandle: instagramHandle.trim() || null,
+          reasonToWin: reasonToWin.trim() || null,
+        }),
+      })
 
-      db.createNomineeApplication(newApp)
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || "Failed to submit application.")
+      }
 
       setIsSubmitted(true)
       if (onSuccess) onSuccess()

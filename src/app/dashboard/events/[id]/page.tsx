@@ -71,6 +71,30 @@ export default function EventStudioPage() {
     }
   }
 
+  const refreshApplications = async (idToFetch: string) => {
+    try {
+      const res = await fetch(`/api/events/applications?eventId=${encodeURIComponent(idToFetch)}`, { cache: 'no-store' })
+      const data = await res.json()
+      if (data.success && Array.isArray(data.applications)) {
+        setApplications(data.applications)
+      }
+    } catch (err) {
+      console.error("Error refreshing applications:", err)
+    }
+  }
+
+  const refreshNominees = async (idToFetch: string) => {
+    try {
+      const res = await fetch(`/api/events/details?id=${encodeURIComponent(idToFetch)}&slug=${encodeURIComponent(idToFetch)}`, { cache: 'no-store' })
+      const data = await res.json()
+      if (data.success && Array.isArray(data.nominees)) {
+        setNominees(data.nominees)
+      }
+    } catch (err) {
+      console.error("Error refreshing nominees:", err)
+    }
+  }
+
   useEffect(() => {
     fetch(`/api/events/details?id=${encodeURIComponent(eventId)}&slug=${encodeURIComponent(eventId)}`, { cache: 'no-store' })
       .then((res) => res.json())
@@ -80,7 +104,8 @@ export default function EventStudioPage() {
           if (Array.isArray(data.categories)) setCategories(data.categories)
           if (Array.isArray(data.nominees)) setNominees(data.nominees)
           if (Array.isArray(data.votes)) setVotes(data.votes)
-          if (Array.isArray(data.applications)) setApplications(data.applications)
+          // Fetch applications for this event
+          refreshApplications(data.event.id)
         } else {
           setEvent(null)
         }
@@ -94,17 +119,43 @@ export default function EventStudioPage() {
 
   const [activeTab, setActiveTab] = useState<"overview" | "nominees" | "applications" | "categories" | "votes" | "settings">("overview")
 
-  const handleApproveApplication = (appId: string) => {
+  const handleApproveApplication = async (appId: string) => {
     if (!event) return
-    db.updateNomineeApplicationStatus(appId, "approved")
-    setApplications([...db.getNomineeApplications(event.id)])
-    setNominees([...db.getNominees(event.id)])
+    try {
+      const res = await fetch('/api/events/applications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ applicationId: appId, status: 'approved' }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Failed to approve application')
+      }
+      // Refresh applications and nominees list
+      await refreshApplications(event.id)
+      await refreshNominees(event.id)
+    } catch (err: any) {
+      alert(err.message || 'Failed to approve application.')
+    }
   }
 
-  const handleRejectApplication = (appId: string) => {
+  const handleRejectApplication = async (appId: string) => {
     if (!event) return
-    db.updateNomineeApplicationStatus(appId, "rejected")
-    setApplications([...db.getNomineeApplications(event.id)])
+    try {
+      const res = await fetch('/api/events/applications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ applicationId: appId, status: 'rejected' }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Failed to reject application')
+      }
+      // Refresh applications list
+      await refreshApplications(event.id)
+    } catch (err: any) {
+      alert(err.message || 'Failed to reject application.')
+    }
   }
 
   // Modal states
