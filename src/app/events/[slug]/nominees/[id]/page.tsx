@@ -100,17 +100,6 @@ export default function CanonicalNomineeDetailPage() {
     }
   }, [event?.id, nomineeId])
 
-  // Polling heartbeat every 6 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
-        loadData(true)
-      }
-    }, 6000)
-
-    return () => clearInterval(interval)
-  }, [slug, nomineeId])
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#06080e] text-white flex items-center justify-center">

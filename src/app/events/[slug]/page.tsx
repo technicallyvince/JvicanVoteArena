@@ -72,7 +72,7 @@ export default function EventDetailPage() {
     refreshEventData(false)
   }, [slug])
 
-  // Real-time Supabase postgres_changes channel
+  // Real-time Supabase postgres_changes channel for instant live vote tallies
   useEffect(() => {
     if (!event?.id) return
 
@@ -98,17 +98,6 @@ export default function EventDetailPage() {
       supabase.removeChannel(channel)
     }
   }, [event?.id])
-
-  // Background polling heartbeat every 6 seconds for continuous resilience
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
-        refreshEventData(true)
-      }
-    }, 6000)
-
-    return () => clearInterval(interval)
-  }, [slug])
 
   if (!event && !isLoadingEvent) {
     notFound()
