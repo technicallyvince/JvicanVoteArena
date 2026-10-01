@@ -8,6 +8,7 @@ import { formatCurrency, formatDateTime } from "@/lib/utils"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { Modal } from "@/components/ui/Modal"
+import { uploadImageFile } from "@/lib/upload"
 import {
   Trophy,
   Users,
@@ -1143,16 +1144,21 @@ export default function EventStudioPage() {
                   type="file"
                   accept="image/*"
                   className="hidden"
-                  onChange={(e) => {
+                  onChange={async (e) => {
                     const file = e.target.files?.[0]
                     if (file) {
-                      const reader = new FileReader()
-                      reader.onloadend = () => {
-                        if (typeof reader.result === "string") {
-                          setNomineeImage(reader.result)
+                      try {
+                        const url = await uploadImageFile(file, "nominees")
+                        setNomineeImage(url)
+                      } catch {
+                        const reader = new FileReader()
+                        reader.onloadend = () => {
+                          if (typeof reader.result === "string") {
+                            setNomineeImage(reader.result)
+                          }
                         }
+                        reader.readAsDataURL(file)
                       }
-                      reader.readAsDataURL(file)
                     }
                   }}
                 />

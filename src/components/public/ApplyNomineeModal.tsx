@@ -6,6 +6,7 @@ import { Modal } from "../ui/Modal"
 import { Button } from "../ui/Button"
 import { Input } from "../ui/Input"
 import { db } from "@/lib/db"
+import { uploadImageFile } from "@/lib/upload"
 import {
   Sparkles,
   User,
@@ -290,9 +291,13 @@ export function ApplyNomineeModal({
                     type="file"
                     accept="image/*"
                     className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0]
-                      if (file) {
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0]
+                    if (file) {
+                      try {
+                        const url = await uploadImageFile(file, "nominees")
+                        setImageUrl(url)
+                      } catch {
                         const reader = new FileReader()
                         reader.onloadend = () => {
                           if (typeof reader.result === "string") {
@@ -301,7 +306,8 @@ export function ApplyNomineeModal({
                         }
                         reader.readAsDataURL(file)
                       }
-                    }}
+                    }
+                  }}
                   />
                 </label>
               </div>

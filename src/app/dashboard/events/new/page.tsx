@@ -7,6 +7,7 @@ import { db } from "@/lib/db"
 import { slugify, formatCurrency } from "@/lib/utils"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
+import { uploadImageFile } from "@/lib/upload"
 import { AuthModal } from "@/components/auth/AuthModal"
 import { useAuth } from "@/lib/auth"
 import {
@@ -522,16 +523,21 @@ export default function EventCreationWizardPage() {
                           type="file"
                           accept="image/*"
                           className="hidden"
-                          onChange={(e) => {
+                          onChange={async (e) => {
                             const file = e.target.files?.[0]
                             if (file) {
-                              const reader = new FileReader()
-                              reader.onloadend = () => {
-                                if (typeof reader.result === "string") {
-                                  setEventDetails({ ...eventDetails, bannerImageUrl: reader.result })
+                              try {
+                                const url = await uploadImageFile(file, "banners")
+                                setEventDetails({ ...eventDetails, bannerImageUrl: url })
+                              } catch {
+                                const reader = new FileReader()
+                                reader.onloadend = () => {
+                                  if (typeof reader.result === "string") {
+                                    setEventDetails({ ...eventDetails, bannerImageUrl: reader.result })
+                                  }
                                 }
+                                reader.readAsDataURL(file)
                               }
-                              reader.readAsDataURL(file)
                             }
                           }}
                         />
@@ -713,16 +719,21 @@ export default function EventCreationWizardPage() {
                           type="file"
                           accept="image/*"
                           className="hidden"
-                          onChange={(e) => {
+                          onChange={async (e) => {
                             const file = e.target.files?.[0]
                             if (file) {
-                              const reader = new FileReader()
-                              reader.onloadend = () => {
-                                if (typeof reader.result === "string") {
-                                  setNewNomineeImage(reader.result)
+                              try {
+                                const url = await uploadImageFile(file, "nominees")
+                                setNewNomineeImage(url)
+                              } catch {
+                                const reader = new FileReader()
+                                reader.onloadend = () => {
+                                  if (typeof reader.result === "string") {
+                                    setNewNomineeImage(reader.result)
+                                  }
                                 }
+                                reader.readAsDataURL(file)
                               }
-                              reader.readAsDataURL(file)
                             }
                           }}
                         />

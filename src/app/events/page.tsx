@@ -15,7 +15,7 @@ export default function EventsDiscoveryPage() {
   const [searchQuery, setSearchQuery] = useState("")
 
   useEffect(() => {
-    fetch("/api/admin/events", { cache: "no-store" })
+    fetch("/api/events")
       .then((res) => res.json())
       .then((data) => {
         if (data.success && Array.isArray(data.events)) {
@@ -231,8 +231,8 @@ export default function EventsDiscoveryPage() {
                   <EventCard
                     key={event.id}
                     event={event}
-                    categoriesCount={categories.length || 1}
-                    nomineesCount={nominees.length || 0}
+                    categoriesCount={event.categories_count ?? (categories.length || 1)}
+                    nomineesCount={event.nominees_count ?? (nominees.length || 0)}
                   />
                 )
               })}
